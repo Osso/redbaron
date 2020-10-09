@@ -1,8 +1,4 @@
 from redbaron import nodes
-from redbaron.base_nodes import *
-from redbaron.nodes import *
-from redbaron.redbaron import *
-from redbaron.utils import *
 
 DEBUG = False
 ALL_IDENTIFIERS = set()

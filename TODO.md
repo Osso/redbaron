@@ -20,7 +20,7 @@ that none works as expected, for eg, this one fails:
     RedBaron("a(b, c=d, *e, **f)")[0].value[1].value[0] = "**dsq"
 
 in addition of passing empty string, allow to pass None value on setattr
-this needs to be done in "_convert_input_to_node_object" and it's possible
+this needs to be done in "to_node_object" and it's possible
 now since we have string type in nodes_rendering_order
 
 - implement tree visitor and transformer like in standard ast: https://docs.python.org/3/library/ast.html#ast.NodeTransformer

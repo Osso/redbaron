@@ -3,10 +3,11 @@
 
 """ Tests the setter methods """
 
-import pytest
 # pylint: disable=redefined-outer-name
+import pytest
 from redbaron import RedBaron
-from baron.utils import string_instance
+
+from baron.utils import str
 
 
 def test_setitem_nodelist():
@@ -75,7 +76,7 @@ def test_set_attr_on_dict_empty():
 def test_set_attr_def_name():
     red = RedBaron("def a(): pass")
     red[0].name = "plop"
-    assert isinstance(red[0].name, string_instance)
+    assert isinstance(red[0].name, str)
 
 
 def test_set_attr_def_arguments():

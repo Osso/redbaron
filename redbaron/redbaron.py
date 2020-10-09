@@ -6,26 +6,6 @@ from redbaron.base_nodes import (GenericNodesMixin,
 import baron
 import baron.path
 
-# TODO
-# LineProxyList: handle comments
-#                should a 'pass' be put if the list would be empty?
-#                add blank line arround in certain cases? Like arround function/class at first level and second level
-#                expected behavior on append when blank lines at the end of the block (-> append before blank lines)
-#                more explicit display for blank lines in line proxy .help()
-# if node_list is modified, the proxy list won't update itself -> bugs
-
-# CommaProxyList indented
-# "change formatting style"
-# the "\n" after the "[{(" is hold by the parent node, this parent node should have a method to tell the CommaProxyList where this is
-
-# FIXME: doc others.rst line 244
-# FIXME: __setattr__ is broken on formatting
-
-# XXX
-# should .next and .previous behavior should be changed to drop formatting
-# nodes? I guess so if I consider that with enough abstraction the user will
-# never have to play with formatting node unless he wants to
-
 
 class RedBaron(GenericNodesMixin, LineProxyList):
     def __init__(self, source_code):
@@ -67,8 +47,8 @@ class RedBaron(GenericNodesMixin, LineProxyList):
             self.data.append([current_line_to_el(current_line), []])
         self.node_list.parent = None
 
-    def _convert_input_to_node_object(self, value, parent, on_attribute):
-        return GenericNodesMixin._convert_input_to_node_object(self, value, self, "root")
+    def to_node_object(self, value):
+        return super().to_node_object(value, self, "root")
 
-    def _convert_input_to_node_object_list(self, value, parent, on_attribute):
-        return GenericNodesMixin._convert_input_to_node_object_list(self, value, self, "root")
+    def to_node_object_list(self, value):
+        return super().to_node_object_list(value, self, "root")

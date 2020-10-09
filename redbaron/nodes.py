@@ -1,18 +1,18 @@
 import re
 
-from redbaron.base_nodes import (CodeBlockNode,
-                                 CommaProxyList,
-                                 DotProxyList,
-                                 ElseAttributeNode,
-                                 IfElseBlockSiblingNode,
-                                 LineProxyList,
-                                 LiteralyEvaluableMixin,
-                                 Node,
-                                 NodeList)
 from redbaron.syntax_highlight import python_html_highlight
 
 import baron
-from baron.utils import string_instance
+
+from .base_nodes import (CodeBlockNode,
+                         ElseAttributeNode,
+                         IfElseBlockSiblingNode,
+                         Node,
+                         NodeList)
+from .node_mixin import LiteralyEvaluableMixin
+from .proxy_list import (CommaProxyList,
+                         DotProxyList,
+                         LineProxyList)
 
 
 class ArgumentGeneratorComprehensionNode(Node):
@@ -126,7 +126,7 @@ class AwaitNode(Node):
 
 class BinaryNode(Node, LiteralyEvaluableMixin):
     def __setattr__(self, key, value):
-        if key == "value" and isinstance(value, string_instance):
+        if key == "value" and isinstance(value, str):
             assert baron.parse(value)[0]["type"] == "binary"
 
         return super(BinaryNode, self).__setattr__(key, value)
@@ -134,7 +134,7 @@ class BinaryNode(Node, LiteralyEvaluableMixin):
 
 class BinaryOperatorNode(Node):
     def __setattr__(self, key, value):
-        if key == "value" and isinstance(value, string_instance):
+        if key == "value" and isinstance(value, str):
             assert baron.parse("a %s b" % value)[0]["type"] == "binary_operator"
 
         return super(BinaryOperatorNode, self).__setattr__(key, value)
@@ -160,7 +160,7 @@ class BinaryRawStringNode(Node, LiteralyEvaluableMixin):
 
 class BooleanOperatorNode(Node):
     def __setattr__(self, key, value):
-        if key == "value" and isinstance(value, string_instance):
+        if key == "value" and isinstance(value, str):
             assert baron.parse("a %s b" % value)[0]["type"] == "boolean_operator"
 
         return super(BooleanOperatorNode, self).__setattr__(key, value)
@@ -244,7 +244,7 @@ class CommentNode(Node):
 
 class ComparisonNode(Node):
     def __setattr__(self, key, value):
-        if key == "value" and isinstance(value, string_instance):
+        if key == "value" and isinstance(value, str):
             assert baron.parse("a %s b" % value)[0]["type"] == "comparison"
 
         return super(ComparisonNode, self).__setattr__(key, value)
@@ -286,7 +286,7 @@ class ComprehensionLoopNode(Node):
             return NodeList.from_fst(baron.parse("[x for x in x %s]" % string)[0]["generators"][0]["ifs"], parent=parent, on_attribute=on_attribute)
 
         else:
-            return super(ClassNode, self)._string_to_node_list(string, parent, on_attribute)
+            return super()._string_to_node_list(string, parent, on_attribute)
 
     def _string_to_node(self, string, parent, on_attribute):
         if on_attribute == "iterator":
@@ -321,6 +321,7 @@ class DefNode(CodeBlockNode):
     _default_test_value = "name"
     return_annotation_first_formatting = None
     return_annotation_second_formatting = None
+    async_formatting = None
 
     def _string_to_node(self, string, parent, on_attribute):
         if on_attribute == "return_annotation":
