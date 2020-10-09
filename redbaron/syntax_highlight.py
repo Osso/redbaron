@@ -1,7 +1,7 @@
 HAS_PYGMENTS = True
 
 try:
-    import pygments
+    import pygments  # pylint: disable=unused-import
 except ImportError:
     HAS_PYGMENTS = False
 
