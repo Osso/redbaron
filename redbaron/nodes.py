@@ -44,8 +44,7 @@ class AssertNode(Node):
                 self.third_formatting = [Node.from_fst({"type": "space", "value": " "}, on_attribute=on_attribute, parent=parent)]
                 return Node.from_fst(baron.parse("assert plop, %s" % string)[0]["message"], parent=parent, on_attribute=on_attribute)
 
-        else:
-            raise Exception("Unhandled case")
+        raise Exception("Unhandled case")
 
 
 class AssignmentNode(Node):
@@ -211,6 +210,7 @@ class CallArgumentNode(Node):
 
 class ClassNode(CodeBlockNode):
     _default_test_value = "name"
+    parenthesis = False
 
     def _string_to_node_list(self, string, parent, on_attribute):
         if on_attribute == "decorators":
