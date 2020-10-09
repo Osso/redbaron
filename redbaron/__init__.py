@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-
 from redbaron import nodes
 from redbaron.base_nodes import *
 from redbaron.nodes import *

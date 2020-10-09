@@ -1,6 +1,5 @@
-from __future__ import absolute_import
-
 import ast
+from collections import UserList
 from fnmatch import fnmatch
 import inspect
 import itertools
@@ -23,16 +22,7 @@ from redbaron.utils import (baron_type_to_redbaron_classname,
 import baron
 import baron.path
 from baron.render import nodes_rendering_order
-from baron.utils import (python_version,
-                         string_instance)
-
-if python_version == 3:
-    from collections import UserList
-else:
-    from UserList import UserList
-
-# python 3.7 compatibility
-RE_PATTERN_FIELD = re.Pattern if hasattr(re, "Pattern") else re._pattern_type
+from baron.utils import string_instance
 
 
 def display_property_atttributeerror_exceptions(function):
@@ -823,7 +813,7 @@ class Node(GenericNodesUtils):
 
         all_my_keys = node._str_keys + node._list_keys + node._dict_keys
 
-        if args and isinstance(args[0], (string_instance, RE_PATTERN_FIELD, list, tuple)):
+        if args and isinstance(args[0], (string_instance, re._pattern_type, list, tuple)):
             if not self._attribute_match_query([getattr(node, node._default_test_value)], args[0]):
                 return False
             args = args[1:]
@@ -860,7 +850,7 @@ class Node(GenericNodesUtils):
                 if fnmatch(attribute, query[2:]):
                     return True
 
-            elif isinstance(query, RE_PATTERN_FIELD):
+            elif isinstance(query, re._pattern_type):
                 if query.match(attribute):
                     return True
 
