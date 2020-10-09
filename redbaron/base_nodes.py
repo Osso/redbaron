@@ -145,7 +145,7 @@ class Path(object):
         return to_return
 
 
-class LiteralyEvaluable(object):
+class LiteralyEvaluable:
     def to_python(self):
         try:
             return ast.literal_eval(self.dumps().strip())
@@ -1333,8 +1333,8 @@ class ProxyList(object):
     def __init__(self, node_list, on_attribute="value"):
         self.node_list = node_list
         self.heading_formatting = []
-        self.data = self._build_inner_list(node_list)
         self.on_attribute = on_attribute
+        self.data = self._node_list_to_data(node_list)
 
     def _convert_input_to_node_object(self, value, parent, on_attribute):
         lst = self.node_list.parent._convert_input_to_node_object_list(value, parent, on_attribute)
@@ -1557,7 +1557,6 @@ class LineProxyList(ProxyList):
         return self.node_list.filtered()[
             0].indentation if self.node_list.filtered() else self.parent.indentation + "    "
 
-    def _generate_expected_list(self):
         log("Start _generate_expected_list for LineProxyList")
         log(">>> current list '%s'", self.data)
         indentation = self._get_separator_indentation()
