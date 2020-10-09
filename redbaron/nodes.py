@@ -1439,4 +1439,124 @@ class WithNode(CodeBlockNode):
 
 
 class EmptyLine(Node):
-    pass
+    def _default_fst(self):
+        return {}
+
+
+class ElseAttributeNode(CodeBlockNode):
+    def _get_last_member_to_clean(self):
+        return self
+
+    def _convert_input_to_one_indented_member(self, indented_type, string,
+                                              parent, on_attribute):
+        def remove_trailing_endl(node):
+            if isinstance(node.value, ProxyList):
+                while node.value.node_list[-1].type == "endl":
+                    node.value.node_list.pop()
+            else:
+                while node.value[-1].type == "endl":
+                    node.value.pop()
+
+        if not string:
+            last_member = self
+            remove_trailing_endl(last_member)
+            if isinstance(last_member.value, ProxyList):
+                last_member.value.node_list.append(
+                    nodes.EndlNode({"type": "endl", "indent": "",
+                                    "formatting": [], "value": "\n"},
+                                   parent=last_member, on_attribute="value"))
+            else:
+                last_member.value.append(
+                    nodes.EndlNode({"type": "endl", "indent": "",
+                                    "formatting": [], "value": "\n"},
+                                   parent=last_member, on_attribute="value"))
+            return ""
+
+        if re.match(r"^\s*%s" % indented_type, string):
+
+            # we've got indented text, let's deindent it
+            if string.startswith((" ", "    ")):
+                # assuming that the first spaces are the indentation
+                indentation = len(re.search("^ +", string).group())
+                string = re.sub("(\r?\n)%s" % (" " * indentation), "\\1", string)
+                string = string.lstrip()
+
+            node = Node.from_fst(baron.parse("try: pass\nexcept: pass\n%s" % string)[0][indented_type], parent=parent,
+                                 on_attribute=on_attribute)
+            node.value = self.parse_code_block(node.value.dumps(), parent=node, on_attribute="value")
+
+        else:
+            # XXX quite hackish way of doing this
+            fst = {'first_formatting': [],
+                   'second_formatting': [],
+                   'type': indented_type,
+                   'value': [{'type': 'pass'},
+                             {'formatting': [],
+                              'indent': '',
+                              'type': 'endl',
+                              'value': '\n'}]}
+
+            node = Node.from_fst(fst, parent=parent, on_attribute=on_attribute)
+            node.value = self.parse_code_block(string=string, parent=parent, on_attribute=on_attribute)
+
+        # ensure that the node ends with only one endl token, we'll add more later if needed
+        remove_trailing_endl(node)
+        node.value.node_list.append(
+            nodes.EndlNode({"type": "endl",
+                            "indent": "",
+                            "formatting": [],
+                            "value": "\n"},
+                           parent=node,
+                           on_attribute="value"))
+
+        last_member = self._get_last_member_to_clean()
+
+        # XXX this risk to remove comments
+        if self.next:
+            remove_trailing_endl(last_member)
+            if isinstance(last_member.value, ProxyList):
+                last_member.value.node_list.append(
+                    nodes.EndlNode({"type": "endl", "indent": "",
+                                    "formatting": [], "value": "\n"},
+                                   parent=last_member,
+                                   on_attribute="value"))
+            else:
+                last_member.value.append(
+                    nodes.EndlNode({"type": "endl", "indent": "",
+                                    "formatting": [], "value": "\n"},
+                                   parent=last_member,
+                                   on_attribute="value"))
+
+            if self.indentation:
+                node.value.node_list.append(nodes.EndlNode(
+                    {"type": "endl", "indent": self.indentation,
+                     "formatting": [], "value": "\n"},
+                    parent=node, on_attribute="value"))
+            else:  # we are on root level and followed: we need 2 blanks lines after the node
+                node.value.node_list.append(
+                    nodes.EndlNode({"type": "endl", "indent": "",
+                                    "formatting": [], "value": "\n"},
+                                   parent=node, on_attribute="value"))
+                node.value.node_list.append(
+                    nodes.EndlNode({"type": "endl", "indent": "",
+                                    "formatting": [], "value": "\n"},
+                                   parent=node, on_attribute="value"))
+
+        if isinstance(last_member.value, ProxyList):
+            last_member.value.node_list[-1].indent = self.indentation
+        else:
+            last_member.value[-1].indent = self.indentation
+
+        return node
+
+    def _string_to_node(self, string, parent, on_attribute):
+        if on_attribute != "else":
+            return super(ElseAttributeNode, self)._string_to_node(string, parent=parent, on_attribute=on_attribute)
+
+        return self._convert_input_to_one_indented_member("else", string, parent, on_attribute)
+
+    def __setattr__(self, name, value):
+        if name == "else_":
+            name = "else"
+
+        return super(ElseAttributeNode, self).__setattr__(name, value)

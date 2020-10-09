@@ -3,8 +3,6 @@ import logging
 import re
 import sys
 
-import redbaron
-
 logger = logging.getLogger("redbaron")
 
 
@@ -30,6 +28,8 @@ def in_a_shell():
 
 
 def in_ipython():
+    import redbaron
+
     if redbaron.force_ipython_behavior:
         return True
 
