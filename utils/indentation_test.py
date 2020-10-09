@@ -7,6 +7,7 @@ from redbaron import RedBaron
 red = RedBaron(open("../redbaron.py", "r").read())
 # red = RedBaron(open(__file__, "r").read())
 
+
 def walk(node):
     if node is None:
         return
@@ -16,6 +17,7 @@ def walk(node):
 
     for i in node._list_keys:
         map(walk, getattr(node, i))
+
 
 map(walk, red)
 # print(walk(red[0]))

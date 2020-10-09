@@ -13,7 +13,6 @@ if HAS_PYGMENTS:
     from pygments.lexers import PythonLexer
     from pygments.formatters import Terminal256Formatter, HtmlFormatter
 
-
     class HelpLexer(RegexLexer):
         name = 'Lexer for RedBaron .help() method output'
 
