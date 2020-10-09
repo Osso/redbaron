@@ -34,20 +34,20 @@ if HAS_PYGMENTS:
         return highlight(string, HelpLexer(), Terminal256Formatter(style='monokai'))
 
     def python_highlight(string):
-        return highlight(string, PythonLexer(encoding="Utf-8"),
+        return highlight(string, PythonLexer(encoding="utf-8"),
                          Terminal256Formatter(style='monokai',
-                                              encoding="Utf-8"))
+                                              encoding="utf-8"))
 
     def python_html_highlight(string):
-        return highlight(string, PythonLexer(encode="Utf-8"),
-                         HtmlFormatter(noclasses=True, encoding="UTf-8"))
+        return highlight(string, PythonLexer(encode="utf-8"),
+                         HtmlFormatter(noclasses=True, encoding="uTf-8"))
 
 else:
     def help_highlight(string):
-        return string.encode("Utf-8")
+        return string.encode("utf-8")
 
     def python_highlight(string):
-        return string.encode("Utf-8")
+        return string.encode("utf-8")
 
     def python_html_highlight(string):
-        return string.encode("Utf-8")
+        return string.encode("utf-8")
