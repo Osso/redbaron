@@ -1,11 +1,10 @@
 from __future__ import absolute_import
 
-from redbaron.redbaron import *
-from redbaron.utils import *
+from redbaron import nodes
 from redbaron.base_nodes import *
 from redbaron.nodes import *
-
-from redbaron import nodes
+from redbaron.redbaron import *
+from redbaron.utils import *
 
 DEBUG = False
 ALL_IDENTIFIERS = set()

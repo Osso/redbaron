@@ -4,16 +4,14 @@ import os
 import re
 import sys
 
-from baron.utils import python_version
-
 import redbaron
 
+from baron.utils import python_version
 
 if python_version == 3:
     from io import StringIO
 else:
     from StringIO import StringIO
-
 
 
 def baron_type_to_redbaron_classname(baron_type):

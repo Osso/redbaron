@@ -1,11 +1,11 @@
 from __future__ import absolute_import
 
+from redbaron import (base_nodes,
+                      nodes)
+
 import baron
 import baron.path
 from baron.utils import string_instance
-
-from redbaron import nodes, base_nodes
-
 
 # TODO
 # LineProxyList: handle comments

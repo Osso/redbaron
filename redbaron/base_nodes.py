@@ -1,25 +1,30 @@
 from __future__ import absolute_import
 
-import re
-import os
-import sys
 import ast
+from fnmatch import fnmatch
 import inspect
 import itertools
+import os
+import re
+import sys
 
-from fnmatch import fnmatch
+import redbaron
+from redbaron.private_config import runned_from_ipython
+from redbaron.syntax_highlight import (help_highlight,
+                                       python_highlight,
+                                       python_html_highlight)
+from redbaron.utils import (baron_type_to_redbaron_classname,
+                            in_a_shell,
+                            indent,
+                            log,
+                            redbaron_classname_to_baron_type,
+                            truncate)
 
 import baron
 import baron.path
-from baron.utils import python_version, string_instance
 from baron.render import nodes_rendering_order
-
-import redbaron
-
-from redbaron.utils import redbaron_classname_to_baron_type, baron_type_to_redbaron_classname, log, in_a_shell, indent, \
-    truncate
-from redbaron.private_config import runned_from_ipython
-from redbaron.syntax_highlight import help_highlight, python_highlight, python_html_highlight
+from baron.utils import (python_version,
+                         string_instance)
 
 if python_version == 3:
     from collections import UserList
@@ -1256,7 +1261,7 @@ class ElseAttributeNode(CodeBlockNode):
         if re.match("^\s*%s" % indented_type, string):
 
             # we've got indented text, let's deindent it
-            if string.startswith((" ", "	")):
+            if string.startswith((" ", "    ")):
                 # assuming that the first spaces are the indentation
                 indentation = len(re.search("^ +", string).group())
                 string = re.sub("(\r?\n)%s" % (" " * indentation), "\\1", string)

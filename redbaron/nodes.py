@@ -2,11 +2,19 @@ from __future__ import absolute_import
 
 import re
 
+from redbaron.base_nodes import (CodeBlockNode,
+                                 CommaProxyList,
+                                 DotProxyList,
+                                 ElseAttributeNode,
+                                 IfElseBlockSiblingNode,
+                                 LineProxyList,
+                                 LiteralyEvaluable,
+                                 Node,
+                                 NodeList)
+from redbaron.syntax_highlight import python_html_highlight
+
 import baron
 from baron.utils import string_instance
-
-from redbaron.base_nodes import Node, NodeList, LiteralyEvaluable, CodeBlockNode, DotProxyList, CommaProxyList, LineProxyList, IfElseBlockSiblingNode, ElseAttributeNode
-from redbaron.syntax_highlight import python_html_highlight
 
 
 class ArgumentGeneratorComprehensionNode(Node):
