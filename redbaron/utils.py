@@ -23,10 +23,22 @@ def log(msg, *args):
 
 def in_a_shell():
     # the isinstance here is for building sphinx doc
-    if redbaron.DEBUG or isinstance(sys.stdout, StringIO):
+    if isinstance(sys.stdout, StringIO):
         return True
 
     return sys.__stdin__.isatty()
+
+
+def in_ipython():
+    if redbaron.force_ipython_behavior:
+        return True
+
+    try:
+        __IPYTHON__
+    except NameError:
+        return False
+    else:
+        return True
 
 
 def indent(block_of_text, indentation):

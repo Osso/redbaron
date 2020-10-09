@@ -14,7 +14,6 @@ from . import (ALL_IDENTIFIERS,
                nodes)
 from .node_mixin import GenericNodesMixin
 from .node_path import Path
-from .private_config import runned_from_ipython
 from .proxy_list import (DecoratorsLineProxyList,
                          LineProxyList,
                          ProxyList)
@@ -23,6 +22,7 @@ from .syntax_highlight import (help_highlight,
                                python_html_highlight)
 from .utils import (baron_type_to_redbaron_classname,
                     in_a_shell,
+                    in_ipython,
                     indent,
                     redbaron_classname_to_baron_type,
                     truncate)
@@ -637,7 +637,7 @@ class Node(GenericNodesMixin):
         return baron.dumps(self.fst())
 
     def help(self, deep=2, with_formatting=False):
-        if runned_from_ipython():
+        if in_ipython():
             sys.stdout.write(help_highlight(self.__help__(deep=deep, with_formatting=with_formatting) + "\n"))
         else:
             sys.stdout.write(self.__help__(deep=deep, with_formatting=with_formatting) + "\n")
@@ -699,7 +699,7 @@ class Node(GenericNodesMixin):
         )
 
     def __str__(self):
-        if runned_from_ipython():
+        if in_ipython():
             return python_highlight(self.dumps()).decode("Utf-8")
         else:
             return self.dumps()
