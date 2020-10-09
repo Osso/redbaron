@@ -33,6 +33,8 @@ class ArgumentGeneratorComprehensionNode(Node):
 
 
 class AssertNode(Node):
+    third_formatting = None
+
     def _string_to_node(self, string, parent, on_attribute):
         if on_attribute == "value":
             return Node.from_fst(baron.parse("assert %s" % string)[0]["value"], parent=parent, on_attribute=on_attribute)
@@ -48,6 +50,8 @@ class AssertNode(Node):
 
 class AssignmentNode(Node):
     _other_identifiers = ["assign"]
+    annotation_first_formatting = None
+    annotation_second_formatting = None
 
     def __setattr__(self, key, value):
         if key == "operator":
@@ -180,8 +184,9 @@ class BreakNode(Node):
 class CallNode(Node):
     def _string_to_node_list(self, string, parent, on_attribute):
         if on_attribute == "value":
-            return NodeList.from_fst(baron.parse("a(%s)" % string)[0]["value"][1]["value"], parent=parent, on_attribute=on_attribute)
-
+            fst = baron.parse("a(%s)" % string)[0]["value"][1]["value"]
+            return NodeList.from_fst(fst, parent=parent,
+                                     on_attribute=on_attribute)
         else:
             raise Exception("Unhandled case")
 
