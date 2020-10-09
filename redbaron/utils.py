@@ -1,5 +1,4 @@
 from io import StringIO
-import os
 import re
 import sys
 
@@ -24,14 +23,8 @@ def in_a_shell():
     # the isinstance here is for building sphinx doc
     if redbaron.DEBUG or isinstance(sys.stdout, StringIO):
         return True
-    try:
-        if hasattr(sys.stdout, 'fileno') and os.isatty(sys.stdout.fileno()):
-            return True
-    except Exception:
-        # someone is doing strange things with stdout (eg: bpython or ipython notebook)
-        return False
 
-    return False
+    return sys.__stdin__.isatty()
 
 
 def indent(block_of_text, indentation):
