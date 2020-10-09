@@ -35,7 +35,8 @@ def indent(block_of_text, indentation):
 
     Take a block of text, an indentation string and return the indented block.
     """
-    return "\n".join(map(lambda x: indentation + x, block_of_text.split("\n")))
+    return "\n".join([indentation + line
+                      for line in block_of_text.splitlines()])
 
 
 def truncate(text, n):
