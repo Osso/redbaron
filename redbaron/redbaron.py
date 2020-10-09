@@ -32,7 +32,10 @@ class RedBaron(base_nodes.GenericNodesUtils, base_nodes.LineProxyList):
 
         if isinstance(source_code, string_instance):
             self.node_list = base_nodes.NodeList.from_fst(baron.parse(source_code), parent=self, on_attribute="root")
-            self.middle_separator = nodes.DotNode({"type": "endl", "formatting": [], "value": "\n", "indent": ""})
+            self.middle_separator = nodes.EndlNode({"type": "endl",
+                                                    "formatting": [],
+                                                    "value": "\n",
+                                                    "indent": ""})
 
             self.data = []
             previous = None
