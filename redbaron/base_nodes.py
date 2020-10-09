@@ -145,7 +145,7 @@ class Path(object):
         return to_return
 
 
-class LiteralyEvaluable:
+class LiteralyEvaluableMixin:
     def to_python(self):
         try:
             return ast.literal_eval(self.dumps().strip())
