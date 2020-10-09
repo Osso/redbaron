@@ -156,13 +156,13 @@ class LiteralyEvaluableMixin:
             raise e
 
 
-class GenericNodesUtils(object):
+class GenericNodesUtils:
     """
     Mixen top class for Node and NodeList that contains generic methods that are used by both.
     """
 
     def _convert_input_to_node_object(self, value, parent, on_attribute, generic=False):
-        if isinstance(value, string_instance):
+        if isinstance(value, str):
             if generic:
                 return Node.from_fst(baron.parse(value)[0], parent=parent, on_attribute=on_attribute)
             else:
