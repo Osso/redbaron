@@ -8,6 +8,7 @@ import re
 import sys
 
 import redbaron
+from redbaron import nodes
 from redbaron.private_config import runned_from_ipython
 from redbaron.syntax_highlight import (help_highlight,
                                        python_highlight,
@@ -1333,15 +1334,23 @@ class ProxyList(object):
         self.node_list = node_list
         self.heading_formatting = []
         self.data = self._build_inner_list(node_list)
-        self.middle_separator = redbaron.nodes.CommaNode(
-            {"type": "comma", "first_formatting": [], "second_formatting": [{"type": "space", "value": " "}]})
         self.on_attribute = on_attribute
 
-    def _build_inner_list(self, node_list):
+    def _convert_input_to_node_object(self, value, parent, on_attribute):
+        lst = self.node_list.parent._convert_input_to_node_object_list(value, parent, on_attribute)
+        return lst.filtered()[0]
+
+    def _convert_input_to_node_object_list(self, value, parent, on_attribute):
+        if isinstance(value, str):
+            return self.node_list.parent._convert_input_to_node_object_list(value, parent, on_attribute)
+        return NodeList([self._convert_input_to_node_object(x, parent, on_attribute) for x in value])
+
+    def _node_list_to_data(self, node_list):
         result = []
+        separator_type = type(self.middle_separator)
 
         for i in node_list:
-            if isinstance(i, (redbaron.nodes.EndlNode, redbaron.nodes.CommaNode, redbaron.nodes.DotNode)):
+            if isinstance(i, separator_type):
                 if result:
                     result[-1][1].append(i)
                 else:
@@ -1351,74 +1360,45 @@ class ProxyList(object):
 
         return result
 
-    def __call__(self, identifier, *args, **kwargs):
-        return self.node_list.find_all(identifier, *args, **kwargs)
-
-    def _convert_input_to_node_object(self, value, parent, on_attribute):
-        lst = self.node_list.parent._convert_input_to_node_object_list(value, parent, on_attribute)
-        if all(i.type == 'endl' for i in lst):
-            return lst[0]
-        else:
-            return lst.filtered()[0]
-
-    def _convert_input_to_node_object_list(self, value, parent, on_attribute):
-        if isinstance(value, string_instance):
-            return self.node_list.parent._convert_input_to_node_object_list(value, parent, on_attribute)
-        else:
-            return NodeList([self._convert_input_to_node_object(x, parent, on_attribute) for x in value])
-
-    def _generate_expected_list(self):
+    def _data_to_node_list(self):
         expected_list = self.heading_formatting[:]
 
-        for position, i in enumerate(self.data):
-            is_last = position == len(self.data) - 1
+        for i in self.data:
             expected_list.append(i[0])
-            # XXX this will need refactoring...
-            if i[1] is not None:
-                # here we encounter a middle value that should have formatting
-                # to separate between the intems but has not so we add it
-                # this happen because a new value has been added after this one
-                if not is_last and not i[1]:
-                    separator = self.middle_separator.copy()
-                    separator.parent = self.node_list
-                    separator.on_attribute = self.on_attribute
-                    expected_list.append(separator)
-
-                # XXX shoud uniformise the list of formatting nodes
-                elif is_last and i[1] and i[1][0].type in ("comma", "dot"):
-                    # XXX this will likely break comments if presents at the end of the list
-                    pass
-                else:
-                    expected_list += i[1]
-            else:
-                # here we generate the new expected formatting
-                # None is used as a sentry value for newly inserted values in the proxy list
-                if not is_last:
-                    separator = self.middle_separator.copy()
-                    separator.parent = self.node_list
-                    separator.on_attribute = self.on_attribute
-                    expected_list.append(separator)
+            expected_list.extend(i[1])
 
         return expected_list
 
+    def make_separator(self):
+        separator = self.middle_separator.copy()
+        separator.parent = self.node_list
+        separator.on_attribute = self.on_attribute
+        return separator
+
     def _synchronise(self):
-        self.node_list.data = self._generate_expected_list()[:]
-        self.data = self._build_inner_list(self.node_list.data)
+        self.node_list.data = self._generate_node_list()
 
     def __len__(self):
         return len(self.data)
 
-    def insert(self, index, value):
-        value = self._convert_input_to_node_object(value, parent=self.node_list, on_attribute=self.on_attribute)
-        self.data.insert(index, [value, None])
-        self._synchronise()
+    def insert(self, index, value, synchronise=True):
+        value = self._convert_input_to_node_object(value,
+                                                   parent=self.node_list,
+                                                   on_attribute=self.on_attribute)
+        if index == len(self) and not self.data[index-1][1]:
+            self.data[index-1][1] = self.make_separator()
+            self.data.insert(index, [value, []])
+        else:
+            self.data.insert(index, [value, [self.make_separator()]])
+        if synchronise:
+            self._synchronise()
 
-    def append(self, value):
-        self.insert(len(self), value)
+    def append(self, value, synchronise=True):
+        self.insert(len(self), value, synchronise)
 
     def extend(self, values):
-        self.data.extend(map(lambda x: [x, None], self._convert_input_to_node_object_list(values, parent=self.node_list,
-                                                                                          on_attribute=self.on_attribute)))
+        for value in values:
+            self.append(value, synchronise=False)
         self._synchronise()
 
     def pop(self, index=None):
@@ -1437,21 +1417,23 @@ class ProxyList(object):
         else:
             self.pop(index)
 
-    def index(self, value, *args):
-        # XXX would be better if I iterate other the list
-        return [x[0] for x in self.data].index(value, *args)
+    def index(self, value):
+        for position, el in enumerate(self.data):
+            if el[0] is value:
+                return position
+        return None
 
     def __getitem__(self, index):
         if isinstance(index, slice):
             return self.__getslice__(index.start, index.stop)
-        else:
-            return self.data[index][0]
+        return self.data[index][0]
 
     def __contains__(self, *args, **kwargs):
         return self.data.__contains__(*args, **kwargs)
 
     def __iter__(self):
-        return map(lambda x: x[0], self.data).__iter__()
+        for el in self.data:
+            yield el[0]
 
     def count(self, value):
         return [x[0] for x in self.data].count(value)
@@ -1523,140 +1505,38 @@ class ProxyList(object):
         return getattr(self.node_list, key)
 
 
+class SpaceProxyList(ProxyList):
+    def __init__(self, node_list, on_attribute="value"):
+        self.middle_separator = nodes.SpaceNode(
+            {"type": "comma", "first_formatting": [],
+             "second_formatting": [{"type": "space", "value": " "}]})
+        super().__init__(node_list, on_attribute=on_attribute)
+
+
 class CommaProxyList(ProxyList):
     def __init__(self, node_list, on_attribute="value"):
+        self.style = "flat"
+        self.middle_separator = nodes.CommaNode(
+            {"type": "comma", "first_formatting": [],
+             "second_formatting": [{"type": "space", "value": " "}]})
         super(CommaProxyList, self).__init__(node_list, on_attribute=on_attribute)
-        self.style = "indented" if any(self.node_list('comma', recursive=False).map(lambda x: x('endl'))) else "flat"
 
-        # XXX will likely break if the user modify the formatting of the list,
-        # I don't like that
-        self.has_trailing = self.node_list and self.node_list[-1].type == "comma"
-
-    def _get_middle_separator(self):
-        if self.style == "indented":
-            return redbaron.nodes.CommaNode({"type": "comma", "first_formatting": [], "second_formatting": [
-                {"type": "endl", "indent": self.parent.indentation + "    ", "formatting": [], "value": "\n"}]})
-
-        return redbaron.nodes.CommaNode(
-            {"type": "comma", "first_formatting": [], "second_formatting": [{"type": "space", "value": " "}]})
-
-    def _generate_expected_list(self):
-        def generate_separator():
-            separator = self._get_middle_separator()
-            separator.parent = self.node_list
-            separator.on_attribute = self.on_attribute
-            return separator
-
-        # XXX will break comments
-        if not self.data:
-            self.parent.first_formatting = []
-            self.parent.second_formatting = []
-            return []
-
-        expected_list = []
-
-        for position, i in enumerate(self.data):
-            is_last = position == len(self.data) - 1
-            expected_list.append(i[0])
-            # XXX this will need refactoring...
-            if i[1] is not None:
-                # here we encounter a middle value that should have formatting
-                # to separate between the intems but has not so we add it
-                # this happen because a new value has been added after this one
-                if not is_last and not i[1]:
-                    expected_list.append(generate_separator())
-
-                # comma list doesn't have trailing but has a comma at its end, remove it
-                elif is_last and not self.has_trailing and i[1] and i[1][0].type == "comma":
-                    # XXX this will likely break comments if presents at the end of the list
-                    pass
-                else:
-                    expected_list += i[1]
-
-                    # XXX will break comments
-                    if self.style == "indented":
-                        if not expected_list[-1].second_formatting.endl:
-                            raise Exception(
-                                "It appears that you have indentation in your CommaList, for now RedBaron doesn't know how to handle this situation (which requires a lot of work), sorry about that. You can find more information here https://github.com/PyCQA/redbaron/issues/100")
-                        elif expected_list[-1].second_formatting.endl.indent != self.parent.indentation + " " * 4:
-                            expected_list[-1].second_formatting.endl.indent = self.parent.indentation + " " * 4
-            else:
-                # here we generate the new expected formatting
-                # None is used as a sentry value for newly inserted values in the proxy list
-                if not is_last:
-                    expected_list.append(generate_separator())
-                elif self.has_trailing:
-                    expected_list.append(generate_separator())
-                    expected_list[-1].second_formatting[0].indent = ""
-
-        if expected_list and self.has_trailing and self.style == "indented":
-            if not expected_list[-1].second_formatting.endl:
-                raise Exception(
-                    "It appears that you have indentation in your CommaList, for now RedBaron doesn't know how to handle this situation (which requires a lot of work), sorry about that. You can find more information here https://github.com/PyCQA/redbaron/issues/100")
-            elif expected_list[-1].second_formatting.endl.indent != self.parent.indentation:
-                expected_list[-1].second_formatting.endl.indent = self.parent.indentation
-
-        return expected_list
+    def make_indented(self):
+        self.style = "indented"
+        self.middle_separator = redbaron.nodes.CommaNode(
+            {"type": "comma",
+             "first_formatting": [],
+             "second_formatting": [{"type": "endl",
+                                    "indent": self.parent.indentation + "    ",
+                                    "formatting": [], "value": "\n"}]})
 
 
 class DotProxyList(ProxyList):
     def __init__(self, node_list, on_attribute="value"):
-        # XXX this will have its limitations, users will probably wants to be
-        # able to modify those, DotProxyList should be reconsidered for that
+        self.middle_separator = nodes.DotNode({"type": "dot",
+                                               "first_formatting": [],
+                                               "second_formatting": []})
         super(DotProxyList, self).__init__(node_list, on_attribute=on_attribute)
-        self.middle_separator = redbaron.nodes.DotNode({"type": "dot", "first_formatting": [], "second_formatting": []})
-
-    def _build_inner_list(self, node_list):
-        # XXX to merge with parent, behavior is the same only formatting nodes changes
-        result = []
-
-        for i in node_list:
-            if isinstance(i, redbaron.nodes.DotNode):
-                if not result:
-                    self.heading_formatting.append(i)
-                else:
-                    result[-1][1].append(i)
-            else:
-                result.append([i, []])
-
-        return result
-
-    def _generate_expected_list(self):
-        expected_list = self.heading_formatting[:]
-
-        for position, i in enumerate(self.data):
-            if expected_list and i[0].type in ("call", "getitem"):
-                expected_list.pop()
-
-            is_last = position == len(self.data) - 1
-            expected_list.append(i[0])
-            # XXX this will need refactoring...
-            if i[1] is not None:
-                # here we encounter a middle value that should have formatting
-                # to separate between the items but has not so we add it
-                # this happen because a new value has been added after this one
-                if not is_last and not i[1]:
-                    separator = self.middle_separator.copy()
-                    separator.parent = self.node_list
-                    separator.on_attribute = self.on_attribute
-                    expected_list.append(separator)
-
-                # XXX shoud uniformise the list of formatting nodes
-                elif is_last and i[1] and i[1][0].type in ("comma", "dot"):
-                    # XXX this will likely break comments if presents at the end of the list
-                    pass
-                else:
-                    expected_list += i[1]
-            else:
-                # here we generate the new expected formatting
-                # None is used as a sentry value for newly inserted values in the proxy list
-                if not is_last:
-                    separator = self.middle_separator.copy()
-                    separator.parent = self.node_list
-                    separator.on_attribute = self.on_attribute
-                    expected_list.append(separator)
-
-        return expected_list
 
     def _convert_input_to_node_object(self, value, parent, on_attribute):
         if value.startswith(("(", "[")):
@@ -1669,46 +1549,9 @@ class DotProxyList(ProxyList):
 
 class LineProxyList(ProxyList):
     def __init__(self, node_list, on_attribute="value"):
-        self.first_blank_lines = []
-        super(LineProxyList, self).__init__(node_list, on_attribute=on_attribute)
-        self.middle_separator = redbaron.nodes.DotNode(
+        self.middle_separator = redbaron.nodes.EndlNode(
             {"type": "endl", "formatting": [], "value": "\n", "indent": "    "})
-
-    def _synchronise(self):
-        log("Before synchronise, self.data = '%s' + '%s'", self.first_blank_lines, self.node_list)
-        super(LineProxyList, self)._synchronise()
-        log("After synchronise, self.data = '%s' + '%s'", self.first_blank_lines, self.node_list)
-
-    def _build_inner_list(self, node_list):
-        result = []
-        self.first_blank_lines = []
-
-        previous = None
-        still_at_beginning = False
-        for i in node_list:
-            if i.type != "endl":
-                result.append([i, []])
-                still_at_beginning = False
-            elif previous and previous.type == "endl":
-                result.append([i, []])
-                still_at_beginning = False
-            elif still_at_beginning and self.first_blank_lines:
-                result.append([i, []])
-                still_at_beginning = False
-            else:
-                if result:
-                    result[-1][1].append(i)
-                    still_at_beginning = False
-                else:
-                    self.first_blank_lines.append(i)
-                    still_at_beginning = True
-
-            if still_at_beginning:
-                previous = None
-            else:
-                previous = i
-
-        return result
+        super().__init__(node_list, on_attribute=on_attribute)
 
     def _get_separator_indentation(self):
         return self.node_list.filtered()[
@@ -1750,10 +1593,6 @@ class LineProxyList(ProxyList):
 
         might_need_separator = False
         has_added_separator = False
-
-        if expected_list and self.data and self.data[0][0].type == "endl" and not expected_list[-1].formatting.comment:
-            log("first_blank_lines doesn't has comments, reset indentation")
-            expected_list[-1].indent = ""
 
         for position, i in enumerate(self.data):
             log("[%s] %s", position, i)
@@ -1873,11 +1712,3 @@ class LineProxyList(ProxyList):
 class DecoratorsLineProxyList(LineProxyList):
     def _convert_input_to_node_object_list(self, value, parent, on_attribute):
         return map(lambda x: self._convert_input_to_node_object(x, parent, on_attribute), value)
-
-    def _generate_expected_list(self):
-        expected_list = super(DecoratorsLineProxyList, self)._generate_expected_list()
-        expected_list[-1].indent = self.parent.indentation
-        return expected_list
-
-    def _get_separator_indentation(self):
-        return self.parent.indentation
