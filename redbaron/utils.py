@@ -59,3 +59,15 @@ def truncate(text, n):
     truncated[-3:-1] = ['.', '.', '.']
     del truncated[n-4:-4]
     return "".join(truncated)
+
+
+def display_property_atttributeerror_exceptions(function):
+    def wrapper(*args, **kwargs):
+        try:
+            return function(*args, **kwargs)
+        except AttributeError:
+            import traceback
+            traceback.print_exc()
+            raise
+
+    return wrapper

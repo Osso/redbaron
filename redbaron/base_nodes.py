@@ -21,6 +21,7 @@ from .syntax_highlight import (help_highlight,
                                python_highlight,
                                python_html_highlight)
 from .utils import (baron_type_to_redbaron_classname,
+                    display_property_atttributeerror_exceptions,
                     in_a_shell,
                     in_ipython,
                     indent,
@@ -28,26 +29,12 @@ from .utils import (baron_type_to_redbaron_classname,
                     truncate)
 
 
-def display_property_atttributeerror_exceptions(function):
-    def wrapper(*args, **kwargs):
-        try:
-            return function(*args, **kwargs)
-        except AttributeError:
-            import traceback
-            traceback.print_exc()
-            raise
-
-    return wrapper
-
-
 class NodeList(UserList, GenericNodesMixin):
-    # NodeList doesn't have a previous nor a next
-    # avoid common bug in shell by providing None
     next = None
     previous = None
 
     def __init__(self, initlist=None, parent=None, on_attribute=None):
-        super(NodeList, self).__init__(initlist)
+        super().__init__(initlist)
         self.parent = parent
         self.on_attribute = on_attribute
 
@@ -85,9 +72,6 @@ class NodeList(UserList, GenericNodesMixin):
 
     def find_all(self, identifier, *args, **kwargs):
         return NodeList(list(self.find_iter(identifier, *args, **kwargs)))
-
-    findAll = find_all
-    __call__ = find_all
 
     def find_by_path(self, path):
         path = Path.from_baron_path(self, path)
@@ -555,7 +539,7 @@ class Node(GenericNodesMixin):
         return False
 
     def find_by_path(self, path):
-        path = Path(self, path).node
+        path = Path(path).node
         return path.node if path else None
 
     def path(self):
@@ -920,7 +904,8 @@ class ElseAttributeNode(CodeBlockNode):
     def _get_last_member_to_clean(self):
         return self
 
-    def _convert_input_to_one_indented_member(self, indented_type, string, parent, on_attribute):
+    def _convert_input_to_one_indented_member(self, indented_type, string,
+                                              parent, on_attribute):
         def remove_trailing_endl(node):
             if isinstance(node.value, ProxyList):
                 while node.value.node_list[-1].type == "endl":
