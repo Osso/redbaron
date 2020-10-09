@@ -156,7 +156,7 @@ class LiteralyEvaluableMixin:
             raise e
 
 
-class GenericNodesUtils:
+class GenericNodesMixin:
     """
     Mixen top class for Node and NodeList that contains generic methods that are used by both.
     """
@@ -314,7 +314,7 @@ class GenericNodesUtils:
                         yield j
 
 
-class NodeList(UserList, GenericNodesUtils):
+class NodeList(UserList, GenericNodesMixin):
     # NodeList doesn't have a previous nor a next
     # avoid common bug in shell by providing None
     next = None
@@ -486,7 +486,7 @@ class NodeList(UserList, GenericNodesUtils):
                 previous = node
 
 
-class Node(GenericNodesUtils):
+class Node(GenericNodesMixin):
     _other_identifiers = []
     _default_test_value = "value"
 

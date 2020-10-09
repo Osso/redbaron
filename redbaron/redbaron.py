@@ -1,5 +1,5 @@
 from redbaron import nodes
-from redbaron.base_nodes import (GenericNodesUtils,
+from redbaron.base_nodes import (GenericNodesMixin,
                                  LineProxyList,
                                  NodeList)
 
@@ -27,7 +27,7 @@ import baron.path
 # never have to play with formatting node unless he wants to
 
 
-class RedBaron(GenericNodesUtils, LineProxyList):
+class RedBaron(GenericNodesMixin, LineProxyList):
     def __init__(self, source_code):
 
         if isinstance(source_code, str):
@@ -68,7 +68,7 @@ class RedBaron(GenericNodesUtils, LineProxyList):
         self.node_list.parent = None
 
     def _convert_input_to_node_object(self, value, parent, on_attribute):
-        return GenericNodesUtils._convert_input_to_node_object(self, value, self, "root")
+        return GenericNodesMixin._convert_input_to_node_object(self, value, self, "root")
 
     def _convert_input_to_node_object_list(self, value, parent, on_attribute):
-        return GenericNodesUtils._convert_input_to_node_object_list(self, value, self, "root")
+        return GenericNodesMixin._convert_input_to_node_object_list(self, value, self, "root")
