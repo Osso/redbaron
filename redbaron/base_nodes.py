@@ -15,7 +15,8 @@ from . import (ALL_IDENTIFIERS,
 from .node_mixin import GenericNodesMixin
 from .node_path import Path
 from .private_config import runned_from_ipython
-from .proxy_list import (LineProxyList,
+from .proxy_list import (DecoratorsLineProxyList,
+                         LineProxyList,
                          ProxyList)
 from .syntax_highlight import (help_highlight,
                                python_highlight,
@@ -67,13 +68,15 @@ class NodeList(UserList, GenericNodesMixin):
     def __getattr__(self, key):
         if key not in ALL_IDENTIFIERS:
             raise AttributeError(
-                "%s instance has no attribute '%s' and '%s' is not a valid identifier of another node" % (
-                    self.__class__.__name__, key, key))
+                "%s instance has no attribute '%s' and '%s' is not a valid "
+                "identifier of another node" % (self.__class__.__name__,
+                                                key, key))
 
         return self.find(key)
 
     def __setitem__(self, key, value):
-        self.data[key] = self.to_node_object(value, parent=self.parent, on_attribute=self.on_attribute)
+        self.data[key] = self.to_node_object(value, parent=self.parent,
+                                             on_attribute=self.on_attribute)
 
     def find_iter(self, identifier, *args, **kwargs):
         for node in self.data:
@@ -165,7 +168,8 @@ class NodeList(UserList, GenericNodesMixin):
         return
 
     def apply(self, function):
-        [function(x) for x in self.data]
+        for el in self.data:
+            function(el)
         return self
 
     def map(self, function):
@@ -217,6 +221,9 @@ class NodeList(UserList, GenericNodesMixin):
 class Node(GenericNodesMixin):
     _other_identifiers = []
     _default_test_value = "value"
+    first_formatting = None
+    second_formatting = None
+    third_formatting = None
 
     def __init__(self, fst, parent=None, on_attribute=None):
         self.init = True
@@ -249,7 +256,7 @@ class Node(GenericNodesMixin):
         self.init = False
 
     @classmethod
-    def from_fst(klass, node, parent=None, on_attribute=None):
+    def from_fst(cls, node, parent=None, on_attribute=None):
         class_name = baron_type_to_redbaron_classname(node["type"])
         return getattr(nodes, class_name)(node, parent=parent, on_attribute=on_attribute)
 
@@ -411,7 +418,7 @@ class Node(GenericNodesMixin):
         if self.parent is None:
             return None
 
-        if self.on_attribute is "root":
+        if self.on_attribute == "root":
             in_list = self.parent
         elif self.on_attribute is not None:
             if isinstance(self.parent, NodeList):
@@ -436,58 +443,12 @@ class Node(GenericNodesMixin):
         if key != "value" and hasattr(self, "value") and isinstance(self.value, ProxyList) and hasattr(self.value, key):
             return getattr(self.value, key)
 
-        if key not in redbaron.ALL_IDENTIFIERS:
+        if key not in ALL_IDENTIFIERS:
             raise AttributeError(
                 "%s instance has no attribute '%s' and '%s' is not a valid identifier of another node" % (
                     self.__class__.__name__, key, key))
 
         return self.find(key)
-
-    def __getitem__(self, key):
-        if hasattr(self, "value") and isinstance(self.value, ProxyList):
-            return self.value[key]
-
-        raise TypeError("'%s' object does not support indexing" % self.__class__)
-
-    def __getslice__(self, i, j):
-        if hasattr(self, "value") and isinstance(self.value, ProxyList):
-            return self.value.__getslice__(i, j)
-
-        raise AttributeError("__getslice__")
-
-    def __setitem__(self, key, value):
-        if hasattr(self, "value") and isinstance(self.value, ProxyList):
-            self.value[key] = value
-
-        else:
-            raise TypeError("'%s' object does not support item assignment" % self.__class__)
-
-    def __setslice__(self, i, j, value):
-        if hasattr(self, "value") and isinstance(self.value, ProxyList):
-            return self.value.__setslice__(i, j, value)
-
-        raise TypeError("'%s' object does not support slice setting" % self.__class__)
-
-    def __len__(self):
-        if hasattr(self, "value") and isinstance(self.value, ProxyList):
-            return self.value.__len__()
-
-        # XXX bad, because __len__ exists, if will called to check if this object is True
-        return True
-
-    def __delitem__(self, key):
-        if hasattr(self, "value") and isinstance(self.value, ProxyList):
-            del self.value[key]
-
-        else:
-            raise AttributeError("__delitem__")
-
-    def __delslice__(self, i, j):
-        if hasattr(self, "value") and isinstance(self.value, ProxyList):
-            self.value.__delslice__(i, j)
-
-        else:
-            raise AttributeError("__delitem__")
 
     def find_iter(self, identifier, *args, **kwargs):
         if "recursive" in kwargs:
@@ -509,10 +470,10 @@ class Node(GenericNodesMixin):
                     for matched_node in node.find_iter(identifier, *args, **kwargs):
                         yield matched_node
                 elif kind in ("list", "formatting"):
-                    nodes = getattr(self, key)
-                    if isinstance(nodes, ProxyList):
-                        nodes = nodes.node_list
-                    for node in nodes:
+                    _nodes = getattr(self, key)
+                    if isinstance(_nodes, ProxyList):
+                        _nodes = _nodes.node_list
+                    for node in _nodes:
                         for matched_node in node.find_iter(identifier, *args, **kwargs):
                             yield matched_node
 
@@ -535,9 +496,10 @@ class Node(GenericNodesMixin):
         return None
 
     def _node_match_query(self, node, identifier, *args, **kwargs):
-        if not self._attribute_match_query(node.generate_identifiers(), identifier.lower() if isinstance(identifier,
-                                                                                                         str) and not identifier.startswith(
-            "re:") else identifier):
+        if isinstance(identifier, str) and not identifier.startswith("re:"):
+            identifier = identifier.lower()
+        if not self._attribute_match_query(node.generate_identifiers(),
+                                           identifier):
             return False
 
         all_my_keys = node._str_keys + node._list_keys + node._dict_keys
@@ -600,13 +562,13 @@ class Node(GenericNodesMixin):
         return Path(self)
 
     @classmethod
-    def generate_identifiers(klass):
+    def generate_identifiers(cls):
         return sorted(set(map(lambda x: x.lower(), [
-            redbaron_classname_to_baron_type(klass.__name__),
-            klass.__name__,
-            klass.__name__.replace("Node", ""),
-            redbaron_classname_to_baron_type(klass.__name__) + "_"
-        ] + klass._other_identifiers)))
+            redbaron_classname_to_baron_type(cls.__name__),
+            cls.__name__,
+            cls.__name__.replace("Node", ""),
+            redbaron_classname_to_baron_type(cls.__name__) + "_"
+        ] + cls._other_identifiers)))
 
     def _get_helpers(self):
         not_helpers = set([
@@ -824,8 +786,8 @@ class Node(GenericNodesMixin):
 
         if isinstance(getattr(self.parent, self.on_attribute), ProxyList):
             return getattr(self.parent, self.on_attribute).node_list.index(self)
-        else:
-            return getattr(self.parent, self.on_attribute).index(self)
+
+        return getattr(self.parent, self.on_attribute).index(self)
 
     def _generate_nodes_in_rendering_order(self):
         previous = None
@@ -893,10 +855,13 @@ class CodeBlockNode(Node):
         elif indentation < target_indentation:
             result.increase_indentation(target_indentation - indentation)
 
-        endl_base_node = Node.from_fst({'formatting': [], 'indent': '', 'type': 'endl', 'value': '\n'},
-                                       on_attribute=on_attribute, parent=parent)
+        endl_base_node = Node.from_fst({'formatting': [], 'indent': '',
+                                        'type': 'endl', 'value': '\n'},
+                                       on_attribute=on_attribute,
+                                       parent=parent)
 
-        if (self.on_attribute == "root" and self.next) or (not self.next and self.parent and self.parent.next):
+        if (self.on_attribute == "root" and self.next) or \
+                (not self.next and self.parent and self.parent.next):
             # I need to finish with 3 endl nodes
             if not all(map(lambda x: x.type == "endl", result[-1:])):
                 result.append(endl_base_node.copy())
@@ -969,15 +934,17 @@ class ElseAttributeNode(CodeBlockNode):
             remove_trailing_endl(last_member)
             if isinstance(last_member.value, ProxyList):
                 last_member.value.node_list.append(
-                    nodes.EndlNode({"type": "endl", "indent": "", "formatting": [], "value": "\n"},
-                                            parent=last_member, on_attribute="value"))
+                    nodes.EndlNode({"type": "endl", "indent": "",
+                                    "formatting": [], "value": "\n"},
+                                   parent=last_member, on_attribute="value"))
             else:
                 last_member.value.append(
-                    nodes.EndlNode({"type": "endl", "indent": "", "formatting": [], "value": "\n"},
-                                            parent=last_member, on_attribute="value"))
+                    nodes.EndlNode({"type": "endl", "indent": "",
+                                    "formatting": [], "value": "\n"},
+                                   parent=last_member, on_attribute="value"))
             return ""
 
-        if re.match("^\s*%s" % indented_type, string):
+        if re.match(r"^\s*%s" % indented_type, string):
 
             # we've got indented text, let's deindent it
             if string.startswith((" ", "    ")):
@@ -999,8 +966,7 @@ class ElseAttributeNode(CodeBlockNode):
                              {'formatting': [],
                               'indent': '',
                               'type': 'endl',
-                              'value': '\n'}]
-                   }
+                              'value': '\n'}]}
 
             node = Node.from_fst(fst, parent=parent, on_attribute=on_attribute)
             node.value = self.parse_code_block(string=string, parent=parent, on_attribute=on_attribute)
@@ -1008,8 +974,12 @@ class ElseAttributeNode(CodeBlockNode):
         # ensure that the node ends with only one endl token, we'll add more later if needed
         remove_trailing_endl(node)
         node.value.node_list.append(
-            nodes.EndlNode({"type": "endl", "indent": "", "formatting": [], "value": "\n"}, parent=node,
-                                    on_attribute="value"))
+            nodes.EndlNode({"type": "endl",
+                            "indent": "",
+                            "formatting": [],
+                            "value": "\n"},
+                           parent=node,
+                           on_attribute="value"))
 
         last_member = self._get_last_member_to_clean()
 
@@ -1018,24 +988,31 @@ class ElseAttributeNode(CodeBlockNode):
             remove_trailing_endl(last_member)
             if isinstance(last_member.value, ProxyList):
                 last_member.value.node_list.append(
-                    nodes.EndlNode({"type": "endl", "indent": "", "formatting": [], "value": "\n"},
-                                            parent=last_member, on_attribute="value"))
+                    nodes.EndlNode({"type": "endl", "indent": "",
+                                    "formatting": [], "value": "\n"},
+                                   parent=last_member,
+                                   on_attribute="value"))
             else:
                 last_member.value.append(
-                    nodes.EndlNode({"type": "endl", "indent": "", "formatting": [], "value": "\n"},
-                                            parent=last_member, on_attribute="value"))
+                    nodes.EndlNode({"type": "endl", "indent": "",
+                                    "formatting": [], "value": "\n"},
+                                   parent=last_member,
+                                   on_attribute="value"))
 
             if self.indentation:
                 node.value.node_list.append(nodes.EndlNode(
-                    {"type": "endl", "indent": self.indentation, "formatting": [], "value": "\n"}, parent=node,
-                    on_attribute="value"))
+                    {"type": "endl", "indent": self.indentation,
+                     "formatting": [], "value": "\n"},
+                    parent=node, on_attribute="value"))
             else:  # we are on root level and followed: we need 2 blanks lines after the node
                 node.value.node_list.append(
-                    nodes.EndlNode({"type": "endl", "indent": "", "formatting": [], "value": "\n"},
-                                            parent=node, on_attribute="value"))
+                    nodes.EndlNode({"type": "endl", "indent": "",
+                                    "formatting": [], "value": "\n"},
+                                   parent=node, on_attribute="value"))
                 node.value.node_list.append(
-                    nodes.EndlNode({"type": "endl", "indent": "", "formatting": [], "value": "\n"},
-                                            parent=node, on_attribute="value"))
+                    nodes.EndlNode({"type": "endl", "indent": "",
+                                    "formatting": [], "value": "\n"},
+                                   parent=node, on_attribute="value"))
 
         if isinstance(last_member.value, ProxyList):
             last_member.value.node_list[-1].indent = self.indentation
@@ -1055,3 +1032,47 @@ class ElseAttributeNode(CodeBlockNode):
             name = "else"
 
         return super(ElseAttributeNode, self).__setattr__(name, value)
+
+
+class IterableNode(Node):
+    def __len__(self):
+        return len(self.node_list)
+
+    def __getitem__(self, key):
+        if hasattr(self, "value") and isinstance(self.value, ProxyList):
+            return self.value[key]
+
+        raise TypeError("'%s' object does not support indexing" % self.__class__)
+
+    def __getslice__(self, i, j):
+        if hasattr(self, "value") and isinstance(self.value, ProxyList):
+            return self.value.__getslice__(i, j)
+
+        raise AttributeError("__getslice__")
+
+    def __setitem__(self, key, value):
+        if hasattr(self, "value") and isinstance(self.value, ProxyList):
+            self.value[key] = value
+
+        else:
+            raise TypeError("'%s' object does not support item assignment" % self.__class__)
+
+    def __setslice__(self, i, j, value):
+        if hasattr(self, "value") and isinstance(self.value, ProxyList):
+            return self.value.__setslice__(i, j, value)
+
+        raise TypeError("'%s' object does not support slice setting" % self.__class__)
+
+    def __delitem__(self, key):
+        if hasattr(self, "value") and isinstance(self.value, ProxyList):
+            del self.value[key]
+
+        else:
+            raise AttributeError("__delitem__")
+
+    def __delslice__(self, i, j):
+        if hasattr(self, "value") and isinstance(self.value, ProxyList):
+            self.value.__delslice__(i, j)
+
+        else:
+            raise AttributeError("__delitem__")

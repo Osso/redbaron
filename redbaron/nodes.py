@@ -348,11 +348,10 @@ class DefNode(CodeBlockNode):
             fst = baron.parse("def a(%s): pass" % string)[0]["arguments"]
             return NodeList.from_fst(fst, parent=parent, on_attribute=on_attribute)
 
-        elif on_attribute == "decorators":
+        if on_attribute == "decorators":
             return self.parse_decorators(string, parent=parent, on_attribute=on_attribute)
 
-        else:
-            return super(DefNode, self)._string_to_node_list(string, parent, on_attribute)
+        return super(DefNode, self)._string_to_node_list(string, parent, on_attribute)
 
     def __setattr__(self, key, value):
         super(DefNode, self).__setattr__(key, value)
@@ -513,26 +512,29 @@ class ElseNode(IfElseBlockSiblingNode):
         if self.parent.type == "ifelseblock":
             return super(ElseNode, self).next_intuitive
 
-        elif self.parent.type == "try":
+        if self.parent.type == "try":
             if self.parent.finally_:
                 return self.parent.finally_
 
-            else:
-                return self.parent.next
-
-        elif self.parent.type in ("for", "while"):
             return self.parent.next
+
+        if self.parent.type in ("for", "while"):
+            return self.parent.next
+
+        return None
 
     @property
     def previous_intuitive(self):
         if self.parent.type == "ifelseblock":
             return super(ElseNode, self).previous_intuitive
 
-        elif self.parent.type == "try":
+        if self.parent.type == "try":
             return self.parent.excepts[-1]
 
-        elif self.parent.type in ("for", "while"):
+        if self.parent.type in ("for", "while"):
             return self.parent
+
+        return None
 
 
 class EndlNode(Node):
@@ -559,6 +561,8 @@ class ExceptNode(CodeBlockNode):
 
         if self.parent.next:
             return self.parent.next
+
+        return None
 
     @property
     def previous_intuitive(self):
