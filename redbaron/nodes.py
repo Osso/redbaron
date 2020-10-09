@@ -1431,3 +1431,7 @@ class WithNode(CodeBlockNode):
 
         if key in ("async", "async_") and getattr(self, "async") and hasattr(self, "async_formatting") and not self.async_formatting:
             self.async_formatting = " "
+
+
+class EmptyLine(Node):
+    pass
