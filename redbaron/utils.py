@@ -1,8 +1,11 @@
 from io import StringIO
+import logging
 import re
 import sys
 
 import redbaron
+
+logger = logging.getLogger("redbaron")
 
 
 def baron_type_to_redbaron_classname(baron_type):
@@ -14,9 +17,8 @@ def redbaron_classname_to_baron_type(name):
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', name).lower()
 
 
-def log(string, *args):
-    if redbaron.DEBUG:
-        sys.stdout.write("%s\n" % (string % args))
+def log(msg, *args):
+    logger.DEBUG(msg, *args)
 
 
 def in_a_shell():
