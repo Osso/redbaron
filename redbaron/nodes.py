@@ -200,11 +200,11 @@ class CallNode(Node):
 class CallArgumentNode(Node):
     def _string_to_node(self, string, parent, on_attribute):
         if on_attribute == "value":
-            return Node.from_fst(baron.parse("a(%s)" % string)[0]["value"][1]["value"][0]["value"], parent=parent, on_attribute=on_attribute) if string else ""
-
+            fst = baron.parse("a(%s)" % string)[0]["value"][1]["value"][0]["value"]
+            return Node.from_fst(fst, parent=parent, on_attribute=on_attribute) if string else ""
         elif on_attribute == "target":
-            return Node.from_fst(baron.parse("a(%s=b)" % string)[0]["value"][1]["value"][0]["target"], parent=parent, on_attribute=on_attribute) if string else ""
-
+            fst = baron.parse("a(%s=b)" % string)[0]["value"][1]["value"][0]["target"]
+            return Node.from_fst(fst, parent=parent, on_attribute=on_attribute) if string else ""
         else:
             raise Exception("Unhandled case")
 
