@@ -1508,7 +1508,7 @@ class ProxyList(object):
 class SpaceProxyList(ProxyList):
     def __init__(self, node_list, on_attribute="value"):
         self.middle_separator = nodes.SpaceNode(
-            {"type": "comma", "first_formatting": [],
+            {"type": "space", "first_formatting": [],
              "second_formatting": [{"type": "space", "value": " "}]})
         super().__init__(node_list, on_attribute=on_attribute)
 
