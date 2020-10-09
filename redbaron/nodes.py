@@ -319,6 +319,8 @@ class DecoratorNode(Node):
 class DefNode(CodeBlockNode):
     _other_identifiers = ["funcdef", "funcdef_"]
     _default_test_value = "name"
+    return_annotation_first_formatting = None
+    return_annotation_second_formatting = None
 
     def _string_to_node(self, string, parent, on_attribute):
         if on_attribute == "return_annotation":
@@ -362,6 +364,9 @@ class DefNode(CodeBlockNode):
 
 
 class DefArgumentNode(Node):
+    annotation_first_formatting = None
+    annotation_second_formatting = None
+
     def _string_to_node(self, string, parent, on_attribute):
         if on_attribute == "value":
             return Node.from_fst(baron.parse("def a(b=%s): pass" % string)[0]["arguments"][0]["value"], parent=parent, on_attribute=on_attribute) if string else ""
@@ -392,6 +397,9 @@ class DelNode(Node):
 
 
 class DictArgumentNode(Node):
+    annotation_first_formatting = None
+    annotation_second_formatting = None
+
     def _string_to_node(self, string, parent, on_attribute):
         if on_attribute == "value":
             return Node.from_fst(baron.parse("a(**%s)" % string)[0]["value"][1]["value"][0]["value"], parent=parent, on_attribute=on_attribute)
@@ -455,6 +463,9 @@ class DotNode(Node):
 
 
 class DottedAsNameNode(Node):
+    first_formatting = None
+    second_formatting = None
+
     def __setattr__(self, key, value):
         if key == "target":
             if not (re.match(r'^[a-zA-Z_]\w*$', value) or value in ("", None)):
