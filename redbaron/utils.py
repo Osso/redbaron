@@ -45,5 +45,5 @@ def truncate(text, n):
 
     truncated = list(text)
     truncated[-3:-1] = ['.', '.', '.']
-    del truncated[n-4 : -4]
+    del truncated[n-4:-4]
     return "".join(truncated)
