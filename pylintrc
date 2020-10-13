@@ -61,7 +61,8 @@ disable-msg=C0323,W0142,C0301,C0103,C0111,E0213,C0302,C0203,W0703,R0201
 # no Warning level messages displayed, use"--disable=all --enable=classes
 # --disable=W"
 disable=missing-docstring,too-many-lines,protected-access,invalid-name,
-        too-many-ancestors,no-self-use
+        too-many-ancestors,no-self-use,too-many-public-methods,
+        global-statement,not-context-manager
 
 [REPORTS]
 

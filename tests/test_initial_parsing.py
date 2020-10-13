@@ -1,18 +1,25 @@
-#!/usr/bin/python
-# -*- coding:Utf-8 -*-
-
 """ Tests initial parsing through the RedBaron() base function """
 
 
-import pytest
-import baron
 import re
-import redbaron
 
+import pytest
+import redbaron
+from redbaron import RedBaron
+from redbaron.nodes import (AssignmentNode,
+                            CallNode,
+                            CommaNode,
+                            CommaProxyList,
+                            DotNode,
+                            EndlNode,
+                            IntNode,
+                            NameNode,
+                            NodeList,
+                            PassNode)
+from redbaron.utils import baron_type_to_redbaron_classname
+
+import baron
 from baron.render import nodes_rendering_order
-from redbaron import (RedBaron, NameNode, EndlNode, IntNode, AssignmentNode,
-                      PassNode, NodeList, CommaNode, DotNode, CallNode,
-                      CommaProxyList, baron_type_to_redbaron_classname)
 
 
 def test_all_class_are_declared():

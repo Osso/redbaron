@@ -1,5 +1,3 @@
-# -*- coding:Utf-8 -*-
-
 """Test for at method"""
 
 import redbaron

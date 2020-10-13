@@ -1,10 +1,7 @@
-#!/usr/bin/python
-# -*- coding:Utf-8 -*-
-
 """ Tests the code insertion features """
 
-import pytest
 # pylint: disable=redefined-outer-name
+import pytest
 import redbaron
 from redbaron import RedBaron
 

@@ -1,13 +1,8 @@
-#!/usr/bin/python
-# -*- coding:Utf-8 -*-
-
 """ Tests the setter methods """
 
 # pylint: disable=redefined-outer-name
 import pytest
 from redbaron import RedBaron
-
-from baron.utils import str
 
 
 def test_setitem_nodelist():

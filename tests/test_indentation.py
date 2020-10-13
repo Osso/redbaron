@@ -1,10 +1,6 @@
-#!/usr/bin/python
-# -*- coding:Utf-8 -*-
-
 """ Tests the rendering feature """
 
 from redbaron import RedBaron
-
 
 test_indent_code = """
 def a():

@@ -1,10 +1,7 @@
-#!/usr/bin/python
-# -*- coding:Utf-8 -*-
-
 """ Tests the root method """
 
-import pytest
 # pylint: disable=redefined-outer-name
+import pytest
 from redbaron import RedBaron
 
 

@@ -1,10 +1,7 @@
-#!/usr/bin/python
-# -*- coding:Utf-8 -*-
-
 """ Tests the path method """
 
-import pytest
 # pylint: disable=redefined-outer-name
+import pytest
 from redbaron import RedBaron
 
 
@@ -210,4 +207,3 @@ def test_path_value_second_endl(red):
             red.def_.value.node_list[2],
             [0, "value", 2]
         )
-

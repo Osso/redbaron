@@ -1,4 +1,5 @@
-from redbaron import nodes
+from . import nodes
+from .redbaron import RedBaron
 
 DEBUG = False
 

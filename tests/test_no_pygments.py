@@ -1,16 +1,16 @@
 import pytest
 import redbaron
-from redbaron import RedBaron, private_config
+from redbaron import RedBaron
 
 
 class Test():
     def setup_method(self, method):
-        private_config.force_ipython_behavior = True
-        private_config.DEBUG = True
+        redbaron.force_ipython_behavior = True
+        redbaron.DEBUG = True
 
     def teardown_method(self, method):
-        private_config.force_ipython_behavior = False
-        private_config.DEBUG = False
+        redbaron.force_ipython_behavior = False
+        redbaron.DEBUG = False
 
     def test_repr(self):
         RedBaron("a = 1").__str__()
@@ -40,10 +40,6 @@ class TestClassical(Test):
 
 
 def test_highlight(capsys, monkeypatch):
-    try:
-        import pygments  # noqa
-    except ImportError:
-        pytest.skip('missing pygments.')
     monkeypatch.setattr(redbaron, 'force_ipython_behavior', True)
 
     RedBaron("a = []").help()

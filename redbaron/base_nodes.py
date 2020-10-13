@@ -11,9 +11,7 @@ import baron.path
 from baron.render import nodes_rendering_order
 
 from .node_mixin import GenericNodesMixin
-from .node_path import Path
-from .proxy_list import (DecoratorsLineProxyList,
-                         LineProxyList,
+from .proxy_list import (LineProxyList,
                          ProxyList)
 from .syntax_highlight import (help_highlight,
                                python_highlight,
@@ -27,6 +25,8 @@ from .utils import (baron_type_to_redbaron_classname,
                     truncate)
 
 ALL_IDENTIFIERS = set()
+NODES_RENDERING_ORDER = nodes_rendering_order
+NODES_RENDERING_ORDER["root"] = [('list', 'value', True)]
 
 
 class NodeList(UserList, GenericNodesMixin):
@@ -39,11 +39,16 @@ class NodeList(UserList, GenericNodesMixin):
         self.on_attribute = on_attribute
 
     @classmethod
-    def from_fst(cls, node_list, parent=None, on_attribute=None):
-        return cls(map(lambda x: Node.from_fst(x, parent=parent,
-                                               on_attribute=on_attribute),
-                       node_list),
-                   parent=parent, on_attribute=on_attribute)
+    def from_fst(cls, node_list, parent, on_attribute):
+        assert isinstance(parent, Node)
+        nodes = [parent.from_fst(n,
+                                 on_attribute=on_attribute) for n in node_list]
+        return cls(nodes, parent=parent, on_attribute=on_attribute)
+
+    @classmethod
+    def from_str(cls, value, parent, on_attribute):
+        return cls.from_fst(baron.parse(value), parent=parent,
+                            on_attribute=on_attribute)
 
     def find(self, identifier, *args, **kwargs):
         for i in self.data:
@@ -62,8 +67,8 @@ class NodeList(UserList, GenericNodesMixin):
         return self.find(key)
 
     def __setitem__(self, key, value):
-        self.data[key] = self.to_node_object(value, parent=self.parent,
-                                             on_attribute=self.on_attribute)
+        self.data[key] = self.parent.from_str(value,
+                                              on_attribute=self.on_attribute)
 
     def find_iter(self, identifier, *args, **kwargs):
         for node in self.data:
@@ -71,13 +76,15 @@ class NodeList(UserList, GenericNodesMixin):
                 yield matched_node
 
     def find_all(self, identifier, *args, **kwargs):
-        return NodeList(list(self.find_iter(identifier, *args, **kwargs)))
+        return list(self.find_iter(identifier, *args, **kwargs))
 
     def find_by_path(self, path):
+        from .node_path import Path
         path = Path.from_baron_path(self, path)
         return path.node if path else None
 
     def path(self):
+        from .node_path import Path
         return Path(self)
 
     def fst(self):
@@ -114,10 +121,13 @@ class NodeList(UserList, GenericNodesMixin):
             for num, item in enumerate(self):
                 yield b"<tr>"
                 yield b"<td>"
-                yield str(num).encode("Utf-8")
+                yield str(num).encode("utf-8")
                 yield b"</td>"
                 yield b"<td>"
-                yield item._bytes_repr_html_() if hasattr(item, "_repr_html_") else str(item).encode("Utf-8")
+                if hasattr(item, "_repr_html_"):
+                    yield item._bytes_repr_html_()
+                else:
+                    yield str(item).encode("utf-8")
                 yield b"</td>"
                 yield b"</tr>"
             yield b"</table>"
@@ -136,7 +146,7 @@ class NodeList(UserList, GenericNodesMixin):
         return [x.__help__(deep=deep, with_formatting=with_formatting) for x in self.data]
 
     def copy(self):
-        # XXX not very optimised but at least very simple
+        # not very optimised but at least very simple
         return NodeList(map(Node.from_fst, self.fst()))
 
     def next_generator(self):
@@ -185,7 +195,8 @@ class NodeList(UserList, GenericNodesMixin):
         done = set()
         for i in self.data:
             for node in i._generate_nodes_in_rendering_order():
-                if node.type != "endl" and previous is not None and previous.type == "endl" and previous not in done:
+                if node.type != "endl" and previous is not None and \
+                        previous.type == "endl" and previous not in done:
                     previous.indent += number_of_spaces * " "
                     done.add(previous)
                 previous = node
@@ -195,7 +206,8 @@ class NodeList(UserList, GenericNodesMixin):
         done = set()
         for i in self.data:
             for node in i._generate_nodes_in_rendering_order():
-                if node.type != "endl" and previous is not None and previous.type == "endl" and previous not in done:
+                if node.type != "endl" and previous is not None and \
+                        previous.type == "endl" and previous not in done:
                     previous.indent = previous.indent[number_of_spaces:]
                     done.add(previous)
                 previous = node
@@ -203,8 +215,9 @@ class NodeList(UserList, GenericNodesMixin):
 
 class NodeRegistration(type):
     def __init__(cls, name, bases, attrs):
-        super().__init__(cls, name, bases, attrs)
-        ALL_IDENTIFIERS.add(cls.generate_identifiers())
+        global ALL_IDENTIFIERS
+        super().__init__(name, bases, attrs)
+        ALL_IDENTIFIERS |= set(cls.generate_identifiers())
 
 
 class Node(GenericNodesMixin, metaclass=NodeRegistration):
@@ -226,10 +239,14 @@ class Node(GenericNodesMixin, metaclass=NodeRegistration):
         self._dict_keys = []
         self.type = fst["type"]
 
-        for kind, key, _ in filter(lambda x: x[0] != "constant", self._render()):
+        for kind, key, _ in self._render():
+            if kind == 'constant':
+                continue
+
             if kind == "key":
                 if fst[key]:
-                    setattr(self, key, Node.from_fst(fst[key], parent=self, on_attribute=key))
+                    setattr(self, key, self.from_fst(fst[key],
+                                                     on_attribute=key))
                 else:
                     setattr(self, key, None)
                 self._dict_keys.append(key)
@@ -239,7 +256,8 @@ class Node(GenericNodesMixin, metaclass=NodeRegistration):
                 self._str_keys.append(key)
 
             elif kind in ("list", "formatting"):
-                setattr(self, key, NodeList.from_fst(fst[key], parent=self, on_attribute=key))
+                setattr(self, key, self.nodelist_from_fst(fst[key],
+                                                          on_attribute=key))
                 self._list_keys.append(key)
 
             else:
@@ -247,9 +265,37 @@ class Node(GenericNodesMixin, metaclass=NodeRegistration):
 
         self.init = False
 
-    @classmethod
-    def from_fst(cls, node, parent=None, on_attribute=None):
-        return cls(node, parent=parent, on_attribute=on_attribute)
+    def from_fst(self, node, on_attribute):
+        from . import nodes
+        class_name = baron_type_to_redbaron_classname(node['type'])
+        return getattr(nodes, class_name)(node, parent=self.parent,
+                                          on_attribute=on_attribute)
+
+    def nodelist_from_fst(self, node_list, on_attribute):
+        return NodeList.from_fst(node_list, parent=self,
+                                 on_attribute=on_attribute)
+
+    def from_str(self, value, on_attribute):
+        assert isinstance(value, str)
+        value = baron.parse(value)[0]
+        return self.from_fst(value, on_attribute=on_attribute)
+
+    def nodelist_from_str(self, value, on_attribute):
+        assert isinstance(value, str)
+
+        # if isinstance(value, Node):
+        #     value.parent = self.parent
+        #     value.on_attribute = on_attribute
+        #     return NodeList([value])
+
+        # if isinstance(value, (NodeList, ProxyList)):
+        #     for node in value:
+        #         node.parent = self.parent
+        #         node.on_attribute = on_attribute
+        #     return value
+
+        return NodeList.from_fst(value, parent=self.parent,
+                                 on_attribute=on_attribute)
 
     @property
     @display_property_atttributeerror_exceptions
@@ -431,13 +477,14 @@ class Node(GenericNodesMixin, metaclass=NodeRegistration):
         if key.endswith("_") and key[:-1] in self._dict_keys + self._list_keys + self._str_keys:
             return getattr(self, key[:-1])
 
-        if key != "value" and hasattr(self, "value") and isinstance(self.value, ProxyList) and hasattr(self.value, key):
+        if key != "value" and hasattr(self, "value") and \
+                isinstance(self.value, ProxyList) and hasattr(self.value, key):
             return getattr(self.value, key)
 
         if key not in ALL_IDENTIFIERS:
-            raise AttributeError(
-                "%s instance has no attribute '%s' and '%s' is not a valid identifier of another node" % (
-                    self.__class__.__name__, key, key))
+            raise AttributeError("%s instance has no attribute '%s' and '%s' "
+                                 "is not a valid identifier of another node" %
+                                 (self.__class__.__name__, key, key))
 
         return self.find(key)
 
@@ -546,10 +593,12 @@ class Node(GenericNodesMixin, metaclass=NodeRegistration):
         return False
 
     def find_by_path(self, path):
+        from .node_path import Path
         path = Path(path).node
         return path.node if path else None
 
     def path(self):
+        from .node_path import Path
         return Path(self)
 
     @classmethod
@@ -604,8 +653,8 @@ class Node(GenericNodesMixin, metaclass=NodeRegistration):
             'replace',
             'to_python',
         ])
-        return [x for x in dir(self) if
-                not x.startswith("_") and x not in not_helpers and inspect.ismethod(getattr(self, x))]
+        return [x for x in dir(self) if not x.startswith("_") and
+                x not in not_helpers and inspect.ismethod(getattr(self, x))]
 
     def fst(self):
         to_return = {}
@@ -629,9 +678,11 @@ class Node(GenericNodesMixin, metaclass=NodeRegistration):
 
     def help(self, deep=2, with_formatting=False):
         if in_ipython():
-            sys.stdout.write(help_highlight(self.__help__(deep=deep, with_formatting=with_formatting) + "\n"))
+            help_msg = self.__help__(deep=deep,
+                                     with_formatting=with_formatting)
+            sys.stdout.write(help_highlight(help_msg + "\n"))
         else:
-            sys.stdout.write(self.__help__(deep=deep, with_formatting=with_formatting) + "\n")
+            sys.stdout.write(help_msg + "\n")
 
     def __help__(self, deep=2, with_formatting=False):
         new_deep = deep - 1 if not isinstance(deep, bool) else deep
@@ -649,30 +700,37 @@ class Node(GenericNodesMixin, metaclass=NodeRegistration):
             to_join += ["%s=%s" % (key, repr(getattr(self, key))) for key in self._str_keys if
                         key != "type" and "formatting" not in key]
             to_join += ["%s ->\n    %s" % (key, indent(
-                getattr(self, key).__help__(deep=new_deep, with_formatting=with_formatting),
-                "    ").lstrip() if getattr(self, key) else getattr(self, key)) for key in self._dict_keys if
-                        "formatting" not in key]
+                getattr(self, key).__help__(deep=new_deep,
+                                            with_formatting=with_formatting),
+                "    ").lstrip() if getattr(self, key) else getattr(self, key))
+                        for key in self._dict_keys if "formatting" not in key]
             # need to do this otherwise I end up with stacked quoted list
-            # example: value=[\'DottedAsNameNode(target=\\\'None\\\', as=\\\'False\\\', value=DottedNameNode(value=["NameNode(value=\\\'pouet\\\')"])]
+            # example: value=[\'DottedAsNameNode(target=\\\'None\\\',
+            #    as=\\\'False\\\', value=DottedNameNode(
+            #         value=["NameNode(value=\\\'pouet\\\')"])]
             for key in filter(lambda x: "formatting" not in x, self._list_keys):
                 to_join.append(("%s ->" % key))
                 for i in getattr(self, key):
                     to_join.append(
-                        "  * " + indent(i.__help__(deep=new_deep, with_formatting=with_formatting), "      ").lstrip())
+                        "  * " + indent(i.__help__(deep=new_deep,
+                                                   with_formatting=with_formatting),
+                                        "      ").lstrip())
 
         if deep and with_formatting:
             to_join += ["%s=%s" % (key, repr(getattr(self, key))) for key in self._str_keys if
                         key != "type" and "formatting" in key]
             to_join += ["%s=%s" % (key, getattr(self, key).__help__(deep=new_deep,
-                                                                    with_formatting=with_formatting) if getattr(self,
-                                                                                                                key) else getattr(
-                self, key)) for key in self._dict_keys if "formatting" in key]
+                                                                    with_formatting=with_formatting)
+                                   if getattr(self, key) else getattr(self, key))
+                        for key in self._dict_keys if "formatting" in key]
 
             for key in filter(lambda x: "formatting" in x, self._list_keys):
                 to_join.append(("%s ->" % key))
                 for i in getattr(self, key):
                     to_join.append(
-                        "  * " + indent(i.__help__(deep=new_deep, with_formatting=with_formatting), "      ").lstrip())
+                        "  * " + indent(i.__help__(deep=new_deep,
+                                                   with_formatting=with_formatting),
+                                        "      ").lstrip())
 
         return "\n  ".join(to_join)
 
@@ -691,37 +749,42 @@ class Node(GenericNodesMixin, metaclass=NodeRegistration):
 
     def __str__(self):
         if in_ipython():
-            return python_highlight(self.dumps()).decode("Utf-8")
-        else:
-            return self.dumps()
+            return python_highlight(self.dumps()).decode("utf-8")
+        return self.dumps()
 
     def _bytes_repr_html_(self):
         return python_html_highlight(self.dumps())
 
     def _repr_html_(self):
-        return self._bytes_repr_html_().decode("Utf-8")
+        return self._bytes_repr_html_().decode("utf-8")
 
     def copy(self):
-        # XXX not very optimised but at least very simple
-        return Node.from_fst(self.fst())
+        # not very optimised but at least very simple
+        return self.from_fst(self.fst(), on_attribute=self.on_attribute)
 
     def __setattr__(self, name, value):
         if name == "init" or self.init:
             return super(Node, self).__setattr__(name, value)
 
-        # we don't want to mess with "__class__" for example but convert "async_" to "async"
+        # convert "async_" to "async"
+        # (but we don't want to mess with "__class__" for example)
         if name.endswith("_") and not name.endswith("__"):
             name = name[:-1]
 
-        # FIXME I'm pretty sure that Bool should also be put in the isinstance for cases like with_parenthesis/as
-        if name in self._str_keys and not isinstance(value, (str, int)):
-            value = str(value)
+        # I'm pretty sure that Bool should also be put in the
+        # isinstance for cases like with_parenthesis/as
+        if name in self._str_keys:
+            assert isinstance(value, str)
 
         elif name in self._dict_keys:
-            value = self.to_node_object(value, self, name)
+            if isinstance(value, str):
+                value = self.from_str(value, on_attribute=name)
+            assert isinstance(value, dict)
 
         elif name in self._list_keys:
-            value = self.to_node_object_list(value, self, name)
+            if isinstance(value, str):
+                value = self.nodelist_from_str(value, on_attribute=name)
+            assert isinstance(value, ProxyList)
 
         return super(Node, self).__setattr__(name, value)
 
@@ -729,7 +792,7 @@ class Node(GenericNodesMixin, metaclass=NodeRegistration):
         return nodes_rendering_order[self.type]
 
     def replace(self, new_node):
-        new_node = self.to_node_object(new_node, parent=None, on_attribute=None, generic=True)
+        new_node = self.from_str(new_node, on_attribute=self.on_attribute)
         self.__class__ = new_node.__class__  # YOLO
         self.__init__(new_node.fst(), parent=self.parent, on_attribute=self.on_attribute)
 
@@ -804,7 +867,8 @@ class Node(GenericNodesMixin, metaclass=NodeRegistration):
         self.get_indentation_node().indent += number_of_spaces * " "
 
     def decrease_indentation(self, number_of_spaces):
-        self.get_indentation_node().indent = self.get_indentation_node().indent[:-len(number_of_spaces * " ")]
+        self.get_indentation_node().indent = \
+            self.get_indentation_node().indent[:-len(number_of_spaces * " ")]
 
     def insert_before(self, value, offset=0):
         self.parent.insert(self.index_on_parent - offset, value)
@@ -814,30 +878,31 @@ class Node(GenericNodesMixin, metaclass=NodeRegistration):
 
 
 class CodeBlockNode(Node):
-    def _string_to_node_list(self, string, parent, on_attribute):
+    def nodelist_from_str(self, value, on_attribute):
+        assert isinstance(value, str)
+
         if on_attribute == "value":
-            return self.parse_code_block(string, parent=parent, on_attribute=on_attribute)
+            return self.parse_code_block(value, on_attribute=on_attribute)
 
-        elif on_attribute.endswith("_formatting"):
-            return super(CodeBlockNode, self)._string_to_node_list(string, parent, on_attribute)
+        if on_attribute.endswith("_formatting"):
+            return super().nodelist_from_str(value, on_attribute=on_attribute)
 
-        else:
-            raise Exception("Unhandled case")
+        raise Exception("Unhandled case")
 
-    def parse_code_block(self, string, parent, on_attribute):
+    def parse_code_block(self, value, on_attribute):
         # remove heading blanks lines
-        clean_string = re.sub("^ *\n", "", string) if "\n" in string else string
-        indentation = len(re.search("^ *", clean_string).group())
+        clean_value = re.sub("^ *\n", "", value) if "\n" in value else value
+        indentation = len(re.search("^ *", clean_value).group())
         target_indentation = len(self.indentation) + 4
 
         # putting this in the string template will fail, need at least some indent
         if indentation == 0:
-            clean_string = "    " + "\n    ".join(clean_string.split("\n"))
-            clean_string = clean_string.rstrip()
+            clean_value = "    " + "\n    ".join(clean_value.split("\n"))
+            clean_value = clean_value.rstrip()
 
-        fst = baron.parse("def a():\n%s\n" % clean_string)[0]["value"]
+        fst = baron.parse("def a():\n%s\n" % clean_value)[0]["value"]
 
-        result = NodeList.from_fst(fst, parent=parent, on_attribute=on_attribute)
+        result = NodeList.from_fst(fst, parent=self, on_attribute=on_attribute)
 
         # set indentation to the correct level
         indentation = len(result[0].indent)
@@ -846,10 +911,9 @@ class CodeBlockNode(Node):
         elif indentation < target_indentation:
             result.increase_indentation(target_indentation - indentation)
 
-        endl_base_node = Node.from_fst({'formatting': [], 'indent': '',
+        endl_base_node = self.from_fst({'formatting': [], 'indent': '',
                                         'type': 'endl', 'value': '\n'},
-                                       on_attribute=on_attribute,
-                                       parent=parent)
+                                       on_attribute=on_attribute)
 
         if (self.on_attribute == "root" and self.next) or \
                 (not self.next and self.parent and self.parent.next):
@@ -876,13 +940,16 @@ class CodeBlockNode(Node):
         return result
 
     def __setattr__(self, key, value):
-        super(CodeBlockNode, self).__setattr__(key, value)
+        if key == "value":
+            if isinstance(value, str):
+                value = self.parse_code_block(value, on_attribute="value")
+            if not isinstance(value, LineProxyList):
+                value = LineProxyList(value, on_attribute="value")
 
-        if key == "value" and not isinstance(self.value, LineProxyList):
-            setattr(self, "value", LineProxyList(self.value, on_attribute="value"))
+        elif key == "decorators" and not isinstance(value, LineProxyList):
+            value = LineProxyList(value, on_attribute="decorators")
 
-        elif key == "decorators" and not isinstance(self.decorators, LineProxyList):
-            setattr(self, "decorators", DecoratorsLineProxyList(self.decorators, on_attribute="decorators"))
+        super().__setattr__(key, value)
 
 
 class IfElseBlockSiblingNode(CodeBlockNode):

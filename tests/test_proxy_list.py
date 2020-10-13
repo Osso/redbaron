@@ -1,11 +1,11 @@
-#!/usr/bin/python
-# -*- coding:Utf-8 -*-
-
 """ Tests the rendering feature """
 
 import redbaron
-from redbaron import (RedBaron, NodeList, CommaProxyList,
-                      DotProxyList, LineProxyList, DecoratorsLineProxyList)
+from redbaron import RedBaron
+from redbaron.base_nodes import NodeList
+from redbaron.proxy_list import (CommaProxyList,
+                                 DotProxyList,
+                                 LineProxyList)
 
 redbaron.DEBUG = True
 
@@ -1024,6 +1024,7 @@ with stuff:
         2,
     ]
 """
+
 
 def test_comma_proxy_list_indented_in_indentation_case():
     red = RedBaron(comma_proxy_list_indented_code_to_test)
