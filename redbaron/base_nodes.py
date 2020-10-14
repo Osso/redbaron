@@ -24,7 +24,6 @@ from .utils import (baron_type_to_redbaron_classname,
                     redbaron_classname_to_baron_type,
                     truncate)
 
-ALL_IDENTIFIERS = set()
 NODES_RENDERING_ORDER = nodes_rendering_order
 NODES_RENDERING_ORDER["root"] = [('list', 'value', True)]
 
@@ -56,15 +55,6 @@ class NodeList(UserList, GenericNodesMixin):
             if candidate is not None:
                 return candidate
         return None
-
-    def __getattr__(self, key):
-        if key not in ALL_IDENTIFIERS:
-            raise AttributeError(
-                "%s instance has no attribute '%s' and '%s' is not a valid "
-                "identifier of another node" % (self.__class__.__name__,
-                                                key, key))
-
-        return self.find(key)
 
     def __setitem__(self, key, value):
         self.data[key] = self.parent.from_str(value,
@@ -213,14 +203,7 @@ class NodeList(UserList, GenericNodesMixin):
                 previous = node
 
 
-class NodeRegistration(type):
-    def __init__(cls, name, bases, attrs):
-        global ALL_IDENTIFIERS
-        super().__init__(name, bases, attrs)
-        ALL_IDENTIFIERS |= set(cls.generate_identifiers())
-
-
-class Node(GenericNodesMixin, metaclass=NodeRegistration):
+class Node(GenericNodesMixin):
     _other_identifiers = []
     _default_test_value = "value"
     first_formatting = None
@@ -462,12 +445,7 @@ class Node(GenericNodesMixin, metaclass=NodeRegistration):
                 isinstance(self.value, ProxyList) and hasattr(self.value, key):
             return getattr(self.value, key)
 
-        if key not in ALL_IDENTIFIERS:
-            raise AttributeError("%s instance has no attribute '%s' and '%s' "
-                                 "is not a valid identifier of another node" %
-                                 (self.__class__.__name__, key, key))
-
-        return self.find(key)
+        raise AttributeError("%s not found" % key)
 
     def find_iter(self, identifier, *args, **kwargs):
         if "recursive" in kwargs:
