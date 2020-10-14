@@ -5,7 +5,7 @@ from redbaron import RedBaron
 
 redbaron.DEBUG = True
 
-red = RedBaron("""\
+red = RedBaron("""
 class Foo(object):
     def __init__(self):
         self.a = None

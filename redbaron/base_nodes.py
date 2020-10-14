@@ -238,6 +238,7 @@ class Node(GenericNodesMixin, metaclass=NodeRegistration):
         self._list_keys = []
         self._dict_keys = []
         self.type = fst["type"]
+        self.indent = ""
 
         for kind, key, _ in self._render():
             if kind == 'constant':
@@ -420,30 +421,10 @@ class Node(GenericNodesMixin, metaclass=NodeRegistration):
         next(generator)
         return generator
 
-    def get_indentation_node(self):
-        if self.type == "endl":
-            # by convention, an endl node will always have this indentation
-            return None
-
-        if self.previous_rendered is None:
-            return None
-
-        if self.previous_rendered.type == "endl":
-            return self.previous_rendered
-
-        return self.previous_rendered.get_indentation_node()
-
     @property
     @display_property_atttributeerror_exceptions
     def indentation(self):
-        endl_node = self.get_indentation_node()
-        return endl_node.indent if endl_node is not None else ""
-
-    def indentation_node_is_direct(self):
-        if self.previous_rendered and self.previous_rendered.type == "endl":
-            return True
-
-        return False
+        return self.indent
 
     def _get_list_attribute_is_member_off(self):
         """
