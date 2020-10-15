@@ -1,8 +1,7 @@
 from collections import UserList
 from fnmatch import fnmatch
 import inspect
-import itertools
-import os
+from itertools import dropwhile
 import re
 import sys
 
@@ -12,14 +11,10 @@ from baron.render import nodes_rendering_order
 
 from .node_mixin import GenericNodesMixin
 from .node_path import Path
-from .proxy_list import (CodeProxyList,
-                         LineProxyList,
-                         ProxyList)
 from .syntax_highlight import (help_highlight,
                                python_highlight,
                                python_html_highlight)
-from .utils import (baron_type_to_redbaron_classname,
-                    display_property_atttributeerror_exceptions,
+from .utils import (display_property_atttributeerror_exceptions,
                     in_a_shell,
                     in_ipython,
                     indent,
@@ -28,14 +23,16 @@ from .utils import (baron_type_to_redbaron_classname,
 
 NODES_RENDERING_ORDER = nodes_rendering_order
 NODES_RENDERING_ORDER["root"] = [('list', 'value', True)]
+NODE_TYPE_MAPPING = {}
 
 
 class NodeList(UserList, GenericNodesMixin):
-    next = None
-    previous = None
+    def __init__(self, node_list=None, parent=None, on_attribute=None):
+        for node in node_list:
+            node.parent = self
 
-    def __init__(self, initlist=None, parent=None, on_attribute=None):
-        super().__init__(initlist)
+        super().__init__(node_list)
+
         self.parent = parent
         self.on_attribute = on_attribute
 
@@ -51,6 +48,11 @@ class NodeList(UserList, GenericNodesMixin):
         return cls.from_fst(baron.parse(value), parent=parent,
                             on_attribute=on_attribute)
 
+    def from_str_el(self, value):
+        node = self.parent.from_str(value, on_attribute=self.on_attribute)
+        node.parent = self
+        return node
+
     def find(self, identifier, *args, **kwargs):
         for i in self.data:
             candidate = i.find(identifier, *args, **kwargs)
@@ -59,8 +61,10 @@ class NodeList(UserList, GenericNodesMixin):
         return None
 
     def __setitem__(self, key, value):
-        self.data[key] = self.parent.from_str(value,
-                                              on_attribute=self.on_attribute)
+        if isinstance(value, str):
+            value = self.from_str_el(value)
+
+        self.data[key] = value
 
     def find_iter(self, identifier, *args, **kwargs):
         for node in self.data:
@@ -77,7 +81,7 @@ class NodeList(UserList, GenericNodesMixin):
         return Path(self)
 
     def fst(self):
-        return [x.fst() for x in self.data]
+        return [x.fst() for x in self.node_list]
 
     def dumps(self):
         return baron.dumps(self.fst())
@@ -102,30 +106,6 @@ class NodeList(UserList, GenericNodesMixin):
             to_return += "\n"
         return to_return
 
-    def _bytes_repr_html_(self):
-        def __repr_html(self):
-            # string addition is slow (and makes copies)
-            yield b"<table>"
-            yield b"<tr><th>Index</th><th>node</th></tr>"
-            for num, item in enumerate(self):
-                yield b"<tr>"
-                yield b"<td>"
-                yield str(num).encode("utf-8")
-                yield b"</td>"
-                yield b"<td>"
-                if hasattr(item, "_repr_html_"):
-                    yield item._bytes_repr_html_()
-                else:
-                    yield str(item).encode("utf-8")
-                yield b"</td>"
-                yield b"</tr>"
-            yield b"</table>"
-
-        return b''.join(__repr_html(self))
-
-    def _repr_html_(self):
-        return self._bytes_repr_html_().decode("Utf-8")
-
     def help(self, deep=2, with_formatting=False):
         for num, i in enumerate(self.data):
             sys.stdout.write(str(num) + " -----------------------------------------------------\n")
@@ -135,77 +115,50 @@ class NodeList(UserList, GenericNodesMixin):
         return [x.__help__(deep=deep, with_formatting=with_formatting) for x in self.data]
 
     def copy(self):
-        # not very optimised but at least very simple
-        return NodeList(map(Node.from_fst, self.fst()))
+        return self.__class__(list(self))
 
-    def next_generator(self):
-        # similary, NodeList will never have next items
-        # trick to return an empty generator
-        # I wonder if I should not raise instead :/
-        return
-
-    def previous_generator(self):
-        # similary, NodeList will never have next items
-        # trick to return an empty generator
-        # I wonder if I should not raise instead :/
-        return
-
-    def apply(self, function):
-        for el in self.data:
-            function(el)
-        return self
-
-    def map(self, function):
-        return NodeList([function(x) for x in self.data])
+    def deep_copy(self):
+        return self.__class__([node.copy() for node in self])
 
     def filter(self, function):
-        return NodeList([x for x in self.data if function(x)])
+        return self.replace_data([x for x in self.data if function(x)])
 
-    def filtered(self):
-        return tuple([x[0] for x in self.data])
+    def replace_data(self, new_data):
+        self.data = new_data
 
     def _generate_nodes_in_rendering_order(self):
         previous = None
-        for i in self:
-            for j in i._iter_in_rendering_order():
-                if j is previous:
+        for node in self:
+            for _node in node._iter_in_rendering_order():
+                if _node is previous:
                     continue
-                previous = j
-                yield j
+                previous = _node
+                yield _node
 
     def get_absolute_bounding_box_of_attribute(self, index):
-        if index >= len(self.data) or index < 0:
-            raise IndexError()
-        path = self.path().to_baron_path() + [index]
+        if not 0 < index <= len(self.data):
+            raise IndexError("invalid index")
+
+        path = self[index].path().to_baron_path()
         return baron.path.path_to_bounding_box(self.root.fst(), path)
 
     def increase_indentation(self, number_of_spaces):
-        previous = None
-        done = set()
-        for i in self.data:
-            for node in i._generate_nodes_in_rendering_order():
-                if node.type != "endl" and previous is not None and \
-                        previous.type == "endl" and previous not in done:
-                    previous.indent += number_of_spaces * " "
-                    done.add(previous)
-                previous = node
+        for node in self:
+            node.increase_indentation(number_of_spaces)
 
     def decrease_indentation(self, number_of_spaces):
-        previous = None
-        done = set()
-        for i in self.data:
-            for node in i._generate_nodes_in_rendering_order():
-                if node.type != "endl" and previous is not None and \
-                        previous.type == "endl" and previous not in done:
-                    previous.indent = previous.indent[number_of_spaces:]
-                    done.add(previous)
-                previous = node
+        for node in self:
+            node.decrease_indentation(number_of_spaces)
 
     def baron_index(self, value):
         return self.index(value)
 
     def get_from_baron_index(self, index):
         return self[index]
+
+    @property
+    def node_list(self):
+        return self
 
 
 class Node(GenericNodesMixin):
@@ -231,36 +184,31 @@ class Node(GenericNodesMixin):
         self.indent = ""
 
         for kind, key, _ in self._render():
-            if kind == 'constant':
+            if kind == "constant":
                 continue
 
             if kind == "key":
                 if fst[key]:
-                    setattr(self, key, self.from_fst(fst[key],
-                                                     on_attribute=key))
+                    value = self.from_fst(fst[key], on_attribute=key)
                 else:
-                    setattr(self, key, None)
+                    value = None
+                setattr(self, key, value)
                 self._dict_keys.append(key)
-
             elif kind in ("bool", "string"):
                 setattr(self, key, fst[key])
                 self._str_keys.append(key)
-
             elif kind in ("list", "formatting"):
-                setattr(self, key, self.nodelist_from_fst(fst[key],
-                                                          on_attribute=key))
+                value = self.nodelist_from_fst(fst[key], on_attribute=key)
+                setattr(self, key, value)
                 self._list_keys.append(key)
-
             else:
                 raise Exception(str((fst["type"], kind, key)))
 
         self.init = False
 
     def from_fst(self, node, on_attribute=None):
-        from . import nodes
-        class_name = baron_type_to_redbaron_classname(node['type'])
-        return getattr(nodes, class_name)(node, parent=self,
-                                          on_attribute=on_attribute)
+        cls = NODE_TYPE_MAPPING[node['type']]
+        return cls(node, parent=self, on_attribute=on_attribute)
 
     def nodelist_from_fst(self, node_list, on_attribute=None):
         return NodeList.from_fst(node_list, parent=self,
@@ -273,41 +221,26 @@ class Node(GenericNodesMixin):
 
     def nodelist_from_str(self, value, on_attribute=None):
         assert isinstance(value, str)
-
-        # if isinstance(value, Node):
-        #     value.parent = self.parent
-        #     value.on_attribute = on_attribute
-        #     return NodeList([value])
-
-        # if isinstance(value, (NodeList, ProxyList)):
-        #     for node in value:
-        #         node.parent = self.parent
-        #         node.on_attribute = on_attribute
-        #     return value
-
         return NodeList.from_fst(value, parent=self.parent,
                                  on_attribute=on_attribute)
 
+    def next_neighbors(self):
+        neighbors = dropwhile(lambda x: x is not self, self.neighbors)
+        next(neighbors)
+        return neighbors
+
     @property
-    @display_property_atttributeerror_exceptions
     def next(self):
-        in_list = self._get_list_attribute_is_member_off()
-
-        if in_list is None:
-            return None
-
-        next_node = list(itertools.dropwhile(lambda x: x is not self, in_list))[1:]
-        return next_node[0] if next_node else None
+        return next(self.next_neighbors(), None)
 
     @property
-    @display_property_atttributeerror_exceptions
     def next_intuitive(self):
-        next_ = self.next
+        next_node = self.next
 
-        if next_ and next_.type == "ifelseblock":
-            return next_.if_
+        if next_node and next_node.type == "ifelseblock":
+            return next_node.find("if")
 
-        return next_
+        return next_node
 
     @property
     @display_property_atttributeerror_exceptions
@@ -315,7 +248,7 @@ class Node(GenericNodesMixin):
         previous = None
         target = self.parent
         while target is not None:
-            for i in reversed(list(target._generate_nodes_in_rendering_order())):
+            for i in reversed(target._generate_nodes_in_rendering_order()):
                 if i is self and previous is not None:
                     return previous
                 previous = i
@@ -324,7 +257,6 @@ class Node(GenericNodesMixin):
             target = target.parent
 
     @property
-    @display_property_atttributeerror_exceptions
     def next_recursive(self):
         target = self
         while not target.next:
@@ -333,29 +265,17 @@ class Node(GenericNodesMixin):
             target = target.parent
         return target.next
 
-    def next_generator(self):
-        in_list = self._get_list_attribute_is_member_off()
-
-        if in_list is None:
-            return None
-
-        generator = itertools.dropwhile(lambda x: x is not self, in_list)
-        next(generator)
-        return generator
+    def previous_neighbors(self):
+        neighbors = dropwhile(lambda x: x is not self,
+                              reversed(self.neighbors))
+        next(neighbors)
+        return neighbors
 
     @property
-    @display_property_atttributeerror_exceptions
     def previous(self):
-        in_list = self._get_list_attribute_is_member_off()
-
-        if in_list is None:
-            return None
-
-        next_node = list(itertools.dropwhile(lambda x: x is not self, reversed(in_list)))[1:]
-        return next_node[0] if next_node else None
+        return next(self.previous_neighbors(), None)
 
     @property
-    @display_property_atttributeerror_exceptions
     def previous_intuitive(self):
         previous_ = self.previous
 
@@ -379,7 +299,6 @@ class Node(GenericNodesMixin):
         return previous_
 
     @property
-    @display_property_atttributeerror_exceptions
     def previous_rendered(self):
         previous = None
         target = self.parent
@@ -392,7 +311,6 @@ class Node(GenericNodesMixin):
             target = target.parent
 
     @property
-    @display_property_atttributeerror_exceptions
     def previous_recursive(self):
         target = self
         while not target.previous:
@@ -401,82 +319,29 @@ class Node(GenericNodesMixin):
             target = target.parent
         return target.previous
 
-    def previous_generator(self):
-        in_list = self._get_list_attribute_is_member_off()
-
-        if in_list is None:
-            return None
-
-        generator = itertools.dropwhile(lambda x: x is not self, reversed(in_list))
-        next(generator)
-        return generator
-
-    @property
-    @display_property_atttributeerror_exceptions
-    def indentation(self):
-        return self.indent
-
-    def _get_list_attribute_is_member_off(self):
-        """
-        Return the list attribute of the parent from which this node is a
-        member.
-
-        If this node isn't in a list attribute, return None.
-        """
-        if self.parent is None:
-            return None
-
-        if self.on_attribute == "root":
-            in_list = self.parent
-        elif self.on_attribute is not None:
-            if isinstance(self.parent, NodeList):
-                in_list = getattr(self.parent.parent, self.on_attribute)
-            else:
-                in_list = getattr(self.parent, self.on_attribute)
-        else:
-            return None
-
-        if isinstance(in_list, ProxyList):
-            return in_list.node_list
-
-        if not isinstance(in_list, NodeList):
-            return None
-
-        return in_list
-
     def __getattr__(self, key):
         if key.endswith("_") and key[:-1] in self._dict_keys + self._list_keys + self._str_keys:
             return getattr(self, key[:-1])
 
-        if key != "value" and hasattr(self, "value") and \
-                isinstance(self.value, ProxyList) and hasattr(self.value, key):
+        if key != "value" and hasattr(self, "value"):
             return getattr(self.value, key)
 
         raise AttributeError("%s not found" % key)
 
-    def find_iter(self, identifier, *args, **kwargs):
-        if "recursive" in kwargs:
-            recursive = kwargs["recursive"]
-            kwargs = kwargs.copy()
-            del kwargs["recursive"]
-        else:
-            recursive = True
-
+    def find_iter(self, identifier, *args, recursive=True, **kwargs):
         if self._node_match_query(self, identifier, *args, **kwargs):
             yield self
 
         if recursive:
-            for (kind, key, _) in self._render():
+            for kind, key, _ in self._render():
                 if kind == "key":
                     node = getattr(self, key)
-                    if not isinstance(node, Node):
-                        continue
-                    for matched_node in node.find_iter(identifier, *args, **kwargs):
-                        yield matched_node
+                    if hasattr(node, "find_iter"):
+                        for matched_node in node.find_iter(identifier,
+                                                           *args, **kwargs):
+                            yield matched_node
                 elif kind in ("list", "formatting"):
                     nodes = getattr(self, key)
-                    if isinstance(nodes, ProxyList):
-                        _nodes = nodes.node_list
                     for node in nodes:
                         for matched_node in node.find_iter(identifier, *args, **kwargs):
                             yield matched_node
@@ -485,10 +350,7 @@ class Node(GenericNodesMixin):
         return next(self.find_iter(identifier, *args, **kwargs), None)
 
     def find_all(self, identifier, *args, **kwargs):
-        return NodeList(list(self.find_iter(identifier, *args, **kwargs)))
-
-    findAll = find_all
-    __call__ = find_all
+        return list(self.find_iter(identifier, *args, **kwargs))
 
     def parent_find(self, identifier, *args, **kwargs):
         current = self
@@ -603,16 +465,16 @@ class Node(GenericNodesMixin):
             'index_on_parent_raw',
             'insert_after',
             'insert_before',
-            'next_generator',
-            'next_generator',
+            'next_neighbors',
+            'next_neighbors',
             'parent_find',
             'parent_find',
             'parse_code_block',
             'parse_decorators',
             'path',
             'path',
-            'previous_generator',
-            'previous_generator',
+            'previous_neighbors',
+            'previous_neighbors',
             'replace',
             'to_python',
         ])
@@ -620,6 +482,8 @@ class Node(GenericNodesMixin):
                 x not in not_helpers and inspect.ismethod(getattr(self, x))]
 
     def fst(self):
+        from .proxy_list import ProxyList
+
         to_return = {}
         for key in self._str_keys:
             to_return[key] = getattr(self, key)
@@ -734,8 +598,6 @@ class Node(GenericNodesMixin):
         if name.endswith("_") and not name.endswith("__"):
             name = name[:-1]
 
-        # I'm pretty sure that Bool should also be put in the
-        # isinstance for cases like with_parenthesis/as
         if name in self._str_keys:
             assert isinstance(value, str)
 
@@ -747,7 +609,6 @@ class Node(GenericNodesMixin):
         elif name in self._list_keys:
             if isinstance(value, str):
                 value = self.nodelist_from_str(value, on_attribute=name)
-            assert isinstance(value, ProxyList)
 
         return super(Node, self).__setattr__(name, value)
 
@@ -756,55 +617,48 @@ class Node(GenericNodesMixin):
 
     def replace(self, new_node):
         new_node = self.from_str(new_node, on_attribute=self.on_attribute)
-        self.__class__ = new_node.__class__  # YOLO
-        self.__init__(new_node.fst(), parent=self.parent, on_attribute=self.on_attribute)
-
-    def edit(self, editor=None):
-        if editor is None:
-            editor = os.environ.get("EDITOR", "nano")
-
-        base_path = os.path.join("/tmp", "baron_%s" % os.getpid())
-        if not os.path.exists(base_path):
-            os.makedirs(base_path)
-
-        temp_file_path = os.path.join(base_path, str(id(self)))
-
-        self_in_string = self.dumps()
-        with open(temp_file_path, "w") as temp_file:
-            temp_file.write(self_in_string)
-
-        os.system("%s %s" % (editor, temp_file_path))
-
-        with open(temp_file_path, "r") as temp_file:
-            result = temp_file.read()
-
-        if result != self_in_string:
-            self.replace(result)
+        if self is self.on_attribute_node:
+            self.on_attribute_node = new_node
+        else:
+            index = self.on_attribute_node.index(self)
+            self.on_attribute_node[index] = new_node
 
     @property
-    @display_property_atttributeerror_exceptions
+    def on_attribute_node(self):
+        if self.on_attribute == "root":
+            return self
+
+        return getattr(self.parent, self.on_attribute)
+
+    @on_attribute_node.setter
+    def set_on_attribute_node(self, node):
+        setattr(self.parent, self.on_attribute, node)
+
+    @property
+    def neighbors(self):
+        neighbors = self.on_attribute_node
+        if isinstance(neighbors, NodeList):
+            return neighbors
+        return []
+
+    @property
     def index_on_parent(self):
         if not self.parent:
-            return None
+            raise ValueError("no parent")
 
-        if not isinstance(getattr(self.parent, self.on_attribute), (NodeList, ProxyList)):
-            return None
-
-        return getattr(self.parent, self.on_attribute).index(self)
+        return self.parent.index(self)
 
     @property
-    @display_property_atttributeerror_exceptions
-    def index_on_parent_raw(self):
+    def baron_index_on_parent(self):
         if not self.parent:
-            return None
+            raise ValueError("no parent")
 
-        if not isinstance(getattr(self.parent, self.on_attribute), (NodeList, ProxyList)):
-            return None
+        try:
+            node_list = self.parent.node_list
+        except AttributeError:
+            raise ValueError("parent has no node list")
 
-        if isinstance(getattr(self.parent, self.on_attribute), ProxyList):
-            return getattr(self.parent, self.on_attribute).node_list.index(self)
-
-        return getattr(self.parent, self.on_attribute).index(self)
+        return node_list.index(self)
 
     def _generate_nodes_in_rendering_order(self):
         previous = None
@@ -827,11 +681,10 @@ class Node(GenericNodesMixin):
         return baron.path.path_to_bounding_box(self.root.fst(), path)
 
     def increase_indentation(self, number_of_spaces):
-        self.get_indentation_node().indent += number_of_spaces * " "
+        self.indent += number_of_spaces * " "
 
     def decrease_indentation(self, number_of_spaces):
-        self.get_indentation_node().indent = \
-            self.get_indentation_node().indent[:-len(number_of_spaces * " ")]
+        self.indent = self.indent[:-len(number_of_spaces)]
 
     def insert_before(self, value, offset=0):
         self.parent.insert(self.index_on_parent - offset, value)
@@ -842,53 +695,32 @@ class Node(GenericNodesMixin):
     def __bool__(self):
         return True
 
+    @property
+    def node_list(self):
+        return self
+
 
 class IterableNode(Node):
     def __len__(self):
-        return len(self.node_list)
+        return len(self.value)
 
     def __getitem__(self, key):
-        if hasattr(self, "value") and isinstance(self.value, ProxyList):
-            return self.value[key]
-
-        raise TypeError("'%s' object does not support indexing" % self.__class__)
+        return self.value[key]
 
     def __getslice__(self, i, j):
-        if hasattr(self, "value") and isinstance(self.value, ProxyList):
-            return self.value.__getslice__(i, j)
-
-        raise AttributeError("__getslice__")
+        return self.value.__getslice__(i, j)
 
     def __setitem__(self, key, value):
-        if hasattr(self, "value") and isinstance(self.value, ProxyList):
-            self.value[key] = value
-
-        else:
-            raise TypeError("'%s' object does not support item assignment" % self.__class__)
+        self.value[key] = value
 
     def __setslice__(self, i, j, value):
-        if hasattr(self, "value") and isinstance(self.value, ProxyList):
-            return self.value.__setslice__(i, j, value)
-
-        raise TypeError("'%s' object does not support slice setting" % self.__class__)
+        return self.value.__setslice__(i, j, value)
 
     def __delitem__(self, key):
-        if hasattr(self, "value") and isinstance(self.value, ProxyList):
-            del self.value[key]
-
-        else:
-            raise AttributeError("__delitem__")
+        del self.value[key]
 
     def __delslice__(self, i, j):
-        if hasattr(self, "value") and isinstance(self.value, ProxyList):
-            self.value.__delslice__(i, j)
-
-        else:
-            raise AttributeError("__delitem__")
-
-    @property
-    def node_list(self):
-        return self.value.node_list
+        self.value.__delslice__(i, j)
 
     def index(self, item):
         return self.value.index(item)
@@ -908,6 +740,8 @@ class CodeBlockNode(IterableNode):
         raise Exception("Unhandled case")
 
     def __setattr__(self, key, value):
+        from .proxy_list import CodeProxyList, LineProxyList
+
         if key == "value":
             if isinstance(value, str):
                 value = CodeProxyList.from_str(value, parent=self,

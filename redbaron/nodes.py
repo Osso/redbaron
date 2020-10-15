@@ -4,7 +4,8 @@ from redbaron.syntax_highlight import python_html_highlight
 
 import baron
 
-from .base_nodes import (CodeBlockNode,
+from .base_nodes import (NODE_TYPE_MAPPING,
+                         CodeBlockNode,
                          IfElseBlockSiblingNode,
                          IterableNode,
                          Node,
@@ -1624,3 +1625,10 @@ class WithNode(CodeBlockNode):
 class EmptyLine(Node):
     def _default_fst(self):
         return {"type": "space", "value": ""}
+
+
+NODE_TYPE_MAPPING.update({
+    'def': DefNode,
+    'class': ClassNode,
+    'with': WithNode,
+})

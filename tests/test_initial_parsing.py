@@ -4,8 +4,9 @@
 import re
 
 import pytest
-import redbaron
-from redbaron import RedBaron
+from redbaron import (RedBaron,
+                      nodes)
+from redbaron.base_nodes import NODE_TYPE_MAPPING
 from redbaron.nodes import (AssignmentNode,
                             CallNode,
                             CommaNode,
@@ -16,16 +17,19 @@ from redbaron.nodes import (AssignmentNode,
                             NameNode,
                             NodeList,
                             PassNode)
-from redbaron.utils import baron_type_to_redbaron_classname
 
 import baron
 from baron.render import nodes_rendering_order
 
 
-def test_all_class_are_declared():
+def test_all_baron_types_are_mapped():
     for node_type in nodes_rendering_order:
-        class_name = baron_type_to_redbaron_classname(node_type)
-        assert hasattr(redbaron, class_name)
+        assert node_type in NODE_TYPE_MAPPING
+
+
+def test_all_class_are_in_nodes():
+    for _, klass in NODE_TYPE_MAPPING:
+        assert hasattr(nodes, klass.__name__)
 
 
 def test_empty():
@@ -360,14 +364,14 @@ def test_node_previous_recursive():
     assert inner[0].previous_recursive == first
 
 
-def test_node_next_generator():
+def test_node_next_neighbors():
     red = RedBaron("[1, 2, 3]")
-    assert list(red[0].value[2].next_generator()) == list(red[0].value[3:])
+    assert list(red[0].value[2].next_neighbors()) == list(red[0].value[3:])
 
 
-def test_node_previous_generator():
+def test_node_previous_neighbors():
     red = RedBaron("[1, 2, 3]")
-    assert list(red[0].value.node_list[2].previous_generator()) \
+    assert list(red[0].value.node_list[2].previous_neighbors()) \
         == list(reversed(red[0].value.node_list[:2]))
 
 

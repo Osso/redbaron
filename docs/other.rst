@@ -67,7 +67,7 @@ match the query.
     r.parent_find('def', name='a')
     r.parent_find('def', name='dont_exist')
 
-.next .previous .next_recursive .previous_recursive .next_generator() .previous_generator()
+.next .previous .next_recursive .previous_recursive .next_neighbors() .previous_neighbors()
 -------------------------------------------------------------------------------------------
 
 In a similar fashion, nodes have a :file:`.next` and :file:`.previous`
@@ -76,7 +76,7 @@ node list. They are set at :file:`None` if there is not adjacent node or if the
 node is not in a node list. A node list will never have a :file:`.next` or
 :file:`.previous` node, so those attributes will always be set at :file:`None`.
 
-Nodes also have a :file:`.next_generator()` and :file:`.previous_generator()`
+Nodes also have a :file:`.next_neighbors()` and :file:`.previous_neighbors()`
 if you want to iterate on the neighbours of the node.
 
 Nodes have also a :file:`.next_recursive` and
@@ -114,13 +114,13 @@ the first adjacent node that exist in the parent hierarchy.
     In [42]: print(assign.target.previous)
 
     In [42]: list.value[2].help(deep=1)
-    In [42]: print([x for x list.value[2].next_generator()])
-    In [42]: print([x for x list.value[2].previous_generator()])
+    In [42]: print([x for x list.value[2].next_neighbors()])
+    In [42]: print([x for x list.value[2].previous_neighbors()])
     In [42]: list.value.help(deep=0)
-    In [42]: print([x for x list.value.next_generator()])
-    In [42]: print([x for x list.value.previous_generator()])
-    In [42]: print([x for x assign.target.next_generator()])
-    In [42]: print([x for x assign.target.previous_generator()])
+    In [42]: print([x for x list.value.next_neighbors()])
+    In [42]: print([x for x list.value.previous_neighbors()])
+    In [42]: print([x for x assign.target.next_neighbors()])
+    In [42]: print([x for x assign.target.previous_neighbors()])
 
 .next_intuitive/.previous_intuitive
 -----------------------------------

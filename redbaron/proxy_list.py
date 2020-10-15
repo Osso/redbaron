@@ -1,29 +1,23 @@
 from redbaron.utils import (in_a_shell,
                             truncate)
 
+from .base_nodes import NodeList
 
-class ProxyList:
+
+class ProxyList(NodeList):
     needs_separator = True
+    middle_separator = None
 
-    def __init__(self, node_list, on_attribute="value",
+    def __init__(self, node_list, parent=None, on_attribute="value",
                  trailing_separator=False):
-        self.node_list = node_list
-        self.heading_formatting = []
-        self.on_attribute = on_attribute
         self.trailing_separator = trailing_separator
-        self.data = self._node_list_to_data(node_list)
-        assert isinstance(self.data, list)
+        self._data = self._node_list_to_data(node_list)
+        assert isinstance(self._data, list)
 
-    @classmethod
-    def from_str(cls, value, parent, on_attribute=None):
-        from .base_nodes import NodeList
-        node_list = NodeList.from_str(value, parent=parent,
-                                      on_attribute=on_attribute)
-        return cls(node_list, on_attribute=on_attribute)
+        super().__init__(node_list, parent=parent, on_attribute=on_attribute)
 
     def nodelist_from_str(self, value):
-        parent = self.node_list.parent
-        return parent.nodelist_from_str(value, self.on_attribute)
+        return self.parent.nodelist_from_str(value, self.on_attribute)
 
     def _node_list_to_data(self, node_list):
         data = []
@@ -55,7 +49,7 @@ class ProxyList:
         return data
 
     def _data_nodelist_from_str(self, data):
-        expected_list = self.heading_formatting.copy()
+        expected_list = []
 
         for el in data:
             expected_list.append(el[0])
@@ -66,7 +60,7 @@ class ProxyList:
 
     def make_separator(self):
         separator = self.middle_separator.copy()
-        separator.parent = self.node_list
+        separator.parent = self
         separator.on_attribute = self.on_attribute
         return separator
 
@@ -75,36 +69,35 @@ class ProxyList:
 
     def _synchronise(self):
         if not self.trailing_separator:
-            self.data[-1][1] = None
-        self.node_list.data = self._data_nodelist_from_str(self.data)
+            self._data[-1][1] = None
+        self._data = self._data_nodelist_from_str(self._data)
 
     def __len__(self):
-        return len(self.data)
+        return len(self._data)
 
-    def insert(self, index, value, synchronise=True):
-        value = self.parent.from_str(value)
+    def _insert(self, index, item):
+        value = self.from_str_el(item)
         self._check_for_separator(index)
-        self.data.insert(index, [value, self.make_separator()])
-        if synchronise:
-            self._synchronise()
+        self._data.insert(index, [value, self.make_separator()])
 
-    def append(self, value, synchronise=True):
-        self.insert(len(self), value, synchronise)
-
-    def extend(self, values):
-        for value in values:
-            self.append(value, synchronise=False)
+    def insert(self, i, item):
+        self._insert(i, item)
         self._synchronise()
 
-    def pop(self, index=None):
-        if index is not None:
-            self.data.pop(index)
-        else:
-            self.data.pop()
+    def append(self, item):
+        self.insert(len(self), item)
+
+    def extend(self, other):
+        for value in other:
+            self._insert(len(self), value)
         self._synchronise()
 
-    def remove(self, value):
-        self.pop(self.index(value))
+    def pop(self, i=-1):
+        self._data.pop(i)
+        self._synchronise()
+
+    def remove(self, item):
+        self.pop(self.index(item))
 
     def __delitem__(self, index):
         if isinstance(index, slice):
@@ -112,57 +105,57 @@ class ProxyList:
         else:
             self.pop(index)
 
-    def index(self, value):
-        for position, el in enumerate(self.data):
-            if el[0] is value:
-                return position
-        return None
+    def index(self, item, *args):
+        return list(self).index(item, *args)
 
     def baron_index(self, value):
-        return self.node_list.index(value)
+        return self.index(value)
 
     def __getitem__(self, index):
         if isinstance(index, slice):
             return self.__getslice__(index.start, index.stop)
-        return self.data[index][0]
+        return self._data[index][0]
 
     def get_from_baron_index(self, index):
-        return self.node_list[index]
+        return self[index]
 
     def __contains__(self, item):
         return self.index(item) is not None
 
     def __iter__(self):
-        for el in self.data:
+        for el in self._data:
             yield el[0]
 
-    def count(self, value):
-        return [x[0] for x in self.data].count(value)
+    @property
+    def node_list(self):
+        return self.data
+
+    def count(self, item):
+        return list(self).count(item)
 
     def __setitem__(self, index, value):
         if isinstance(index, slice):
             self.__setslice__(index.start, index.stop, value)
         else:
-            self.data[index][0] = self.parent.from_str(value)
+            self._data[index][0] = self.parent.from_str(value)
         self._synchronise()
 
     def __setslice__(self, i, j, value):
         _nodes = self.nodelist_from_str(value)
         self._check_for_separator(i)
-        self.data[i:j] = ([node, self.make_separator()] for node in _nodes)
+        self._data[i:j] = ([node, self.make_separator()] for node in _nodes)
         self._synchronise()
 
     def _check_for_separator(self, index):
-        if index > 0 and self.data[index-1][1] is None:
-            self.data[index-1][1] = self.make_separator()
+        if index > 0 and self._data[index-1][1] is None:
+            self._data[index-1][1] = self.make_separator()
 
     def __delslice__(self, i, j):
-        del self.data[i:j]
+        del self._data[i:j]
         self._synchronise()
 
     def __getslice__(self, i, j):
-        from .base_nodes import NodeList
-        to_return = map(lambda x: x[0], self.data[i:j])
+        to_return = map(lambda x: x[0], self._data[i:j])
         return self.__class__(NodeList(to_return))
 
     def __repr__(self):
@@ -178,53 +171,34 @@ class ProxyList:
             id(self.parent)
         )
 
-    def _bytes_repr_html_(self):
-        def __repr_html(self):
-            # string addition is slow (and makes copies)
-            yield b"<table>"
-            yield b"<tr><th>Index</th><th>node</th></tr>"
-            for num, item in enumerate(self):
-                yield b"<tr>"
-                yield b"<td>"
-                yield str(num).encode("Utf-8")
-                yield b"</td>"
-                yield b"<td>"
-                yield item._bytes_repr_html_()
-                yield b"</td>"
-                yield b"</tr>"
-            yield b"</table>"
-
-        return b''.join(__repr_html(self))
-
-    def _repr_html_(self):
-        return self._bytes_repr_html_().decode("Utf-8")
-
     def __str__(self):
         to_return = ""
-        for number, value in enumerate(self.data):
+        for number, value in enumerate(self._data):
             value = value[0]
             to_return += (("%-3s " % number) + "\n    ".join(value.__repr__().split("\n")))
             to_return += "\n"
         return to_return
 
-    def __getattr__(self, key):
-        return getattr(self.node_list, key)
-
     def _get_separator_indentation(self):
-        if self.data:
-            return self.data[0].indentation
+        if self._data:
+            return self._data[0].indentation
         return self.parent.indentation + "    "
 
-    @property
-    def parent(self):
-        return self.node_list.parent
+    def filter(self, function):
+        new_list = self.copy()
+        new_list.replace_data([node for node, sep in self._data
+                               if function(node)])
+
+    def replace_data(self, new_data):
+        self._data = new_data
+        self._synchronise()
 
 
 class SpaceProxyList(ProxyList):
-    def __init__(self, node_list, on_attribute="value"):
+    def __init__(self, node_list, parent=None, on_attribute="value"):
         from .nodes import SpaceNode
         self.middle_separator = SpaceNode()
-        super().__init__(node_list, on_attribute=on_attribute)
+        super().__init__(node_list, parent=parent, on_attribute=on_attribute)
 
 
 class CommaProxyList(ProxyList):
@@ -235,7 +209,6 @@ class CommaProxyList(ProxyList):
         super().__init__(node_list, on_attribute=on_attribute)
 
     def make_indented(self):
-        from .base_nodes import NodeList
         self.style = "indented"
         self.middle_separator.second_formatting = NodeList([{
             "type": "endl",
@@ -258,7 +231,7 @@ class DotProxyList(ProxyList):
         else:
             value = "a.%s" % value
 
-        node_list = self.node_list.parent.nodelist_from_str(
+        node_list = self.parent.nodelist_from_str(
             value, on_attribute=self.on_attribute)
         return node_list.filtered()
 
@@ -276,7 +249,7 @@ class LineProxyList(ProxyList):
         return EmptyLine()
 
     # def get_absolute_bounding_box_of_attribute(self, index):
-    #     if index >= len(self.data) or index < 0:
+    #     if index >= len(self._data) or index < 0:
     #         raise IndexError()
     #     index = self[index].index_on_parent_raw
     #     path = self.path().to_baron_path() + [index]
@@ -286,7 +259,6 @@ class LineProxyList(ProxyList):
 class CodeProxyList(LineProxyList):
     def _node_list_to_data(self, node_list):
         from .nodes import EmptyLine
-        from .base_nodes import NodeList
 
         def current_line_to_el(current_line):
             if not current_line:
