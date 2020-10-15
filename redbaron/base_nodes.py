@@ -11,7 +11,8 @@ import baron.path
 from baron.render import nodes_rendering_order
 
 from .node_mixin import GenericNodesMixin
-from .proxy_list import (LineProxyList,
+from .proxy_list import (CodeProxyList,
+                         LineProxyList,
                          ProxyList)
 from .syntax_highlight import (help_highlight,
                                python_highlight,
@@ -38,14 +39,14 @@ class NodeList(UserList, GenericNodesMixin):
         self.on_attribute = on_attribute
 
     @classmethod
-    def from_fst(cls, node_list, parent, on_attribute):
+    def from_fst(cls, node_list, parent, on_attribute=None):
         assert isinstance(parent, Node)
         nodes = [parent.from_fst(n,
                                  on_attribute=on_attribute) for n in node_list]
         return cls(nodes, parent=parent, on_attribute=on_attribute)
 
     @classmethod
-    def from_str(cls, value, parent, on_attribute):
+    def from_str(cls, value, parent, on_attribute=None):
         return cls.from_fst(baron.parse(value), parent=parent,
                             on_attribute=on_attribute)
 
@@ -249,22 +250,22 @@ class Node(GenericNodesMixin):
 
         self.init = False
 
-    def from_fst(self, node, on_attribute):
+    def from_fst(self, node, on_attribute=None):
         from . import nodes
         class_name = baron_type_to_redbaron_classname(node['type'])
         return getattr(nodes, class_name)(node, parent=self.parent,
                                           on_attribute=on_attribute)
 
-    def nodelist_from_fst(self, node_list, on_attribute):
+    def nodelist_from_fst(self, node_list, on_attribute=None):
         return NodeList.from_fst(node_list, parent=self,
                                  on_attribute=on_attribute)
 
-    def from_str(self, value, on_attribute):
+    def from_str(self, value, on_attribute=None):
         assert isinstance(value, str)
         value = baron.parse(value)[0]
         return self.from_fst(value, on_attribute=on_attribute)
 
-    def nodelist_from_str(self, value, on_attribute):
+    def nodelist_from_str(self, value, on_attribute=None):
         assert isinstance(value, str)
 
         # if isinstance(value, Node):
@@ -837,76 +838,34 @@ class Node(GenericNodesMixin):
 
 
 class CodeBlockNode(Node):
-    def nodelist_from_str(self, value, on_attribute):
+    def nodelist_from_str(self, value, on_attribute=None):
         assert isinstance(value, str)
 
-        if on_attribute == "value":
-            return self.parse_code_block(value, on_attribute=on_attribute)
+        # if on_attribute == "value":
+        #     return NodeList.from_str(value, parent=self,
+        #                              on_attribute=on_attribute)
 
         if on_attribute.endswith("_formatting"):
             return super().nodelist_from_str(value, on_attribute=on_attribute)
 
         raise Exception("Unhandled case")
 
-    def parse_code_block(self, value, on_attribute):
-        # remove heading blanks lines
-        clean_value = re.sub("^ *\n", "", value) if "\n" in value else value
-        indentation = len(re.search("^ *", clean_value).group())
-        target_indentation = len(self.indentation) + 4
-
-        # putting this in the string template will fail, need at least some indent
-        if indentation == 0:
-            clean_value = "    " + "\n    ".join(clean_value.split("\n"))
-            clean_value = clean_value.rstrip()
-
-        fst = baron.parse("def a():\n%s\n" % clean_value)[0]["value"]
-
-        result = NodeList.from_fst(fst, parent=self, on_attribute=on_attribute)
-
-        # set indentation to the correct level
-        indentation = len(result[0].indent)
-        if indentation > target_indentation:
-            result.decrease_indentation(indentation - target_indentation)
-        elif indentation < target_indentation:
-            result.increase_indentation(target_indentation - indentation)
-
-        endl_base_node = self.from_fst({'formatting': [], 'indent': '',
-                                        'type': 'endl', 'value': '\n'},
-                                       on_attribute=on_attribute)
-
-        if (self.on_attribute == "root" and self.next) or \
-                (not self.next and self.parent and self.parent.next):
-            # I need to finish with 3 endl nodes
-            if not all(map(lambda x: x.type == "endl", result[-1:])):
-                result.append(endl_base_node.copy())
-            elif not all(map(lambda x: x.type == "endl", result[-2:])):
-                result.append(endl_base_node.copy())
-                result.append(endl_base_node.copy())
-            elif not all(map(lambda x: x.type == "endl", result[-3:])):
-                result.append(endl_base_node.copy())
-                result.append(endl_base_node.copy())
-                result.append(endl_base_node.copy())
-        elif self.next:
-            # I need to finish with 2 endl nodes
-            if not all(map(lambda x: x.type == "endl", result[-2:])):
-                result.append(endl_base_node.copy())
-            elif not all(map(lambda x: x.type == "endl", result[-3:])):
-                result.append(endl_base_node.copy())
-                result.append(endl_base_node.copy())
-
-            result[-1].indent = self.indentation
-
-        return result
-
     def __setattr__(self, key, value):
         if key == "value":
             if isinstance(value, str):
-                value = self.parse_code_block(value, on_attribute="value")
-            if not isinstance(value, LineProxyList):
-                value = LineProxyList(value, on_attribute="value")
+                value = CodeProxyList.from_str(value, parent=self,
+                                               on_attribute=key)
+            if isinstance(value, NodeList):
+                value = CodeProxyList(value, on_attribute=key)
 
-        elif key == "decorators" and not isinstance(value, LineProxyList):
-            value = LineProxyList(value, on_attribute="decorators")
+            assert isinstance(value, CodeProxyList)
+
+        elif key == "decorators":
+            if isinstance(value, str):
+                value = LineProxyList.from_str(value, parent=self,
+                                               on_attribute=key)
+            if isinstance(value, NodeList):
+                value = LineProxyList(value, on_attribute=key)
 
         super().__setattr__(key, value)
 

@@ -19,7 +19,7 @@ setup(name='redbaron',
 
 
 def test_at():
-    assert red.at(1) is red.class_
+    assert red.at(1) is red
     assert red.at(2) is red.find_all('DefNode')[0]
     assert red.at(3) is red.find('AssignmentNode')
     assert red.at(4) is red.find_all('DefNode')[1]
