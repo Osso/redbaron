@@ -11,6 +11,7 @@ import baron.path
 from baron.render import nodes_rendering_order
 
 from .node_mixin import GenericNodesMixin
+from .node_path import Path
 from .proxy_list import (CodeProxyList,
                          LineProxyList,
                          ProxyList)
@@ -70,12 +71,9 @@ class NodeList(UserList, GenericNodesMixin):
         return list(self.find_iter(identifier, *args, **kwargs))
 
     def find_by_path(self, path):
-        from .node_path import Path
-        path = Path.from_baron_path(self, path)
-        return path.node if path else None
+        return Path.from_baron_path(self, path).node
 
     def path(self):
-        from .node_path import Path
         return Path(self)
 
     def fst(self):
@@ -169,7 +167,7 @@ class NodeList(UserList, GenericNodesMixin):
     def _generate_nodes_in_rendering_order(self):
         previous = None
         for i in self:
-            for j in self._iter_in_rendering_order(i):
+            for j in i._iter_in_rendering_order():
                 if j is previous:
                     continue
                 previous = j
@@ -203,6 +201,12 @@ class NodeList(UserList, GenericNodesMixin):
                     done.add(previous)
                 previous = node
 
+    def baron_index(self, value):
+        return self.index(value)
+
+    def get_from_baron_index(self, index):
+        return self[index]
+
 
 class Node(GenericNodesMixin):
     _other_identifiers = []
@@ -212,6 +216,8 @@ class Node(GenericNodesMixin):
     third_formatting = None
 
     def __init__(self, fst=None, parent=None, on_attribute=None):
+        if parent:
+            assert on_attribute
         if fst is None:
             fst = self._default_fst()
 
@@ -253,7 +259,7 @@ class Node(GenericNodesMixin):
     def from_fst(self, node, on_attribute=None):
         from . import nodes
         class_name = baron_type_to_redbaron_classname(node['type'])
-        return getattr(nodes, class_name)(node, parent=self.parent,
+        return getattr(nodes, class_name)(node, parent=self,
                                           on_attribute=on_attribute)
 
     def nodelist_from_fst(self, node_list, on_attribute=None):
@@ -553,12 +559,9 @@ class Node(GenericNodesMixin):
         return False
 
     def find_by_path(self, path):
-        from .node_path import Path
-        path = Path(path).node
-        return path.node if path else None
+        return Path.from_baron_path(self, path).node
 
     def path(self):
-        from .node_path import Path
         return Path(self)
 
     @classmethod
@@ -805,7 +808,7 @@ class Node(GenericNodesMixin):
 
     def _generate_nodes_in_rendering_order(self):
         previous = None
-        for j in self._iter_in_rendering_order(self):
+        for j in self._iter_in_rendering_order():
             if j is previous:
                 continue
             previous = j
@@ -836,8 +839,62 @@ class Node(GenericNodesMixin):
     def insert_after(self, value, offset=0):
         self.parent.insert(self.index_on_parent + 1 + offset, value)
 
+    def __bool__(self):
+        return True
 
-class CodeBlockNode(Node):
+
+class IterableNode(Node):
+    def __len__(self):
+        return len(self.node_list)
+
+    def __getitem__(self, key):
+        if hasattr(self, "value") and isinstance(self.value, ProxyList):
+            return self.value[key]
+
+        raise TypeError("'%s' object does not support indexing" % self.__class__)
+
+    def __getslice__(self, i, j):
+        if hasattr(self, "value") and isinstance(self.value, ProxyList):
+            return self.value.__getslice__(i, j)
+
+        raise AttributeError("__getslice__")
+
+    def __setitem__(self, key, value):
+        if hasattr(self, "value") and isinstance(self.value, ProxyList):
+            self.value[key] = value
+
+        else:
+            raise TypeError("'%s' object does not support item assignment" % self.__class__)
+
+    def __setslice__(self, i, j, value):
+        if hasattr(self, "value") and isinstance(self.value, ProxyList):
+            return self.value.__setslice__(i, j, value)
+
+        raise TypeError("'%s' object does not support slice setting" % self.__class__)
+
+    def __delitem__(self, key):
+        if hasattr(self, "value") and isinstance(self.value, ProxyList):
+            del self.value[key]
+
+        else:
+            raise AttributeError("__delitem__")
+
+    def __delslice__(self, i, j):
+        if hasattr(self, "value") and isinstance(self.value, ProxyList):
+            self.value.__delslice__(i, j)
+
+        else:
+            raise AttributeError("__delitem__")
+
+    @property
+    def node_list(self):
+        return self.value.node_list
+
+    def index(self, item):
+        return self.value.index(item)
+
+
+class CodeBlockNode(IterableNode):
     def nodelist_from_str(self, value, on_attribute=None):
         assert isinstance(value, str)
 
@@ -890,47 +947,3 @@ class IfElseBlockSiblingNode(CodeBlockNode):
             previous_ = self.parent.previous
 
         return previous_
-
-
-class IterableNode(Node):
-    def __len__(self):
-        return len(self.node_list)
-
-    def __getitem__(self, key):
-        if hasattr(self, "value") and isinstance(self.value, ProxyList):
-            return self.value[key]
-
-        raise TypeError("'%s' object does not support indexing" % self.__class__)
-
-    def __getslice__(self, i, j):
-        if hasattr(self, "value") and isinstance(self.value, ProxyList):
-            return self.value.__getslice__(i, j)
-
-        raise AttributeError("__getslice__")
-
-    def __setitem__(self, key, value):
-        if hasattr(self, "value") and isinstance(self.value, ProxyList):
-            self.value[key] = value
-
-        else:
-            raise TypeError("'%s' object does not support item assignment" % self.__class__)
-
-    def __setslice__(self, i, j, value):
-        if hasattr(self, "value") and isinstance(self.value, ProxyList):
-            return self.value.__setslice__(i, j, value)
-
-        raise TypeError("'%s' object does not support slice setting" % self.__class__)
-
-    def __delitem__(self, key):
-        if hasattr(self, "value") and isinstance(self.value, ProxyList):
-            del self.value[key]
-
-        else:
-            raise AttributeError("__delitem__")
-
-    def __delslice__(self, i, j):
-        if hasattr(self, "value") and isinstance(self.value, ProxyList):
-            self.value.__delslice__(i, j)
-
-        else:
-            raise AttributeError("__delitem__")

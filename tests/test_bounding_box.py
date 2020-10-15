@@ -44,15 +44,10 @@ bounding_boxes = [
 ]
 
 
-@pytest.fixture(params=bounding_boxes)
-def bounding_box_fixture(request):
-    return request.param
-
-
-def test_bounding_box(bounding_box_fixture):  # pylint: disable=redefined-outer-name
-    absolute_bounding_box, bounding_box, node = bounding_box_fixture
-    assert bounding_box == node.bounding_box
-    assert absolute_bounding_box == node.absolute_bounding_box
+@pytest.mark.parametrize("absolute_bounding_box,bounding_box,node", bounding_boxes)
+def test_bounding_box(absolute_bounding_box, bounding_box, node):
+    assert absolute_bounding_box == node.absolute_bounding_box, node.dumps()
+    assert bounding_box == node.bounding_box, node.dumps()
 
 
 def test_bounding_box_of_attribute():
