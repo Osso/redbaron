@@ -33,7 +33,7 @@ def test_path_first_statement(red):
 
 
 def test_path_def_decorators(red):
-    check_path(red, red.find("def").decorators.node_list, [0, "decorators"])
+    check_path(red, red.find("def").decorators, [0, "decorators"])
 
 
 def test_path_decorators_first(red):
@@ -76,7 +76,7 @@ def test_path_third_formatting(red):
 
 
 def test_path_arguments(red):
-    check_path(red, red.find("def").arguments.node_list, [0, "arguments"])
+    check_path(red, red.find("def").arguments, [0, "arguments"])
 
 
 def test_path_arguments_first(red):
@@ -104,7 +104,7 @@ def test_path_sixth_formatting(red):
 
 
 def test_path_value(red):
-    check_path(red, red.find("def").value.node_list, [0, "value"])
+    check_path(red, red.find("def").value, [0, "value"])
 
 
 def test_path_value_first_endl(red):

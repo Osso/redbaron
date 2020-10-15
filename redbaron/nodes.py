@@ -394,13 +394,15 @@ class DefNode(CodeBlockNode):
         return super(DefNode, self).nodelist_from_str(string, parent, on_attribute)
 
     def __setattr__(self, key, value):
+        if key == "arguments" and not isinstance(value, CommaProxyList):
+            value = CommaProxyList(value, parent=self,
+                                   on_attribute="arguments")
+
+        elif key in ("async", "async_") and value and not self.async_formatting:
+            self.async_formatting = [self.from_fst({"type": "space", "value": " "},
+                                                   on_attribute="return_annotation_first_formatting")]
+
         super(DefNode, self).__setattr__(key, value)
-
-        if key == "arguments" and not isinstance(self.arguments, CommaProxyList):
-            setattr(self, "arguments", CommaProxyList(self.arguments, on_attribute="arguments"))
-
-        elif key in ("async", "async_") and getattr(self, "async") and hasattr(self, "async_formatting") and not self.async_formatting:
-            self.async_formatting = [Node.from_fst({"type": "space", "value": " "}, on_attribute="return_annotation_first_formatting", parent=self)]
 
 
 class DefArgumentNode(Node):
@@ -1631,4 +1633,13 @@ NODE_TYPE_MAPPING.update({
     'def': DefNode,
     'class': ClassNode,
     'with': WithNode,
+    'decorator': DecoratorNode,
+    'dotted_name': DottedNameNode,
+    'name': NameNode,
+    'endl': EndlNode,
+    'space': SpaceNode,
+    'def_argument': DefArgumentNode,
+    'comma': CommaNode,
+    'assignment': AssignmentNode,
+    'binary_operator': BinaryOperatorNode,
 })

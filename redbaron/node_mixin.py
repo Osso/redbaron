@@ -3,7 +3,7 @@ import ast
 import baron
 import baron.path
 
-from .utils import display_property_atttributeerror_exceptions
+from .node_path import Path
 
 
 class LiteralyEvaluableMixin:
@@ -21,17 +21,15 @@ class LiteralyEvaluableMixin:
             raise e
 
 
-class GenericNodesMixin:
+class NodeMixin:
     """
     Mixen top class for Node and NodeList that contains generic methods that are used by both.
     """
     @property
-    @display_property_atttributeerror_exceptions
     def bounding_box(self):
         return baron.path.node_to_bounding_box(self.fst())
 
     @property
-    @display_property_atttributeerror_exceptions
     def absolute_bounding_box(self):
         path = self.path().to_baron_path()
         return baron.path.path_to_bounding_box(self.root.fst(), path)
@@ -64,7 +62,6 @@ class GenericNodesMixin:
         return node
 
     @property
-    @display_property_atttributeerror_exceptions
     def root(self):
         current = self
         while current.parent is not None:
@@ -88,3 +85,56 @@ class GenericNodesMixin:
             elif kind in ("list", "formatting"):
                 for node in getattr(self, key):
                     yield from node._iter_in_rendering_order()
+
+    @property
+    def on_attribute_node(self):
+        if self.on_attribute == "root":
+            return self
+
+        return getattr(self.parent, self.on_attribute)
+
+    @on_attribute_node.setter
+    def set_on_attribute_node(self, node):
+        setattr(self.parent, self.on_attribute, node)
+
+    def find_by_path(self, path):
+        return Path.from_baron_path(self, path).node
+
+    def path(self):
+        return Path(self)
+
+    def dumps(self):
+        return baron.dumps(self.fst())
+
+    def find_all(self, identifier, *args, **kwargs):
+        return list(self.find_iter(identifier, *args, **kwargs))
+
+    def find(self, identifier, *args, **kwargs):
+        return next(self.find_iter(identifier, *args, **kwargs), None)
+
+    def replace(self, new_node):
+        new_node = self.from_str(new_node, on_attribute=self.on_attribute)
+        if self is self.on_attribute_node:
+            self.on_attribute_node = new_node
+        else:
+            index = self.on_attribute_node.index(self)
+            self.on_attribute_node[index] = new_node
+
+    @property
+    def index_on_parent(self):
+        if not self.parent:
+            raise ValueError("no parent")
+
+        return self.parent.index(self)
+
+    @property
+    def baron_index_on_parent(self):
+        if not self.parent:
+            raise ValueError("no parent")
+
+        try:
+            node_list = self.parent.node_list
+        except AttributeError:
+            raise ValueError("parent has no node list")
+
+        return node_list.index(self)

@@ -1,6 +1,3 @@
-from .proxy_list import ProxyList
-
-
 class Path:
     """Holds the path to a FST node
 
@@ -26,34 +23,23 @@ class Path:
             return path
 
         while node.parent:
-            for path_el in Path.get_on_attribute(node):
-                path.insert(0, path_el)
+            path.insert(0, Path.get_on_attribute(node))
             node = node.parent
+
+        if path and node.on_attribute == 'root':
+            # Remove "root".value path as baron does not expect it
+            del path[0]
 
         return path
 
     @staticmethod
     def get_on_attribute(node):
-        us_node = getattr(node.parent, node.on_attribute)
+        if node.on_attribute:
+            return node.on_attribute
 
-        if node.parent.on_attribute == 'root':
-            assert node.on_attribute == 'value'
-            path = []
-        else:
-            path = [node.on_attribute]
-
-        if node is us_node:
-            return path
-
-        # Proxy lists
-        if hasattr(us_node, "node_list") and node is us_node.node_list:
-            return path
-
-        index = us_node.baron_index(node)
+        index = node.parent.baron_index(node)
         assert index is not None
-        path.insert(0, index)
-
-        return path
+        return index
 
     @classmethod
     def from_baron_path(cls, node, path):
@@ -63,19 +49,14 @@ class Path:
 
             if isinstance(key, str):
                 try:
-                    child = getattr(node, key)
+                    node = getattr(node, key)
                 except AttributeError:
                     raise ValueError(f"{node} has no attribute {key}")
             else:
                 try:
-                    child = node.get_from_baron_index(key)
+                    node = node.get_from_baron_index(key)
                 except IndexError:
                     raise ValueError(f"{node} has no index {key}")
-
-            node = child
-
-        if isinstance(node, ProxyList):
-            node = node.node_list
 
         return cls(node)
 

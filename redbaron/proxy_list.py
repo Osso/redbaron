@@ -109,7 +109,7 @@ class ProxyList(NodeList):
         return list(self).index(item, *args)
 
     def baron_index(self, value):
-        return self.index(value)
+        return self.node_list.index(value)
 
     def __getitem__(self, index):
         if isinstance(index, slice):
@@ -117,7 +117,7 @@ class ProxyList(NodeList):
         return self._data[index][0]
 
     def get_from_baron_index(self, index):
-        return self[index]
+        return self.node_list[index]
 
     def __contains__(self, item):
         return self.index(item) is not None
@@ -202,11 +202,11 @@ class SpaceProxyList(ProxyList):
 
 
 class CommaProxyList(ProxyList):
-    def __init__(self, node_list, on_attribute="value"):
+    def __init__(self, node_list, parent=None, on_attribute="value"):
         from .nodes import CommaNode
         self.style = "flat"
         self.middle_separator = CommaNode()
-        super().__init__(node_list, on_attribute=on_attribute)
+        super().__init__(node_list, parent=parent, on_attribute=on_attribute)
 
     def make_indented(self):
         self.style = "indented"
@@ -220,10 +220,10 @@ class CommaProxyList(ProxyList):
 class DotProxyList(ProxyList):
     needs_separator = False
 
-    def __init__(self, node_list, on_attribute="value"):
+    def __init__(self, node_list, parent=None, on_attribute="value"):
         from .nodes import DotNode
         self.middle_separator = DotNode()
-        super().__init__(node_list, on_attribute=on_attribute)
+        super().__init__(node_list, parent=parent, on_attribute=on_attribute)
 
     def nodelist_from_str(self, value):
         if value.startswith(("(", "[")):
@@ -239,10 +239,10 @@ class DotProxyList(ProxyList):
 class LineProxyList(ProxyList):
     needs_separator = False
 
-    def __init__(self, node_list, on_attribute="value"):
+    def __init__(self, node_list, parent=None, on_attribute="value"):
         from .nodes import EndlNode
         self.middle_separator = EndlNode()
-        super().__init__(node_list, on_attribute=on_attribute)
+        super().__init__(node_list, parent=parent, on_attribute=on_attribute)
 
     def make_empty_el(self):
         from .nodes import EmptyLine
