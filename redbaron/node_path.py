@@ -26,10 +26,6 @@ class Path:
             path.insert(0, Path.get_on_attribute(node))
             node = node.parent
 
-        if path and node.on_attribute == 'root':
-            # Remove "root".value path as baron does not expect it
-            del path[0]
-
         return path
 
     @staticmethod

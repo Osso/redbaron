@@ -1642,4 +1642,7 @@ NODE_TYPE_MAPPING.update({
     'comma': CommaNode,
     'assignment': AssignmentNode,
     'binary_operator': BinaryOperatorNode,
+    'string': StringNode,
+    'list': ListNode,
+    'pass': PassNode,
 })
