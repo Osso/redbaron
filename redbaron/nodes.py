@@ -9,9 +9,9 @@ from .base_nodes import (NODE_TYPE_MAPPING,
                          Node,
                          NodeList)
 from .node_mixin import (DecoratorsMixin,
-                         LiteralyEvaluableMixin,
-                         ValueListMixin,
-                         ValueNodeMixin)
+                         LiteralyEvaluableMixin)
+from .node_property import (node_property,
+                            nodelist_property)
 from .proxy_list import (CommaProxyList,
                          DotProxyList,
                          LineProxyList,
@@ -342,26 +342,15 @@ class ContinueNode(Node):
     pass
 
 
-class DecoratorNode(Node, ValueNodeMixin):
-    @ValueNodeMixin.value.setter  # pylint: disable=no-member
+class DecoratorNode(Node):
+    @node_property()
     def value(self, value):
-        if not isinstance(value, Node):
-            if isinstance(value, str):
-                code = "@%s()\ndef a(): pass" % value
-                value = baron.parse(code)[0]["decorators"][0]["value"]
-            value = self.from_fst(value, on_attribute="value")
+        code = "@%s()\ndef a(): pass" % value
+        return baron.parse(code)[0]["decorators"][0]["value"]
 
-        self._value = value
-
-    def from_str(self, value, on_attribute=None):
-        if on_attribute == "call":
-            if value:
-                code = "@a%s\ndef a(): pass" % value
-                fst = baron.parse(code)[0]["decorators"][0]["call"]
-                return self.from_fst(fst, on_attribute=on_attribute)
-            return None
-
-        return super().from_str(value, on_attribute=on_attribute)
+    @node_property()
+    def call(self, value):
+        return baron.parse("@a%s\ndef a(): pass" % value)
 
 
 class DefNode(CodeBlockNode, DecoratorsMixin):
@@ -369,7 +358,7 @@ class DefNode(CodeBlockNode, DecoratorsMixin):
     _default_test_value = "name"
     return_annotation_first_formatting = None
     return_annotation_second_formatting = None
-    async_formatting = None
+    async_formatting = nodelist_property("async_formatting")
 
     def from_str(self, value, on_attribute=None):
         if on_attribute == "return_annotation":
@@ -569,8 +558,8 @@ class DottedAsNameNode(IterableNode):
             raise Exception("Unhandled case")
 
 
-class DottedNameNode(IterableNode, ValueListMixin):
-    pass
+class DottedNameNode(IterableNode):
+    value = nodelist_property("value")
 
 
 class ElifNode(IfElseBlockSiblingNode):

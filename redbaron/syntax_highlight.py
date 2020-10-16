@@ -11,7 +11,7 @@ if HAS_PYGMENTS:
     from pygments.lexer import RegexLexer, bygroups
     from pygments import highlight
     from pygments.lexers import PythonLexer
-    from pygments.formatters import Terminal256Formatter, HtmlFormatter
+    from pygments.formatters import Terminal256Formatter
 
     class HelpLexer(RegexLexer):
         name = 'Lexer for RedBaron .help() method output'
@@ -38,16 +38,9 @@ if HAS_PYGMENTS:
                          Terminal256Formatter(style='monokai',
                                               encoding="utf-8"))
 
-    def python_html_highlight(string):
-        return highlight(string, PythonLexer(encode="utf-8"),
-                         HtmlFormatter(noclasses=True, encoding="uTf-8"))
-
 else:
     def help_highlight(string):
         return string.encode("utf-8")
 
     def python_highlight(string):
-        return string.encode("utf-8")
-
-    def python_html_highlight(string):
         return string.encode("utf-8")
