@@ -138,3 +138,57 @@ class NodeMixin:
             raise ValueError("parent has no node list")
 
         return node_list.index(self)
+
+
+class DecoratorsMixin:
+    _decorators = None
+
+    @property
+    def decorators(self):
+        return self._decorators
+
+    @decorators.setter
+    def decorators(self, value):
+        from .proxy_list import LineProxyList
+        if not isinstance(value, LineProxyList):
+            if isinstance(value, str):
+                value = self.parse_decorators(value)
+            value = self.nodelist_from_fst(value, on_attribute="decorators")
+
+        self._decorators = value
+
+
+class ValueNodeMixin:
+    _value = None
+
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        from .base_nodes import Node
+        if not isinstance(value, Node):
+            if isinstance(value, str):
+                value = baron.parse(value)
+            value = self.from_fst(value, on_attribute="value")
+
+        self._value = value
+
+
+class ValueListMixin:
+    _value = None
+
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        from .base_nodes import Node
+        if not isinstance(value, Node):
+            if isinstance(value, str):
+                value = baron.parse(value)
+            value = self.nodelist_from_fst(value, on_attribute="value")
+
+        self._value = value

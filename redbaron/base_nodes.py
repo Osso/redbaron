@@ -145,42 +145,43 @@ class Node(NodeMixin):
     first_formatting = None
     second_formatting = None
     third_formatting = None
+    fourth_formatting = None
+    fifth_formatting = None
+    formatting = None
 
     def __init__(self, fst=None, parent=None, on_attribute=None):
         if fst is None:
             fst = self._default_fst()
 
-        self.init = True
-        self.parent = parent
-        self.on_attribute = on_attribute
         self._str_keys = ["type"]
         self._list_keys = []
         self._dict_keys = []
+
+        self.parent = parent
+        self.on_attribute = on_attribute
         self.type = fst["type"]
         self.indent = ""
 
         for kind, key, _ in self._render():
             if kind == "constant":
-                continue
-
-            if kind == "key":
-                if fst[key]:
-                    value = self.from_fst(fst[key], on_attribute=key)
-                else:
-                    value = None
-                setattr(self, key, value)
+                pass
+            elif kind == "key":
+                setattr(self, key, fst[key])
+                new_value = getattr(self, key)
+                assert isinstance(getattr(self, key), Node), \
+                    f"invalid {new_value} for {self.__class__.__name__}.{key}"
                 self._dict_keys.append(key)
             elif kind in ("bool", "string"):
                 setattr(self, key, fst[key])
                 self._str_keys.append(key)
             elif kind in ("list", "formatting"):
-                value = self.nodelist_from_fst(fst[key], on_attribute=key)
-                setattr(self, key, value)
+                setattr(self, key, fst[key])
+                new_value = getattr(self, key)
+                assert isinstance(new_value, NodeList), \
+                    f"invalid {new_value} for {self.__class__.__name__}.{key}"
                 self._list_keys.append(key)
             else:
-                raise Exception(str((fst["type"], kind, key)))
-
-        self.init = False
+                raise Exception(f"Invalid kind {kind} for {fst['type']}")
 
     def from_fst(self, node, on_attribute=None):
         cls = NODE_TYPE_MAPPING[node['type']]
@@ -546,8 +547,17 @@ class Node(NodeMixin):
         return self.from_fst(self.fst(), on_attribute=self.on_attribute)
 
     def __setattr__(self, name, value):
-        if name == "init" or self.init:
-            return super(Node, self).__setattr__(name, value)
+        if name in ('_str_keys', '_dict_keys', '_list_keys'):
+            return super().__setattr__(name, value)
+
+        # Handling via properties
+        if hasattr(self, "_" + name):
+            return super().__setattr__(name, value)
+
+        if name == 'formatting' and not isinstance(value, NodeList):
+            if isinstance(value, str):
+                value = baron.parse(value)
+            value = self.nodelist_from_fst(value, on_attribute=name)
 
         # convert "async_" to "async"
         # (but we don't want to mess with "__class__" for example)
@@ -555,18 +565,22 @@ class Node(NodeMixin):
             name = name[:-1]
 
         if name in self._str_keys:
-            assert isinstance(value, str)
+            assert isinstance(value, (str, bool))
 
         elif name in self._dict_keys:
             if isinstance(value, str):
                 value = self.from_str(value, on_attribute=name)
-            assert isinstance(value, dict)
+            elif isinstance(value, dict):
+                value = self.from_fst(value, on_attribute=name)
+            assert isinstance(value, Node)
 
         elif name in self._list_keys:
             if isinstance(value, str):
                 value = self.nodelist_from_str(value, on_attribute=name)
+            elif isinstance(value, list):
+                value = self.from_fst(value, on_attribute=name)
 
-        return super(Node, self).__setattr__(name, value)
+        return super().__setattr__(name, value)
 
     def _render(self):
         return nodes_rendering_order[self.type]
@@ -638,27 +652,13 @@ class IterableNode(Node):
 
 
 class CodeBlockNode(IterableNode):
-    def nodelist_from_str(self, value, on_attribute=None):
-        assert isinstance(value, str)
-
-        if on_attribute == "decorators":
-            fst = self.parse_decorators(value)
-            return self.nodelist_from_fst(fst, on_attribute=on_attribute)
-
-        return super().nodelist_from_str(value, on_attribute=on_attribute)
-
     def __setattr__(self, key, value):
-        from .proxy_list import CodeProxyList, LineProxyList
+        from .proxy_list import CodeProxyList
 
         if key == "value" and not isinstance(value, CodeProxyList):
             if isinstance(value, str):
                 value = self.nodelist_from_str(value, on_attribute=key)
             value = CodeProxyList(value, parent=self, on_attribute=key)
-
-        elif key == "decorators" and not isinstance(value, LineProxyList):
-            if isinstance(value, str):
-                value = self.nodelist_from_str(value, on_attribute=key)
-            value = LineProxyList(value, parent=self, on_attribute=key)
 
         super().__setattr__(key, value)
 
