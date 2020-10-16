@@ -114,7 +114,7 @@ class NodeList(UserList, NodeMixin):
                 yield _node
 
     def get_absolute_bounding_box_of_attribute(self, index):
-        if not 0 < index <= len(self.data):
+        if not 0 <= index < len(self.data):
             raise IndexError("invalid index")
 
         path = self[index].path().to_baron_path()
@@ -197,8 +197,8 @@ class Node(NodeMixin):
 
     def nodelist_from_str(self, value, on_attribute=None):
         assert isinstance(value, str)
-        return NodeList.from_fst(value, parent=self.parent,
-                                 on_attribute=on_attribute)
+        fst = baron.parse(value)
+        return NodeList.from_fst(fst, parent=self, on_attribute=on_attribute)
 
     @property
     def neighbors(self):
@@ -587,7 +587,7 @@ class Node(NodeMixin):
 
     def get_absolute_bounding_box_of_attribute(self, attribute):
         if not self.has_render_key(attribute):
-            raise KeyError()
+            raise KeyError(f"{attribute} not found in {self}")
         path = self.path().to_baron_path() + [attribute]
         return baron.path.path_to_bounding_box(self.root.fst(), path)
 
@@ -641,31 +641,36 @@ class CodeBlockNode(IterableNode):
     def nodelist_from_str(self, value, on_attribute=None):
         assert isinstance(value, str)
 
-        if on_attribute.endswith("_formatting"):
-            return super().nodelist_from_str(value, on_attribute=on_attribute)
+        if on_attribute == "decorators":
+            fst = self.parse_decorators(value)
+            return self.nodelist_from_fst(fst, on_attribute=on_attribute)
 
-        raise Exception("Unhandled case")
+        return super().nodelist_from_str(value, on_attribute=on_attribute)
 
     def __setattr__(self, key, value):
         from .proxy_list import CodeProxyList, LineProxyList
 
-        if key == "value":
+        if key == "value" and not isinstance(value, CodeProxyList):
             if isinstance(value, str):
-                value = CodeProxyList.from_str(value, parent=self,
-                                               on_attribute=key)
-            elif isinstance(value, NodeList):
-                value = CodeProxyList(value, parent=self, on_attribute=key)
+                value = self.nodelist_from_str(value, on_attribute=key)
+            value = CodeProxyList(value, parent=self, on_attribute=key)
 
-            assert isinstance(value, CodeProxyList)
-
-        elif key == "decorators":
+        elif key == "decorators" and not isinstance(value, LineProxyList):
             if isinstance(value, str):
-                value = LineProxyList.from_str(value, parent=self,
-                                               on_attribute=key)
-            if isinstance(value, NodeList):
-                value = LineProxyList(value, parent=self, on_attribute=key)
+                value = self.nodelist_from_str(value, on_attribute=key)
+            value = LineProxyList(value, parent=self, on_attribute=key)
 
         super().__setattr__(key, value)
+
+    def parse_decorators(self, value):
+        assert value.lstrip()[0] == '@'
+
+        def _detect_indentation(s):
+            return s.index("@")
+        indentation = _detect_indentation(value)
+
+        code = "%s\n%sdef a(): pass" % (value, indentation)
+        return baron.parse(code)[0]["decorators"]
 
 
 class IfElseBlockSiblingNode(CodeBlockNode):

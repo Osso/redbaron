@@ -10,6 +10,7 @@ class ProxyList(NodeList):
 
     def __init__(self, node_list, parent=None, on_attribute="value",
                  trailing_separator=False):
+        self.header = []
         self.trailing_separator = trailing_separator
         self._data = self._node_list_to_data(node_list)
         assert isinstance(self._data, list)
@@ -28,7 +29,7 @@ class ProxyList(NodeList):
                 if not data:
                     empty_el = self.make_empty_el()
                     if empty_el:
-                        data.append([empty_el, i])
+                        self.header.append(i)
                         continue
                     raise Exception("node_list starts with separator "
                                     "for %s" % self.__class__.__name__)
@@ -51,9 +52,12 @@ class ProxyList(NodeList):
     def _data_nodelist_from_str(self, data):
         expected_list = []
 
+        for el in self.header:
+            expected_list.append(el)
+
         for el in data:
             expected_list.append(el[0])
-            if el[1]:
+            if el[1] is not None:
                 expected_list.append(el[1])
 
         return expected_list
@@ -111,10 +115,14 @@ class ProxyList(NodeList):
     def baron_index(self, value):
         return self.node_list.index(value)
 
+    def _item_from_data_tuple(self, el):
+        node, _ = el
+        return node
+
     def __getitem__(self, index):
         if isinstance(index, slice):
             return self.__getslice__(index.start, index.stop)
-        return self._data[index][0]
+        return self._item_from_data_tuple(self._data[index])
 
     def get_from_baron_index(self, index):
         return self.node_list[index]
@@ -124,7 +132,7 @@ class ProxyList(NodeList):
 
     def __iter__(self):
         for el in self._data:
-            yield el[0]
+            yield self._item_from_data_tuple(el)
 
     @property
     def node_list(self):
@@ -155,8 +163,8 @@ class ProxyList(NodeList):
         self._synchronise()
 
     def __getslice__(self, i, j):
-        to_return = map(lambda x: x[0], self._data[i:j])
-        return self.__class__(NodeList(to_return))
+        to_return = [self._item_from_data_tuple(el) for el in self._data[i:j]]
+        return self.__class__(to_return)
 
     def __repr__(self):
         if in_a_shell():
@@ -260,23 +268,21 @@ class CodeProxyList(LineProxyList):
     def _node_list_to_data(self, node_list):
         from .nodes import EmptyLine
 
-        def current_line_to_el(current_line):
-            if not current_line:
-                el = EmptyLine()
-            elif len(current_line) == 1:
-                el = current_line[0]
-            else:
-                el = NodeList(current_line)
-            return el
-
         data = []
-        current_line = []
         for node in node_list:
             if node.type == "endl":
-                data.append([current_line_to_el(current_line), [node]])
+                if not data:
+                    self.header.append(node)
+                elif data[-1][1] is not None:
+                    data.append([EmptyLine(parent=self), node])
+                else:
+                    data[-1][1] = node
             else:
-                current_line.append(node)
-        if current_line:
-            data.append([current_line_to_el(current_line), []])
+                data.append([node, None])
 
         return data
+
+    def _item_from_data_tuple(self, el):
+        from .nodes import EmptyLine
+        node, sep = el
+        return node if not isinstance(node, EmptyLine) else sep

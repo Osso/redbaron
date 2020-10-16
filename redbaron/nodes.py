@@ -1,8 +1,7 @@
 import re
 
-from redbaron.syntax_highlight import python_html_highlight
-
 import baron
+from redbaron.syntax_highlight import python_html_highlight
 
 from .base_nodes import (NODE_TYPE_MAPPING,
                          CodeBlockNode,
@@ -124,10 +123,11 @@ class AtomtrailersNode(Node):
             raise Exception("Unhandled case")
 
     def __setattr__(self, key, value):
-        super(AtomtrailersNode, self).__setattr__(key, value)
+        if key == "value" and not isinstance(value, DotProxyList):
+            value = DotProxyList(value, parent=self,
+                                 on_attribute="value")
 
-        if key == "value" and not isinstance(self.value, DotProxyList):
-            setattr(self, "value", DotProxyList(self.value))
+        super(AtomtrailersNode, self).__setattr__(key, value)
 
 
 class AwaitNode(Node):
@@ -202,15 +202,17 @@ class BreakNode(Node):
 
 class CallNode(Node):
     def nodelist_from_str(self, value, on_attribute=None):
-        if on_attribute == "value":
-            fst = baron.parse("a(%s)" % value)[0]["value"][1]["value"]
-            return self.nodelist_from_fst(fst, on_attribute=on_attribute)
+        # if on_attribute == "value":
+        #     fst = baron.parse("a(%s)" % value)[0]["value"][1]["value"]
+        #     return self.nodelist_from_fst(fst, on_attribute=on_attribute)
 
         raise Exception("Unhandled case")
 
     def __setattr__(self, key, value):
         if key == "value" and not isinstance(value, CommaProxyList):
-            value = CommaProxyList(value, on_attribute=key)
+            if isinstance(value, str):
+                value = baron.parse("a(%s)" % value)[0]["value"][1]["value"]
+            value = CommaProxyList(value, parent=self, on_attribute=key)
 
         super(CallNode, self).__setattr__(key, value)
 
@@ -236,32 +238,27 @@ class ClassNode(CodeBlockNode):
     parenthesis = False
 
     def nodelist_from_str(self, value, on_attribute=None):
-        if on_attribute == "decorators":
-            return self.parse_decorators(value, on_attribute=on_attribute)
-
         if on_attribute == "inherit_from":
             fst = baron.parse("class a(%s): pass" % value)[0]["inherit_from"]
             return self.node_list_from_fst(fst, on_attribute=on_attribute)
 
         return super().nodelist_from_str(value, on_attribute)
 
+    def make_inherit_from(self, value):
+        if isinstance(value, str):
+            code = "class a(%s): pass" % value
+            value = baron.parse(code)[0]["inherit_from"]
+        return CommaProxyList(value, parent=self, on_attribute="inherit_from")
+
     def __setattr__(self, key, value):
         if key == "inherit_from" and not isinstance(value, CommaProxyList):
-            value = CommaProxyList(value, on_attribute=key)
+            value = self.make_inherit_from(value)
             self.parenthesis = True
 
+        # if key == 'value':
+        #     import pdb; pdb.set_trace()
+
         super().__setattr__(key, value)
-
-    def parse_decorators(self, value, on_attribute):
-        assert value.lstrip()[0] == '@'
-
-        def _detect_indentation(s):
-            return s.index("@")
-        indentation = _detect_indentation(value)
-
-        code = "%s\n%sdef a(): pass" % (value, indentation)
-        fst = baron.parse(code)[0]["decorators"]
-        return self.nodelist_from_fst(fst, on_attribute=on_attribute)
 
 
 class CommaNode(Node):
@@ -743,13 +740,13 @@ class ElseAttributeNode(CodeBlockNode):
             if isinstance(last_member.value, ProxyList):
                 last_member.value.node_list.append(
                     EndlNode({"type": "endl", "indent": "",
-                                    "formatting": [], "value": "\n"},
-                                   parent=last_member, on_attribute="value"))
+                              "formatting": [], "value": "\n"},
+                             parent=last_member, on_attribute="value"))
             else:
                 last_member.value.append(
                     EndlNode({"type": "endl", "indent": "",
-                                    "formatting": [], "value": "\n"},
-                                   parent=last_member, on_attribute="value"))
+                              "formatting": [], "value": "\n"},
+                             parent=last_member, on_attribute="value"))
             return ""
 
         if re.match(r"^\s*%s" % indented_type, string):
@@ -782,12 +779,9 @@ class ElseAttributeNode(CodeBlockNode):
         # ensure that the node ends with only one endl token, we'll add more later if needed
         remove_trailing_endl(node)
         node.value.node_list.append(
-            EndlNode({"type": "endl",
-                            "indent": "",
-                            "formatting": [],
-                            "value": "\n"},
-                           parent=node,
-                           on_attribute="value"))
+            EndlNode({"type": "endl", "indent": "",
+                      "formatting": [], "value": "\n"},
+                      parent=node, on_attribute="value"))
 
         last_member = self._get_last_member_to_clean()
 
@@ -1011,7 +1005,8 @@ class IfelseblockNode(Node):
         if indentation:
             string = "\n".join(map(lambda x: x[indentation:], string.split("\n")))
 
-        result = NodeList.from_fst(baron.parse(string)[0]["value"], parent=parent, on_attribute=on_attribute)
+        result = NodeList.from_fst(baron.parse(string)[0]["value"],
+                                   parent=parent, on_attribute=on_attribute)
 
         if self.indentation:
             result.increase_indentation(len(self.indentation))
@@ -1024,11 +1019,12 @@ class IfelseblockNode(Node):
 class ImportNode(Node):
     def modules(self):
         "return a list of string of modules imported"
-        return [x.value.dumps()for x in self('dotted_as_name')]
+        return [x.value.dumps()for x in self.find('dotted_as_name')]
 
     def names(self):
         "return a list of string of new names inserted in the python context"
-        return [x.target if x.target else x.value.dumps() for x in self('dotted_as_name')]
+        return [x.target if x.target else x.value.dumps()
+                for x in self.find('dotted_as_name')]
 
     def nodelist_from_str(self, string, parent, on_attribute):
         fst = baron.parse("import %s" % string)[0]["value"]
@@ -1069,8 +1065,7 @@ class LambdaNode(Node):
             fst = baron.parse("lambda %s: x" % string)[0]["arguments"]
             return NodeList.from_fst(fst, parent=parent, on_attribute=on_attribute)
 
-        else:
-            return super(DefNode, self).nodelist_from_str(string, parent, on_attribute)
+        return super().nodelist_from_str(string, parent, on_attribute)
 
     def from_str(self, string, parent, on_attribute):
         if on_attribute == "value":
@@ -1558,19 +1553,12 @@ class WhileNode(ElseAttributeNode):
 
         return self.next
 
-    def from_str(self, string, parent, on_attribute):
-        if on_attribute == "test":
-            return Node.from_fst(baron.parse("while %s: pass" % string)[0]["test"], parent=parent, on_attribute=on_attribute)
-
-        else:
-            return super(WhileNode, self).from_str(string, parent, on_attribute)
-
-
     def __setattr__(self, key, value):
-        super(WhileNode, self).__setattr__(key, value)
+        if key == "test" and isinstance(value, str):
+            fst = baron.parse("while %s: pass" % value)[0]["test"]
+            value = self.from_fst(fst, on_attribute=key)
 
-        if key == "value" and not isinstance(self.value, LineProxyList):
-            setattr(self, "value", LineProxyList(self.value, on_attribute="value"))
+        super(WhileNode, self).__setattr__(key, value)
 
 
 class WithContextItemNode(Node):
@@ -1607,21 +1595,25 @@ class WithContextItemNode(Node):
 class WithNode(CodeBlockNode):
     async_formatting = None
 
-    def nodelist_from_str(self, string, parent, on_attribute):
-        if on_attribute == "contexts":
-            return NodeList.from_fst(baron.parse("with %s: pass" % string)[0]["contexts"], parent=parent, on_attribute=on_attribute)
+    def nodelist_from_str(self, value, on_attribute=None):
+        assert isinstance(value, str)
 
-        else:
-            return super(WithNode, self).nodelist_from_str(string, parent, on_attribute)
+        if on_attribute == "contexts":
+            fst = baron.parse("with %s: pass" % value)[0]["contexts"]
+            return self.from_fst(fst, on_attribute=on_attribute)
+
+        return super().nodelist_from_str(value, on_attribute=on_attribute)
 
     def __setattr__(self, key, value):
-        super(WithNode, self).__setattr__(key, value)
+        if key == "contexts" and not isinstance(value, CommaProxyList):
+            if isinstance(value, str):
+                value = baron.parse("with %s: pass" % value)[0]["contexts"]
+            value = CommaProxyList(value, parent=self, on_attribute=key)
 
-        if key == "contexts" and not isinstance(self.contexts, CommaProxyList):
-            setattr(self, "contexts", CommaProxyList(self.contexts, on_attribute="contexts"))
-
-        if key in ("async", "async_") and getattr(self, "async") and hasattr(self, "async_formatting") and not self.async_formatting:
+        if key in ("async", "async_") and value and not self.async_formatting:
             self.async_formatting = " "
+
+        super(WithNode, self).__setattr__(key, value)
 
 
 class EmptyLine(Node):
@@ -1645,4 +1637,6 @@ NODE_TYPE_MAPPING.update({
     'string': StringNode,
     'list': ListNode,
     'pass': PassNode,
+    'atomtrailers': AtomtrailersNode,
+    'call': CallNode,
 })
