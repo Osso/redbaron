@@ -521,10 +521,10 @@ parameters.
     new_name = Node.from_fst({"type": "name", "value": "a"}, parent=red[0], on_attribute="value")
     red[0].value.append(new_name)
 
-NodeList.from_fst()
+NodeList.generic_from_fst()
 -------------------
 
-Similarly to :file:`Node.from_fst()`, :file:`NodeList.from_fst()` is a helper
+Similarly to :file:`Node.from_fst()`, :file:`NodeList.generic_from_fst()` is a helper
 class method that takes an FST node **list** and return a RedBaron node **list**
 instance. Similarly, you probably don't need to go so low level.
 
@@ -532,7 +532,7 @@ instance. Similarly, you probably don't need to go so low level.
 .. ipython:: python
 
     from redbaron import NodeList
-    NodeList.from_fst([{"type": "name", "value": "a"}, {'first_formatting': [], 'type': 'comma', 'second_formatting': [{'type': 'space', 'value': ' '}]}, {"type": "name", "value": "b"}])
+    NodeList.generic_from_fst([{"type": "name", "value": "a"}, {'first_formatting': [], 'type': 'comma', 'second_formatting': [{'type': 'space', 'value': ' '}]}, {"type": "name", "value": "b"}])
 
 .insert_before .insert_after
 ----------------------------

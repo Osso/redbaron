@@ -43,3 +43,19 @@ class ValueMixin:
 class AnnotationMixin:
     annotation_first_formatting = nodelist_property("annotation_first_formatting")
     annotation_second_formatting = nodelist_property("annotation_second_formatting")
+
+    @node_property()
+    def annotation(self, value):
+        return baron.parse("a: %s = a" % value)[0]["annotation"]
+
+    @annotation.after_set
+    def annotation_after_set(self, value):
+        if not value:
+            self.annotation_first_formatting = []
+            self.annotation_second_formatting = []
+        else:
+            if not self.annotation_first_formatting:
+                self.annotation_first_formatting = [" "]
+
+            if not self.annotation_second_formatting:
+                self.annotation_second_formatting = [" "]

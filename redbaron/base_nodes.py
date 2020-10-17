@@ -73,7 +73,7 @@ class BaseNodeMixin:
         return current
 
     def _iter_in_rendering_order(self):
-        for kind, key, display in self._render():
+        for kind, key, display in self._baron_attributes():
             if display is not True:
                 continue
 
@@ -146,34 +146,34 @@ class BaseNodeMixin:
 
 class NodeList(UserList, BaseNodeMixin):
     def __init__(self, node_list=None, parent=None, on_attribute=None):
+        super().__init__(node_list)
+
         for node in node_list:
             node.parent = self
-
-        super().__init__(node_list)
 
         self.parent = parent
         self.on_attribute = on_attribute
 
     @classmethod
-    def from_fst(cls, node_list, parent, on_attribute=None):
+    def generic_from_fst(cls, fst_list, parent=None, on_attribute=None):
         assert isinstance(parent, Node)
-        nodes = [parent.from_fst(n) for n in node_list]
+        nodes = [parent.from_fst(n) for n in fst_list]
         return cls(nodes, parent=parent, on_attribute=on_attribute)
 
     @classmethod
-    def from_str(cls, value, parent, on_attribute=None):
-        return cls.from_fst(baron.parse(value), parent=parent,
-                            on_attribute=on_attribute)
-
-    def from_str_el(self, value):
-        node = self.parent.from_str(value, on_attribute=self.on_attribute)
-        node.parent = self
-        return node
+    def generic_from_str(cls, value: str, parent=None, on_attribute=None):
+        assert isinstance(parent, Node)
+        return cls.generic_from_fst(baron.parse(value), parent=parent,
+                                    on_attribute=on_attribute)
 
     def __setitem__(self, key, value):
         if isinstance(value, str):
-            value = self.from_str_el(value)
+            value = Node.generic_from_str(value)
+        elif isinstance(value, dict):
+            value = Node.generic_from_fst(value)
 
+        value.parent = self
+        value.on_attribute = None
         self.data[key] = value
 
     def find_iter(self, identifier, *args, **kwargs):
@@ -205,33 +205,40 @@ class NodeList(UserList, BaseNodeMixin):
         return to_return
 
     def help(self, deep=2, with_formatting=False):
-        for num, i in enumerate(self.data):
-            sys.stdout.write(str(num) + " -----------------------------------------------------\n")
-            i.help(deep=deep, with_formatting=with_formatting)
+        for index, node in enumerate(self.data):
+            print(f"{index} -------------------------------------------------")
+            node.help(deep=deep, with_formatting=with_formatting)
 
     def __help__(self, deep=2, with_formatting=False):
-        return [x.__help__(deep=deep, with_formatting=with_formatting) for x in self.data]
+        return [x.__help__(deep=deep, with_formatting=with_formatting)
+                for x in self.data]
 
     def copy(self):
-        return self.__class__(list(self))
+        return type(self)(list(self))
 
     def deep_copy(self):
-        return self.__class__([node.copy() for node in self])
+        return type(self)([node.copy() for node in self])
 
     def filter(self, function):
-        return self.replace_data([x for x in self.data if function(x)])
+        self.data = [x for x in self.data if function(x)]
 
     def replace_data(self, new_data):
+        for el in new_data:
+            el.parent = self
+            el.on_attribute = None
         self.data = new_data
 
     def _generate_nodes_in_rendering_order(self):
         previous = None
+        for node in self._iter_in_rendering_order():
+            if node is previous:
+                continue
+            previous = node
+            yield node
+
+    def _iter_in_rendering_order(self):
         for node in self:
-            for _node in node._iter_in_rendering_order():
-                if _node is previous:
-                    continue
-                previous = _node
-                yield _node
+            yield from node._iter_in_rendering_order()
 
     def get_absolute_bounding_box_of_attribute(self, index):
         if not 0 <= index < len(self.data):
@@ -249,19 +256,30 @@ class NodeList(UserList, BaseNodeMixin):
             node.decrease_indentation(number_of_spaces)
 
     def baron_index(self, value):
-        return self.index(value)
+        return self.data.index(value)
 
     def get_from_baron_index(self, index):
-        return self[index]
+        return self.data[index]
 
     @property
     def node_list(self):
         return self
 
+    def insert(self, i, item):
+        item.parent = self
+        item.on_attribute = None
+        super().insert(i, item)
+
     def append(self, item):
         item.parent = self
         item.on_attribute = None
         super().append(item)
+
+    def extend(self, other):
+        for node in other:
+            node.parent = self
+            node.on_attribute = None
+        super().extend(other)
 
 
 class NodeRegistration(type):
@@ -282,7 +300,7 @@ class NodeRegistration(type):
         cls._list_keys = []
         cls._dict_keys = []
 
-        for kind, key, _ in NODES_RENDERING_ORDER[baron_type]:
+        for kind, key, _ in cls._baron_attributes():
             if kind == "constant":
                 pass
             elif kind in ("bool", "string"):
@@ -330,7 +348,7 @@ class Node(BaseNodeMixin, metaclass=NodeRegistration):
         self.parent = parent
         self.on_attribute = on_attribute
 
-        for kind, key, _ in self._render():
+        for kind, key, _ in self._baron_attributes():
             if kind == "constant":
                 continue
 
@@ -346,23 +364,28 @@ class Node(BaseNodeMixin, metaclass=NodeRegistration):
                 assert isinstance(new_value, NodeList), \
                     f"invalid {new_value} for {type(self).__name__}.{key}"
 
-    def from_fst(self, node, on_attribute=None):
-        cls = NodeRegistration.class_from_baron_type(node['type'])
-        return cls(node, parent=self, on_attribute=on_attribute)
+    @staticmethod
+    def generic_from_fst(fst, parent=None, on_attribute=None):
+        cls = NodeRegistration.class_from_baron_type(fst['type'])
+        return cls(fst, parent=parent, on_attribute=on_attribute)
+
+    def from_fst(self, fst, on_attribute=None):
+        return Node.generic_from_fst(fst, parent=self,
+                                     on_attribute=on_attribute)
 
     def nodelist_from_fst(self, node_list, on_attribute=None):
-        return NodeList.from_fst(node_list, parent=self,
-                                 on_attribute=on_attribute)
+        return NodeList.generic_from_fst(node_list, parent=self,
+                                         on_attribute=on_attribute)
 
-    def from_str(self, value, on_attribute=None):
+    def from_str(self, value: str, on_attribute=None):
         assert isinstance(value, str)
         value = baron.parse(value)[0]
         return self.from_fst(value, on_attribute=on_attribute)
 
-    def nodelist_from_str(self, value, on_attribute=None):
+    def nodelist_from_str(self, value: str, on_attribute=None):
         assert isinstance(value, str)
         fst = baron.parse(value)
-        return NodeList.from_fst(fst, parent=self, on_attribute=on_attribute)
+        return self.nodelist_from_fst(fst, on_attribute=on_attribute)
 
     @property
     def neighbors(self):
@@ -378,8 +401,19 @@ class Node(BaseNodeMixin, metaclass=NodeRegistration):
         return neighbors
 
     @property
+    def previous_neighbors(self):
+        neighbors = dropwhile(lambda x: x is not self,
+                              reversed(self.neighbors))
+        next(neighbors)
+        return neighbors
+
+    @property
     def next(self):
         return next(self.next_neighbors, None)
+
+    @property
+    def previous(self):
+        return next(self.previous_neighbors, None)
 
     @property
     def next_intuitive(self):
@@ -391,7 +425,29 @@ class Node(BaseNodeMixin, metaclass=NodeRegistration):
         return next_node
 
     @property
-    @display_property_atttributeerror_exceptions
+    def previous_intuitive(self):
+        previous_ = self.previous
+
+        if previous_ and previous_.type == "ifelseblock":
+            return previous_.value[-1]
+
+        elif previous_ and previous_.type == "try":
+            if previous_.find("finally"):
+                return previous_.find("finally")
+
+            if previous_.find("else"):
+                return previous_.find("else")
+
+            if previous_.find("excepts"):
+                return previous_.excepts[-1]
+
+        elif previous_ and previous_.type in ("for", "while"):
+            if previous_.find("else"):
+                return previous_.find("else")
+
+        return previous_
+
+    @property
     def next_rendered(self):
         previous = None
         target = self.parent
@@ -403,49 +459,6 @@ class Node(BaseNodeMixin, metaclass=NodeRegistration):
 
             previous = None
             target = target.parent
-
-    @property
-    def next_recursive(self):
-        target = self
-        while not target.next:
-            if not target.parent:
-                break
-            target = target.parent
-        return target.next
-
-    @property
-    def previous_neighbors(self):
-        neighbors = dropwhile(lambda x: x is not self,
-                              reversed(self.neighbors))
-        next(neighbors)
-        return neighbors
-
-    @property
-    def previous(self):
-        return next(self.previous_neighbors, None)
-
-    @property
-    def previous_intuitive(self):
-        previous_ = self.previous
-
-        if previous_ and previous_.type == "ifelseblock":
-            return previous_.value[-1]
-
-        elif previous_ and previous_.type == "try":
-            if previous_.finally_:
-                return previous_.finally_
-
-            if previous_.else_:
-                return previous_.else_
-
-            if previous_.excepts:
-                return previous_.excepts[-1]
-
-        elif previous_ and previous_.type in ("for", "while"):
-            if previous_.else_:
-                return previous_.else_
-
-        return previous_
 
     @property
     def previous_rendered(self):
@@ -460,6 +473,15 @@ class Node(BaseNodeMixin, metaclass=NodeRegistration):
             target = target.parent
 
     @property
+    def next_recursive(self):
+        target = self
+        while not target.next:
+            if not target.parent:
+                break
+            target = target.parent
+        return target.next
+
+    @property
     def previous_recursive(self):
         target = self
         while not target.previous:
@@ -469,11 +491,14 @@ class Node(BaseNodeMixin, metaclass=NodeRegistration):
         return target.previous
 
     def __getattr__(self, key):
-        if key.endswith("_") and key[:-1] in self._dict_keys + self._list_keys + self._str_keys:
+        if key.endswith("_") and \
+                key[:-1] in self._dict_keys + self._list_keys + self._str_keys:
             return getattr(self, key[:-1])
 
-        if key != "value" and not key.startswith("_") and hasattr(self, "value"):
-            return getattr(self.value, key)
+        if key != "value":
+            value = getattr(self, "value", None)
+            if value:
+                return getattr(self.value, key)
 
         raise AttributeError("%s not found" % key)
 
@@ -482,7 +507,7 @@ class Node(BaseNodeMixin, metaclass=NodeRegistration):
             yield self
 
         if recursive:
-            for kind, key, _ in self._render():
+            for kind, key, _ in self._baron_attributes():
                 if kind == "key":
                     node = getattr(self, key)
                     if hasattr(node, "find_iter"):
@@ -565,12 +590,14 @@ class Node(BaseNodeMixin, metaclass=NodeRegistration):
 
     @classmethod
     def generate_identifiers(cls):
-        return sorted(set(map(lambda x: x.lower(), [
+        ids = [
             redbaron_classname_to_baron_type(cls.__name__),
+            redbaron_classname_to_baron_type(cls.__name__) + "_",
             cls.__name__,
             cls.__name__.replace("Node", ""),
-            redbaron_classname_to_baron_type(cls.__name__) + "_"
-        ] + cls._other_identifiers)))
+        ]
+        ids += cls._other_identifiers
+        return sorted(set(map(lambda x: x.lower(), ids)))
 
     def _get_helpers(self):
         not_helpers = set([
@@ -623,19 +650,20 @@ class Node(BaseNodeMixin, metaclass=NodeRegistration):
         for key in self._str_keys:
             to_return[key] = getattr(self, key)
         for key in self._list_keys:
-            to_return[key] = [node.fst() for node in getattr(self, key).node_list]
+            to_return[key] = getattr(self, key).fst()
         for key in self._dict_keys:
             value = getattr(self, key)
             to_return[key] = value.fst() if value else {}
         return to_return
 
     def help(self, deep=2, with_formatting=False):
+        help_msg = self.__help__(deep=deep,
+                                 with_formatting=with_formatting)
+
         if in_ipython():
-            help_msg = self.__help__(deep=deep,
-                                     with_formatting=with_formatting)
-            sys.stdout.write(help_highlight(help_msg + "\n"))
-        else:
-            sys.stdout.write(help_msg + "\n")
+            help_msg = help_highlight(help_msg)
+
+        print(help_msg)
 
     def __help__(self, deep=2, with_formatting=False):
         new_deep = deep - 1 if not isinstance(deep, bool) else deep
@@ -717,8 +745,9 @@ class Node(BaseNodeMixin, metaclass=NodeRegistration):
 
         return super().__setattr__(name, value)
 
-    def _render(self):
-        return nodes_rendering_order[self.type]
+    @classmethod
+    def _baron_attributes(cls):
+        return NODES_RENDERING_ORDER[cls.type]
 
     def _generate_nodes_in_rendering_order(self):
         previous = None
@@ -793,9 +822,8 @@ class CodeBlockNode(IterableNode):
 
 class IfElseBlockSiblingNode(CodeBlockNode):
     @property
-    @display_property_atttributeerror_exceptions
     def next_intuitive(self):
-        next_ = super(IfElseBlockSiblingNode, self).next
+        next_ = super().next
 
         if next_ is None and self.parent:
             next_ = self.parent.next
@@ -803,9 +831,8 @@ class IfElseBlockSiblingNode(CodeBlockNode):
         return next_
 
     @property
-    @display_property_atttributeerror_exceptions
     def previous_intuitive(self):
-        previous_ = super(IfElseBlockSiblingNode, self).previous
+        previous_ = super().previous
 
         if previous_ is None and self.parent:
             previous_ = self.parent.previous
