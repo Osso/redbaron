@@ -3,7 +3,6 @@ from fnmatch import fnmatch
 import inspect
 from itertools import dropwhile
 import re
-import sys
 
 import baron
 import baron.path
@@ -14,11 +13,11 @@ from .node_property import (node_property,
                             nodelist_property)
 from .syntax_highlight import (help_highlight,
                                python_highlight)
-from .utils import (display_property_atttributeerror_exceptions,
-                    in_a_shell,
+from .utils import (in_a_shell,
                     in_ipython,
                     indent,
                     redbaron_classname_to_baron_type,
+                    squash_successive_duplicates,
                     truncate)
 
 NODES_RENDERING_ORDER = nodes_rendering_order
@@ -143,6 +142,9 @@ class BaseNodeMixin:
 
         return node_list.index(self)
 
+    def _generate_nodes_in_rendering_order(self):
+        yield from squash_successive_duplicates(self._iter_in_rendering_order())
+
 
 class NodeList(UserList, BaseNodeMixin):
     def __init__(self, node_list=None, parent=None, on_attribute=None):
@@ -227,14 +229,6 @@ class NodeList(UserList, BaseNodeMixin):
             el.parent = self
             el.on_attribute = None
         self.data = new_data
-
-    def _generate_nodes_in_rendering_order(self):
-        previous = None
-        for node in self._iter_in_rendering_order():
-            if node is previous:
-                continue
-            previous = node
-            yield node
 
     def _iter_in_rendering_order(self):
         for node in self:
@@ -657,8 +651,7 @@ class Node(BaseNodeMixin, metaclass=NodeRegistration):
         return to_return
 
     def help(self, deep=2, with_formatting=False):
-        help_msg = self.__help__(deep=deep,
-                                 with_formatting=with_formatting)
+        help_msg = self.__help__(deep=deep, with_formatting=with_formatting)
 
         if in_ipython():
             help_msg = help_highlight(help_msg)
@@ -748,14 +741,6 @@ class Node(BaseNodeMixin, metaclass=NodeRegistration):
     @classmethod
     def _baron_attributes(cls):
         return NODES_RENDERING_ORDER[cls.type]
-
-    def _generate_nodes_in_rendering_order(self):
-        previous = None
-        for j in self._iter_in_rendering_order():
-            if j is previous:
-                continue
-            previous = j
-            yield j
 
     def has_render_key(self, target_key):
         for _, _, key in baron.render.render(self.fst()):

@@ -70,3 +70,12 @@ def display_property_atttributeerror_exceptions(function):
             raise
 
     return wrapper
+
+
+def squash_successive_duplicates(iterable):
+    previous = None
+    for j in iterable:
+        if j is previous:
+            continue
+        previous = j
+        yield j

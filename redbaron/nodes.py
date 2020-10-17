@@ -114,23 +114,13 @@ class BinaryRawStringNode(Node, LiteralyEvaluableMixin):
 
 
 class BooleanOperatorNode(Node):
-    def __setattr__(self, key, value):
-        if key == "value" and isinstance(value, str):
-            assert baron.parse("a %s b" % value)[0]["type"] == "boolean_operator"
+    @node_property()
+    def first(self, value):
+        return baron.parse("%s and b" % value)[0]["first"]
 
-        return super().__setattr__(key, value)
-
-    def from_str(self, value, on_attribute=None):
-        if on_attribute == "first":
-            return self.from_fst(baron.parse("%s and b" % value)[0]["first"],
-                                 on_attribute=on_attribute)
-
-        elif on_attribute == "second":
-            return self.from_fst(baron.parse("bb and %s" % value)[0]["second"],
-                                 on_attribute=on_attribute)
-
-        else:
-            raise Exception("Unhandled case")
+    @node_property()
+    def second(self, value):
+        return baron.parse("bb and %s" % value)[0]["second"]
 
 
 class BreakNode(Node):
@@ -138,35 +128,20 @@ class BreakNode(Node):
 
 
 class CallNode(Node):
-    def nodelist_from_str(self, value, on_attribute=None):
-        # if on_attribute == "value":
-        #     fst = baron.parse("a(%s)" % value)[0]["value"][1]["value"]
-        #     return self.nodelist_from_fst(fst, on_attribute=on_attribute)
-
-        raise Exception("Unhandled case")
-
-    def __setattr__(self, key, value):
-        if key == "value" and not isinstance(value, CommaProxyList):
-            if isinstance(value, str):
-                value = baron.parse("a(%s)" % value)[0]["value"][1]["value"]
-            value = CommaProxyList(value, parent=self, on_attribute=key)
-
-        super().__setattr__(key, value)
+    @nodelist_property(list_type=CommaProxyList)
+    def value(self, value):
+        return baron.parse("a(%s)" % value)[0]["value"][1]["value"]
 
 
 class CallArgumentNode(Node):
-    def from_str(self, value, on_attribute=None):
-        if on_attribute == "value":
-            code = "a(%s)" % value
-            fst = baron.parse(code)[0]["value"][1]["value"][0]["value"]
-            return self.from_fst(fst, on_attribute=on_attribute)
+    @node_property()
+    def value(self, value):
+        return baron.parse("a(%s)" % value)[0]["value"][1]["value"][0]["value"]
 
-        if on_attribute == "target":
-            code = "a(%s=b)" % value
-            fst = baron.parse(code)[0]["value"][1]["value"][0]["target"]
-            return self.from_fst(fst, on_attribute=on_attribute)
-
-        raise Exception("Unhandled case")
+    @node_property()
+    def target(self, value):
+        code = "a(%s=b)" % value
+        return baron.parse(code)[0]["value"][1]["value"][0]["target"]
 
 
 class ClassNode(CodeBlockNode, DecoratorsMixin):
