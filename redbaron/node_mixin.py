@@ -3,7 +3,8 @@ import ast
 import baron
 import baron.path
 
-from .node_property import nodelist_property
+from .node_property import (node_property,
+                            nodelist_property)
 from .proxy_list import LineProxyList
 
 
@@ -33,3 +34,12 @@ class DecoratorsMixin:
 
         code = "%s\n%sdef a(): pass" % (value, indentation)
         return baron.parse(code)[0]["decorators"]
+
+
+class ValueMixin:
+    value = node_property("value")
+
+
+class AnnotationMixin:
+    annotation_first_formatting = nodelist_property("annotation_first_formatting")
+    annotation_second_formatting = nodelist_property("annotation_second_formatting")

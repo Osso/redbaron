@@ -2,13 +2,13 @@ import re
 
 import baron
 
-from .base_nodes import (NODE_TYPE_MAPPING,
-                         CodeBlockNode,
+from .base_nodes import (CodeBlockNode,
                          IfElseBlockSiblingNode,
                          IterableNode,
                          Node,
                          NodeList)
-from .node_mixin import (DecoratorsMixin,
+from .node_mixin import (AnnotationMixin,
+                         DecoratorsMixin,
                          LiteralyEvaluableMixin)
 from .node_property import (node_property,
                             nodelist_property)
@@ -55,10 +55,8 @@ class AssertNode(Node):
         raise Exception("Unhandled case")
 
 
-class AssignmentNode(Node):
+class AssignmentNode(Node, AnnotationMixin):
     _other_identifiers = ["assign"]
-    annotation_first_formatting = None
-    annotation_second_formatting = None
 
     def __setattr__(self, key, value):
         if key == "operator":
@@ -316,26 +314,20 @@ class ComprehensionIfNode(Node):
 
 
 class ComprehensionLoopNode(Node):
-    def nodelist_from_str(self, value, on_attribute=None):
-        if on_attribute == "ifs":
-            code = "[x for x in x %s]" % value
-            fst = baron.parse(code)[0]["generators"][0]["ifs"]
-            return NodeList.from_fst(fst, parent=self,
-                                     on_attribute=on_attribute)
+    @node_property()
+    def iterator(self, value):
+        code = "[x for %s in x]" % value
+        return baron.parse(code)[0]["generators"][0]["iterator"]
 
-        return super().nodelist_from_str(value, on_attribute=on_attribute)
+    @node_property()
+    def target(self, value):
+        code = "[x for s in %s]" % value
+        return baron.parse(code)[0]["generators"][0]["target"]
 
-    def from_str(self, value, on_attribute=None):
-        if on_attribute == "iterator":
-            fst = baron.parse("[x for %s in x]" % value)[0]["generators"][0]["iterator"]
-            return self.from_fst(fst, on_attribute=on_attribute)
-
-        elif on_attribute == "target":
-            fst = baron.parse("[x for s in %s]" % value)[0]["generators"][0]["target"]
-            return self.from_fst(fst, on_attribute=on_attribute)
-
-        else:
-            raise Exception("Unhandled case")
+    @nodelist_property()
+    def ifs(self, value):
+        code = "[x for x in x %s]" % value
+        return baron.parse(code)[0]["generators"][0]["ifs"]
 
 
 class ContinueNode(Node):
@@ -356,66 +348,52 @@ class DecoratorNode(Node):
 class DefNode(CodeBlockNode, DecoratorsMixin):
     _other_identifiers = ["funcdef", "funcdef_"]
     _default_test_value = "name"
-    return_annotation_first_formatting = None
-    return_annotation_second_formatting = None
+    return_annotation_first_formatting = nodelist_property("return_annotation_first_formatting")
+    return_annotation_second_formatting = nodelist_property("return_annotation_second_formatting")
     async_formatting = nodelist_property("async_formatting")
 
-    def from_str(self, value, on_attribute=None):
-        if on_attribute == "return_annotation":
-            if not value.strip():
-                self.return_annotation_first_formatting = []
-                self.return_annotation_second_formatting = []
-                return ""
+    def __init__(self, *args, **kwargs):
+        self.async_formatting = []
+        super().__init__(*args, **kwargs)
 
-            else:
-                fst = baron.parse("def a() -> %s: pass" % value)[0]["return_annotation"]
+    @nodelist_property(list_type=CommaProxyList)
+    def arguments(self, value):
+        return baron.parse("def a(%s): pass" % value)[0]["arguments"]
 
-                if not self.return_annotation_first_formatting:
-                    node = self.from_fst({"type": "space", "value": " "},
-                                         on_attribute="return_annotation_first_formatting")
-                    self.return_annotation_first_formatting = [node]
-
-                if not self.return_annotation_second_formatting:
-                    node = self.from_fst({"type": "space", "value": " "},
-                                         on_attribute="return_annotation_second_formatting")
-                    self.return_annotation_second_formatting = [node]
-
-                return self.from_fst(fst, on_attribute=on_attribute)
-
-        return super().from_str(value, on_attribute)
-
-    def nodelist_from_str(self, value, on_attribute=None):
-        if on_attribute == "arguments":
-            fst = baron.parse("def a(%s): pass" % value)[0]["arguments"]
-            return NodeList.from_fst(fst, parent=self,
-                                     on_attribute=on_attribute)
-
-        return super().nodelist_from_str(value, on_attribute=on_attribute)
+    @node_property()
+    def return_annotation(self, value):
+        code = "def a() -> %s: pass" % value
+        return baron.parse(code)[0]["return_annotation"]
 
     def __setattr__(self, key, value):
-        if key == "arguments" and not isinstance(value, CommaProxyList):
-            value = CommaProxyList(value, parent=self,
-                                   on_attribute="arguments")
+        if key in ("async", "async_"):
+            if value is None:
+                self.async_formatting = []
+            elif not self.async_formatting:
+                self.async_formatting = [SpaceNode()]
 
-        elif key in ("async", "async_") and value and not self.async_formatting:
-            node = self.from_fst({"type": "space", "value": " "},
-                                 on_attribute="return_annotation_first_formatting")
-            self.async_formatting = [node]
+        if key == "return_annotation":
+            if not value:
+                self.return_annotation_first_formatting = []
+                self.return_annotation_second_formatting = []
+            else:
+                if not self.return_annotation_first_formatting:
+                    self.return_annotation_first_formatting = [SpaceNode()]
+
+                if not self.return_annotation_second_formatting:
+                    self.return_annotation_second_formatting = [SpaceNode()]
 
         super().__setattr__(key, value)
 
 
-class DefArgumentNode(Node):
-    annotation_first_formatting = None
-    annotation_second_formatting = None
+class DefArgumentNode(Node, AnnotationMixin):
+    @node_property()
+    def value(self, value):
+        code = "def a(b=%s): pass" % value
+        return baron.parse(code)[0]["arguments"][0]["value"]
 
     def from_str(self, value, on_attribute=None):
-        if on_attribute == "value":
-            code = "def a(b=%s): pass" % value
-            fst = baron.parse(code)[0]["arguments"][0]["value"]
-            return self.from_fst(fst, on_attribute=on_attribute) if value else ""
-
-        elif on_attribute == "target":
+        if on_attribute == "target":
             code = "def a(%s=b): pass" % value
             fst = baron.parse(code)[0]["arguments"][0]["target"]
             return self.from_fst(fst, on_attribute=on_attribute) if value else ""
@@ -440,13 +418,10 @@ class DefArgumentNode(Node):
 
 
 class DelNode(Node):
-    def from_str(self, value, on_attribute=None):
-        if on_attribute == "value":
-            return self.from_fst(baron.parse("del %s" % value)[0]["value"],
-                                 on_attribute=on_attribute)
-
-        else:
-            raise Exception("Unhandled case")
+    @node_property()
+    def value(self, value):
+        code = "del %s" % value
+        return baron.parse(code)[0]["value"]
 
 
 class DictArgumentNode(Node):
@@ -478,29 +453,22 @@ class DictArgumentNode(Node):
 
 
 class DictitemNode(Node):
-    def from_str(self, value, on_attribute=None):
-        if on_attribute == "value":
-            return self.from_fst(baron.parse("{a: %s}" % value)[0]["value"][0]["value"],
-                                 on_attribute=on_attribute)
+    @node_property()
+    def value(self, value):
+        code = "{a: %s}" % value
+        return baron.parse(code)[0]["value"][0]["value"]
 
-        elif on_attribute == "key":
-            return self.from_fst(baron.parse("{%s: a}" % value)[0]["value"][0]["key"],
-                                 on_attribute=on_attribute)
-
-        else:
-            raise Exception("Unhandled case")
+    @node_property()
+    def key(self, value):
+        code = "{%s: a}" % value
+        return baron.parse(code)[0]["value"][0]["key"]
 
 
 class DictNode(Node, LiteralyEvaluableMixin):
-    def nodelist_from_str(self, value, on_attribute=None):
-        fst = baron.parse("{%s}" % value)[0]["value"]
-        return NodeList.from_fst(fst, parent=self, on_attribute=on_attribute)
-
-    def __setattr__(self, key, value):
-        super().__setattr__(key, value)
-
-        if key == "value" and not isinstance(self.value, CommaProxyList):
-            setattr(self, "value", CommaProxyList(self.value))
+    @nodelist_property(list_type=CommaProxyList)
+    def value(self, value):
+        code = "{%s}" % value
+        return baron.parse(code)[0]["value"]
 
 
 class DictComprehensionNode(Node):
@@ -523,14 +491,14 @@ class DictComprehensionNode(Node):
 
 class DotNode(Node):
     def _default_fst(self):
-        return {"type": "dot",
-                "first_formatting": [],
-                "second_formatting": []}
+        return {"type": "dot", "first_formatting": [], "second_formatting": []}
 
 
 class DottedAsNameNode(IterableNode):
-    first_formatting = None
-    second_formatting = None
+    @nodelist_property(list_type=DotProxyList)
+    def value(self, value):
+        code = "import %s" % value
+        return baron.parse(code)[0]["value"][0]["value"]
 
     def __setattr__(self, key, value):
         if key == "target":
@@ -539,23 +507,10 @@ class DottedAsNameNode(IterableNode):
                                 "be a 'name' or an empty string or None")
 
             if value:
-                self.first_formatting = [self.from_fst({"type": "space", "value": " "},
-                                                       on_attribute="delimiter")]
-                self.second_formatting = [self.from_fst({"type": "space", "value": " "},
-                                                        on_attribute="delimiter")]
+                self.first_formatting = [SpaceNode()]
+                self.second_formatting = [SpaceNode()]
 
         super().__setattr__(key, value)
-
-        if key == "value" and not isinstance(self.value, DotProxyList):
-            setattr(self, "value", DotProxyList(self.value))
-
-    def nodelist_from_str(self, value, on_attribute=None):
-        if on_attribute == "value":
-            fst = baron.parse("import %s" % value)[0]["value"][0]["value"]
-            return NodeList.from_fst(fst, parent=self, on_attribute=on_attribute)
-
-        else:
-            raise Exception("Unhandled case")
 
 
 class DottedNameNode(IterableNode):
@@ -563,13 +518,10 @@ class DottedNameNode(IterableNode):
 
 
 class ElifNode(IfElseBlockSiblingNode):
-    def from_str(self, value, on_attribute=None):
-        if on_attribute == "test":
-            fst = baron.parse("if %s: pass" % value)[0]["value"][0]["test"]
-            return self.from_fst(fst, on_attribute=on_attribute)
-
-        else:
-            raise Exception("Unhandled case")
+    @node_property()
+    def test(self, value):
+        code = "if %s: pass" % value
+        return baron.parse(code)[0]["value"][0]["test"]
 
 
 class EllipsisNode(Node):
@@ -608,8 +560,8 @@ class ElseNode(IfElseBlockSiblingNode):
 
 
 class EndlNode(Node):
-    # def __repr__(self):
-    #     return repr(baron.dumps([self.fst()]))
+    def __repr__(self):
+        return repr(baron.dumps([self.fst()]))
 
     def _default_fst(self):
         return {"type": "endl", "formatting": [],
@@ -1449,12 +1401,11 @@ class SliceNode(Node):
 
 
 class SpaceNode(Node):
-    # def __repr__(self):
-    #     return repr(baron.dumps([self.fst()]))
+    def __repr__(self):
+        return repr(baron.dumps([self.fst()]))
 
     def _default_fst(self):
-        return {"type": "space", "first_formatting": [],
-                "second_formatting": [{"type": "space", "value": " "}]}
+        return {"type": "space", "value": " "}
 
 
 class StandaloneAnnotationNode(Node):
@@ -1717,24 +1668,3 @@ class WithNode(CodeBlockNode):
 class EmptyLine(Node):
     def _default_fst(self):
         return {"type": "space", "value": ""}
-
-
-NODE_TYPE_MAPPING.update({
-    'def': DefNode,
-    'class': ClassNode,
-    'with': WithNode,
-    'decorator': DecoratorNode,
-    'dotted_name': DottedNameNode,
-    'name': NameNode,
-    'endl': EndlNode,
-    'space': SpaceNode,
-    'def_argument': DefArgumentNode,
-    'comma': CommaNode,
-    'assignment': AssignmentNode,
-    'binary_operator': BinaryOperatorNode,
-    'string': StringNode,
-    'list': ListNode,
-    'pass': PassNode,
-    'atomtrailers': AtomtrailersNode,
-    'call': CallNode,
-})

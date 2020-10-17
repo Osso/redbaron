@@ -3,10 +3,11 @@
 
 import re
 
+import baron
+from baron.render import nodes_rendering_order
 import pytest
-from redbaron import (RedBaron,
-                      nodes)
-from redbaron.base_nodes import NODE_TYPE_MAPPING
+from redbaron import RedBaron
+from redbaron.base_nodes import NodeRegistration
 from redbaron.nodes import (AssignmentNode,
                             CallNode,
                             CommaNode,
@@ -18,18 +19,10 @@ from redbaron.nodes import (AssignmentNode,
                             NodeList,
                             PassNode)
 
-import baron
-from baron.render import nodes_rendering_order
-
 
 def test_all_baron_types_are_mapped():
     for node_type in nodes_rendering_order:
-        assert node_type in NODE_TYPE_MAPPING
-
-
-def test_all_class_are_in_nodes():
-    for _, klass in NODE_TYPE_MAPPING:
-        assert hasattr(nodes, klass.__name__)
+        assert NodeRegistration.class_from_baron_type(node_type)
 
 
 def test_empty():
@@ -195,51 +188,51 @@ def test_generate_helpers():
 
 def test_assign_node_list():
     red = RedBaron("[1, 2, 3]")
-    l = red[0]
-    l.value = "pouet"
-    assert l.value[0].value == "pouet"
-    assert l.value[0].type == "name"
-    assert isinstance(l.value.node_list, NodeList)
-    assert isinstance(l.value, CommaProxyList)
-    l.value = ["pouet"]
-    assert l.value[0].value == "pouet"
-    assert l.value[0].type == "name"
-    assert isinstance(l.value.node_list, NodeList)
-    assert isinstance(l.value, CommaProxyList)
+    tree = red[0]
+    tree.value = "pouet"
+    assert tree.value[0].value == "pouet"
+    assert tree.value[0].type == "name"
+    assert isinstance(tree.value.node_list, NodeList)
+    assert isinstance(tree.value, CommaProxyList)
+    tree.value = ["pouet"]
+    assert tree.value[0].value == "pouet"
+    assert tree.value[0].type == "name"
+    assert isinstance(tree.value.node_list, NodeList)
+    assert isinstance(tree.value, CommaProxyList)
 
 
 def test_assign_node_list_fst():
     red = RedBaron("[1, 2, 3]")
-    l = red[0]
-    l.value = {"type": "name", "value": "pouet"}
-    assert l.value[0].value == "pouet"
-    assert l.value[0].type == "name"
-    assert isinstance(l.value.node_list, NodeList)
-    assert isinstance(l.value, CommaProxyList)
-    l.value = [{"type": "name", "value": "pouet"}]
-    assert l.value[0].value == "pouet"
-    assert l.value[0].type == "name"
-    assert isinstance(l.value.node_list, NodeList)
-    assert isinstance(l.value, CommaProxyList)
+    tree = red[0]
+    tree.value = {"type": "name", "value": "pouet"}
+    assert tree.value[0].value == "pouet"
+    assert tree.value[0].type == "name"
+    assert isinstance(tree.value.node_list, NodeList)
+    assert isinstance(tree.value, CommaProxyList)
+    tree.value = [{"type": "name", "value": "pouet"}]
+    assert tree.value[0].value == "pouet"
+    assert tree.value[0].type == "name"
+    assert isinstance(tree.value.node_list, NodeList)
+    assert isinstance(tree.value, CommaProxyList)
 
 
 def test_assign_node_list_mixed():
     red = RedBaron("[1, 2, 3]")
-    l = red[0]
-    l.value = ["plop",
-               {"type": "comma",
-                "first_formatting": [],
-                "second_formatting": []},
-               {"type": "name", "value": "pouet"}]
-    assert l.value[0].value == "plop"
-    assert l.value[0].type == "name"
-    assert l.value.node_list[1].type == "comma"
-    assert l.value[1].value == "pouet"
-    assert l.value[1].type == "name"
-    assert l.value.node_list[2].value == "pouet"
-    assert l.value.node_list[2].type == "name"
-    assert isinstance(l.value.node_list, NodeList)
-    assert isinstance(l.value, CommaProxyList)
+    tree = red[0]
+    tree.value = ["plop",
+                  {"type": "comma",
+                   "first_formatting": [],
+                   "second_formatting": []},
+                  {"type": "name", "value": "pouet"}]
+    assert tree.value[0].value == "plop"
+    assert tree.value[0].type == "name"
+    assert tree.value.node_list[1].type == "comma"
+    assert tree.value[1].value == "pouet"
+    assert tree.value[1].type == "name"
+    assert tree.value.node_list[2].value == "pouet"
+    assert tree.value.node_list[2].type == "name"
+    assert isinstance(tree.value.node_list, NodeList)
+    assert isinstance(tree.value, CommaProxyList)
 
 
 def test_parent():
@@ -333,7 +326,7 @@ def test_node_next_recursive():
     assert inner[0].next_recursive == inner[1]
     assert inner[1].next == inner[2]
     assert inner[1].next_recursive == inner[2]
-    assert inner[2].next == None
+    assert inner[2].next is None
     assert inner[2].next_recursive == second
 
 
@@ -360,7 +353,7 @@ def test_node_previous_recursive():
     assert inner[2].previous_recursive == inner[1]
     assert inner[1].previous == inner[0]
     assert inner[1].previous_recursive == inner[0]
-    assert inner[0].previous == None
+    assert inner[0].previous is None
     assert inner[0].previous_recursive == first
 
 
@@ -387,162 +380,162 @@ def test_node_previous_intuitive():
 
 def test_node_if_ifelseblock_next_intuitive():
     red = RedBaron("if a:\n    pass")
-    assert red.if_.next_intuitive is None
+    assert red.find("if").next_intuitive is None
     red = RedBaron("if a:\n    pass\nelse:\n    pass")
-    assert red.if_.next_intuitive is red.else_
+    assert red.find("if").next_intuitive is red.find("else")
     red = RedBaron("if a:\n    pass\nchocolat")
-    assert red.if_.next_intuitive is red.find("name", "chocolat")
+    assert red.find("if").next_intuitive is red.find("name", "chocolat")
 
 
 def test_node_if_ifelseblock_previous_intuitive():
     red = RedBaron("if a:\n    pass")
-    assert red.if_.previous_intuitive is None
+    assert red.find("if").previous_intuitive is None
     red = RedBaron("chocolat\nif a:\n    pass")
-    assert red.if_.previous_intuitive is red.find("endl")
+    assert red.find("if").previous_intuitive is red.find("endl")
     red = RedBaron("pouet\nif a:\n    pass\nelif a:\n    pass\nelse:\n    pass")
-    assert red.else_.previous_intuitive is red.elif_
-    assert red.if_.previous is None
+    assert red.find("else").previous_intuitive is red.find("elif")
+    assert red.find("if").previous is None
 
 
 def test_node_elif_ifelseblock_next_intuitive():
     red = RedBaron("if a:\n    pass\nelif a:\n    pass")
-    assert red.elif_.next_intuitive is None
+    assert red.find("elif").next_intuitive is None
     red = RedBaron("if a:\n    pass\nelif a:\n    pass\nelse:\n    pass")
-    assert red.elif_.next_intuitive is red.else_
+    assert red.find("elif").next_intuitive is red.find("else")
     red = RedBaron("if a:\n    pass\nelif a:\n    pass\nchocolat")
-    assert red.elif_.next_intuitive is red.find("name", "chocolat")
+    assert red.find("elif").next_intuitive is red.find("name", "chocolat")
 
 
 def test_node_elif_elifelseblock_previous_intuitive():
     # not a very interesting test
     red = RedBaron("if a:\n    pass\nelif a:\n    pass")
-    assert red.elif_.previous_intuitive is red.if_
+    assert red.find("elif").previous_intuitive is red.find("if")
     red = RedBaron("chocolat\nif a:\n    pass\nelif a:\n    pass")
-    assert red.elif_.previous_intuitive is red.if_
+    assert red.find("elif").previous_intuitive is red.find("if")
 
 
 def test_node_else_ifelseblock_next_intuitive():
     red = RedBaron("if a:\n    pass\nelse:\n    pass")
-    assert red.else_.next_intuitive is None
+    assert red.find("else").next_intuitive is None
     red = RedBaron("if a:\n    pass\nelse:\n    pass\nchocolat")
-    assert red.else_.next_intuitive is red.find("name", "chocolat")
+    assert red.find("else").next_intuitive is red.find("name", "chocolat")
 
 
 def test_node_else_elseelseblock_previous_intuitive():
     red = RedBaron("if a:\n    pass\nelse:\n    pass")
-    assert red.else_.previous_intuitive is red.if_
+    assert red.find("else").previous_intuitive is red.find("if")
     red = RedBaron("chocolat\nif a:\n    pass\nelse:\n    pass")
-    assert red.else_.previous_intuitive is red.if_
+    assert red.find("else").previous_intuitive is red.find("if")
 
 
 def test_node_if_ifelseblock_outside_next_intuitive():
     red = RedBaron("outside\nif a:\n    pass")
-    assert red.endl_.next_intuitive is red.if_
+    assert red.endl_.next_intuitive is red.find("if")
 
 
 def test_node_if_ifelseblock_outside_previous_intuitive():
     red = RedBaron("if a:\n    pass\nafter")
-    assert red.find("name", "after").previous_intuitive is red.if_
+    assert red.find("name", "after").previous_intuitive is red.find("if")
 
 
 def test_node_if_ifelseblock_outside_previous_intuitive_elif():
     red = RedBaron("if a:\n    pass\nelif a: pass\nafter")
-    assert red.find("name", "after").previous_intuitive is red.elif_
+    assert red.find("name", "after").previous_intuitive is red.find("elif")
 
 
 def test_node_if_ifelseblock_outside_previous_intuitive_elif_elif():
     red = RedBaron("if a:\n    pass\nelif a: pass\nelif a: pass\nafter")
-    assert red.find("name", "after").previous_intuitive is red("elif")[1]
+    assert red.find("name", "after").previous_intuitive is red.find("elif")[1]
 
 
 def test_node_if_ifelseblock_outside_previous_intuitive_else():
     red = RedBaron("if a:\n    pass\nelse: pass\nafter")
-    assert red.find("name", "after").previous_intuitive is red.else_
+    assert red.find("name", "after").previous_intuitive is red.find("else")
 
 
 def test_node_trynode_next_intuitive_except():
     red = RedBaron("try: pass\nexcept: pass")
-    assert red.try_.next_intuitive is red.except_
+    assert red.find("try").next_intuitive is red.find("except")
 
 
 def test_node_trynode_next_intuitive_except_else():
     red = RedBaron("try: pass\nexcept: pass\nelse: pass")
-    assert red.try_.next_intuitive is red.except_
+    assert red.find("try").next_intuitive is red.find("except")
 
 
 def test_node_trynode_next_intuitive_except_else_finally():
     red = RedBaron("try: pass\nexcept: pass\nelse: pass\nfinally: pass")
-    assert red.try_.next_intuitive is red.except_
+    assert red.find("try").next_intuitive is red.find("except")
 
 
 def test_node_trynode_next_intuitive_finally():
     red = RedBaron("try: pass\nfinally: pass")
-    assert red.try_.next_intuitive is red.finally_
+    assert red.find("try").next_intuitive is red.find("finally")
 
 
 def test_node_exceptnode_next_intuitive_except():
     red = RedBaron("try: pass\nexcept: pass")
-    assert red.except_.next_intuitive is None
+    assert red.find("except").next_intuitive is None
 
 
 def test_node_exceptnode_next_intuitive_except_after():
     red = RedBaron("try: pass\nexcept: pass\nafter")
-    assert red.except_.next_intuitive is red[1]
+    assert red.find("except").next_intuitive is red[1]
 
 
 def test_node_exceptnode_next_intuitive_except_except():
     red = RedBaron("try: pass\nexcept: pass\nexcept: pass")
-    assert red.except_.next_intuitive is red("except")[1]
+    assert red.find("except").next_intuitive is red.find("except")[1]
 
 
 def test_node_exceptnode_next_intuitive_else():
     red = RedBaron("try: pass\nexcept: pass\nelse: pass")
-    assert red.except_.next_intuitive is red.else_
+    assert red.find("except").next_intuitive is red.find("else")
 
 
 def test_node_exceptnode_next_intuitive_except_else():
     red = RedBaron("try: pass\nexcept: pass\nexcept: pass\nelse: pass")
-    assert red.except_.next_intuitive is red("except")[1]
+    assert red.find("except").next_intuitive is red.find("except")[1]
 
 
 def test_node_exceptnode_next_intuitive_finally():
     red = RedBaron("try: pass\nexcept: pass\nfinally: pass")
-    assert red.except_.next_intuitive is red.finally_
+    assert red.find("except").next_intuitive is red.finally_
 
 
 def test_node_exceptnode_next_intuitive_else_finally():
     red = RedBaron("try: pass\nexcept: pass\nelse: pass\nfinally: pass")
-    assert red.except_.next_intuitive is red.else_
+    assert red.find("except").next_intuitive is red.find("else")
 
 
 def test_node_exceptnode_previous_intuitive_except():
     red = RedBaron("try: pass\nexcept: pass")
-    assert red.except_.previous_intuitive is red.try_
+    assert red.find("except").previous_intuitive is red.find("try")
 
 
 def test_node_exceptnode_previous_intuitive_except_except():
     red = RedBaron("try: pass\nexcept: pass\nexcept: pass")
-    assert red("except")[1].previous_intuitive is red.except_
+    assert red.find("except")[1].previous_intuitive is red.find("except")
 
 
 def test_node_try_elsenode_next_intuitive():
     red = RedBaron("try: pass\nexcept: pass\nelse: pass")
-    assert red.else_.next_intuitive is None
+    assert red.find("else").next_intuitive is None
 
 
 def test_node_try_elsenode_next_intuitive_after():
     red = RedBaron("try: pass\nexcept: pass\nelse: pass\nafter")
-    assert red.else_.next_intuitive is red.find("name", "after")
+    assert red.find("else").next_intuitive is red.find("name", "after")
 
 
 def test_node_try_elsenode_next_intuitive_finally():
     red = RedBaron("try: pass\nexcept: pass\nelse: pass\nfinally: pass")
-    assert red.else_.next_intuitive is red.finally_
+    assert red.find("else").next_intuitive is red.finally_
 
 
 def test_node_try_elsenode_previous_intuitive():
     red = RedBaron("try: pass\nexcept: pass\nelse: pass")
-    assert red.else_.previous_intuitive is red.except_
+    assert red.find("else").previous_intuitive is red.find("except")
 
 
 def test_node_finally_next_intuitive():
@@ -557,57 +550,57 @@ def test_node_finally_next_intuitive_after():
 
 def test_node_finally_previous_intuitive():
     red = RedBaron("try: pass\nfinally: pass\n")
-    assert red.finally_.previous_intuitive is red.try_
+    assert red.finally_.previous_intuitive is red.find("try")
 
 
 def test_node_finally_previous_intuitive_except():
     red = RedBaron("try: pass\nexcept: pass\nfinally: pass\n")
-    assert red.finally_.previous_intuitive is red.except_
+    assert red.finally_.previous_intuitive is red.find("except")
 
 
 def test_node_finally_previous_intuitive_excepts():
     red = RedBaron("try: pass\nexcept: pass\nexcept: pass\nfinally: pass\n")
-    assert red.finally_.previous_intuitive is red("except")[-1]
+    assert red.finally_.previous_intuitive is red.find("except")[-1]
 
 
 def test_node_finally_previous_intuitive_except_else():
     red = RedBaron("try: pass\nexcept: pass\nelse: pass\nfinally: pass\n")
-    assert red.finally_.previous_intuitive is red.else_
+    assert red.finally_.previous_intuitive is red.find("else")
 
 
 def test_node_trynode_outside_next_intuitive():
     red = RedBaron("outside\ntry:\n    pass\nexcept: pass")
-    assert red.endl_.next_intuitive is red.try_
+    assert red.endl_.next_intuitive is red.find("try")
 
 
 def test_node_trynode_outside_previous_intuitive_except():
     red = RedBaron("try:\n    pass\nexcept: pass\nafter")
-    assert red.find("name", "after").previous_intuitive is red.except_
+    assert red.find("name", "after").previous_intuitive is red.find("except")
 
 
 def test_node_trynode_outside_previous_intuitive_except_except():
     red = RedBaron("try:\n    pass\nexcept: pass\nexcept: pass\nafter")
-    assert red.find("name", "after").previous_intuitive is red("except")[1]
+    assert red.find("name", "after").previous_intuitive is red.find("except")[1]
 
 
 def test_node_trynode_outside_previous_intuitive_except_except_else():
     red = RedBaron("try:\n    pass\nexcept: pass\nexcept: pass\nelse: pass\nafter")
-    assert red.find("name", "after").previous_intuitive is red.else_
+    assert red.find("name", "after").previous_intuitive is red.find("else")
 
 
 def test_node_trynode_outside_previous_intuitive_except_except_else_finally():
     red = RedBaron("try:\n    pass\nexcept: pass\nexcept: pass\nelse: pass\nfinally: pass\nafter")
-    assert red.find("name", "after").previous_intuitive is red.finally_
+    assert red.find("name", "after").previous_intuitive is red.find("finally")
 
 
 def test_node_trynode_outside_previous_intuitive_except_except_finally():
     red = RedBaron("try:\n    pass\nexcept: pass\nexcept: pass\nfinally: pass\nafter")
-    assert red.find("name", "after").previous_intuitive is red.finally_
+    assert red.find("name", "after").previous_intuitive is red.find("finally")
 
 
 def test_node_trynode_outside_previous_intuitive_finally():
     red = RedBaron("try:\n    pass\nfinally: pass\nafter")
-    assert red.find("name", "after").previous_intuitive is red.finally_
+    assert red.find("name", "after").previous_intuitive is red.find("finally")
 
 
 def test_node_for_next_intuitive():
@@ -622,7 +615,7 @@ def test_node_for_next_intuitive_after():
 
 def test_node_for_next_intuitive_else_after():
     red = RedBaron("for a in b: pass\nelse: pass\nafter")
-    assert red.for_.next_intuitive is red.else_
+    assert red.for_.next_intuitive is red.find("else")
 
 
 def test_node_for_previous_intuitive_after():
@@ -632,17 +625,17 @@ def test_node_for_previous_intuitive_after():
 
 def test_node_for_else_next_intuitive():
     red = RedBaron("for a in b: pass\nelse: pass")
-    assert red.else_.next_intuitive is None
+    assert red.find("else").next_intuitive is None
 
 
 def test_node_for_else_next_intuitive_after():
     red = RedBaron("for a in b: pass\nelse: pass\nafter")
-    assert red.else_.next_intuitive is red[1]
+    assert red.find("else").next_intuitive is red[1]
 
 
 def test_node_for_else_previous_intuitive_after():
     red = RedBaron("before\nfor a in b: pass\nelse: pass\nafter")
-    assert red.else_.previous_intuitive is red.for_
+    assert red.find("else").previous_intuitive is red.for_
 
 
 def test_node_fornode_outside_next_intuitive():
@@ -662,7 +655,7 @@ def test_node_fornode_outside_previous_intuitive():
 
 def test_node_fornode_outside_previous_intuitive_else():
     red = RedBaron("for a in b:\n    pass\nelse: pass\nafter")
-    assert red.find("name", "after").previous_intuitive is red.else_
+    assert red.find("name", "after").previous_intuitive is red.find("else")
 
 
 def test_node_while_next_intuitive():
@@ -677,7 +670,7 @@ def test_node_while_next_intuitive_after():
 
 def test_node_while_next_intuitive_else_after():
     red = RedBaron("while a: pass\nelse: pass\nafter")
-    assert red.while_.next_intuitive is red.else_
+    assert red.while_.next_intuitive is red.find("else")
 
 
 def test_node_while_previous_intuitive_after():
@@ -687,17 +680,17 @@ def test_node_while_previous_intuitive_after():
 
 def test_node_while_else_next_intuitive():
     red = RedBaron("while a in b: pass\nelse: pass")
-    assert red.else_.next_intuitive is None
+    assert red.find("else").next_intuitive is None
 
 
 def test_node_while_else_next_intuitive_after():
     red = RedBaron("while a in b: pass\nelse: pass\nafter")
-    assert red.else_.next_intuitive is red[1]
+    assert red.find("else").next_intuitive is red[1]
 
 
 def test_node_while_else_previous_intuitive_after():
     red = RedBaron("bewhilee\nwhile a in b: pass\nelse: pass\nafter")
-    assert red.else_.previous_intuitive is red.while_
+    assert red.find("else").previous_intuitive is red.while_
 
 
 def test_node_whilenode_outside_next_intuitive():
@@ -717,22 +710,22 @@ def test_node_whilenode_outside_previous_intuitive():
 
 def test_node_whilenode_outside_previous_intuitive_else():
     red = RedBaron("while a:\n    pass\nelse: pass\nafter")
-    assert red.find("name", "after").previous_intuitive is red.else_
+    assert red.find("name", "after").previous_intuitive is red.find("else")
 
 
 def test_map():
     red = RedBaron("[1, 2, 3]")
-    assert red('int').map(lambda x: x.value) == NodeList(["1", "2", "3"])
+    assert red.find("int").map(lambda x: x.value) == NodeList(["1", "2", "3"])
 
 
 def test_apply():
     red = RedBaron("a()\nb()")
-    assert red('call').apply(lambda x: str(x)) == red('call')
+    assert red.find("call").apply(str) == red.find("call")
 
 
 def test_filter():
     red = RedBaron("[1, 2, 3]")
-    assert red[0].value.filter(lambda x: x.type != "comma") == red('int')
+    assert red[0].value.filter(lambda x: x.type != "comma") == red.find("int")
     assert isinstance(red[0].value.filter(lambda x: x.type != "comma"), NodeList)
 
 
@@ -832,7 +825,7 @@ def test_find_empty():
     assert red.find("something_else") is None
     assert red.find("something_else", useless="pouet") is None
     with pytest.raises(AttributeError):
-        red.will_raises
+        red.will_raises  # pylint: disable=pointless-statement
 
 
 def test_find():
@@ -858,14 +851,14 @@ def test_find_case_insensitive():
 
 def test_find_kwarg_lambda():
     red = RedBaron("[1, 2, 3, 4]")
-    assert red.find("int", value=lambda x: int(x) % 2 == 0) == red("int")[1]
-    assert red("int", value=lambda x: int(x) % 2 == 0) == red('int')[1::2]
+    assert red.find("int", value=lambda x: int(x) % 2 == 0) == red.find("int")[1]
+    assert red.find("int", value=lambda x: int(x) % 2 == 0) == red.find("int")[1::2]
 
 
 def test_find_lambda():
     red = RedBaron("[1, 2, 3, 4]")
-    assert red.find("int", lambda x: int(x.value) % 2 == 0) == red('int')[1]
-    assert red("int", lambda x: int(x.value) % 2 == 0) == red('int')[1::2]
+    assert red.find("int", lambda x: int(x.value) % 2 == 0) == red.find("int")[1]
+    assert red.find("int", lambda x: int(x.value) % 2 == 0) == red.find("int")[1::2]
 
 
 def test_find_kwarg_regex_instance():
@@ -875,8 +868,8 @@ def test_find_kwarg_regex_instance():
 
 def test_find_all_kwarg_regex_instance():
     red = RedBaron("plop\npop\npouf\nabcd")
-    assert red("name", value=re.compile("^po")) \
-        == red("name", value=lambda x: x.startswith("po"))
+    assert red.find("name", value=re.compile("^po")) \
+        == red.find("name", value=lambda x: x.startswith("po"))
 
 
 def test_find_kwarg_regex_syntaxe():
@@ -886,8 +879,8 @@ def test_find_kwarg_regex_syntaxe():
 
 def test_find_all_kwarg_regex_syntaxe():
     red = RedBaron("plop\npop\npouf\nabcd")
-    assert red("name", value="re:^po") \
-        == red("name", value=lambda x: x.startswith("po"))
+    assert red.find("name", value="re:^po") \
+        == red.find("name", value=lambda x: x.startswith("po"))
 
 
 def test_find_kwarg_glob_syntaxe():
@@ -897,14 +890,14 @@ def test_find_kwarg_glob_syntaxe():
 
 def test_find_all_kwarg_glob_syntaxe():
     red = RedBaron("plop\npop\npouf\nabcd")
-    assert red("name", value="g:po*") \
-        == red("name", value=lambda x: x.startswith("po"))
+    assert red.find("name", value="g:po*") \
+        == red.find("name", value=lambda x: x.startswith("po"))
 
 
 def test_identifier_find_kwarg_lambda():
     red = RedBaron("stuff\n1\n'string'")
     assert red.find(lambda x: x in ["name", "int"]) == red[0]
-    assert red(lambda x: x in ["name", "int"]) == red[:2].node_list
+    assert red.find(lambda x: x in ["name", "int"]) == red[:2].node_list
 
 
 def test_identifier_find_kwarg_regex_instance():
@@ -914,7 +907,7 @@ def test_identifier_find_kwarg_regex_instance():
 
 def test_identifier_find_all_kwarg_regex_instance():
     red = RedBaron("stuff\n1\n'string'")
-    assert red(re.compile("^[ni]")) == red[:2].node_list
+    assert red.find(re.compile("^[ni]")) == red[:2].node_list
 
 
 def test_identifier_find_kwarg_regex_syntaxe():
@@ -924,7 +917,7 @@ def test_identifier_find_kwarg_regex_syntaxe():
 
 def test_identifier_find_all_kwarg_regex_syntaxe():
     red = RedBaron("stuff\n1\n'string'")
-    assert red("re:^[ni]") == red[:2].node_list
+    assert red.find("re:^[ni]") == red[:2].node_list
 
 
 def test_identifier_find_kwarg_glob_syntaxe():
@@ -934,7 +927,7 @@ def test_identifier_find_kwarg_glob_syntaxe():
 
 def test_identifier_find_all_kwarg_glob_syntaxe():
     red = RedBaron("stuff\n1\n'string'")
-    assert red("g:s*") == red[2:].node_list
+    assert red.find("g:s*") == red[2:].node_list
 
 
 def test_find_kwarg_list_tuple_instance():
@@ -945,8 +938,8 @@ def test_find_kwarg_list_tuple_instance():
 
 def test_find_all_kwarg_list_tuple_instance():
     red = RedBaron("pouet\nstuff\n1")
-    assert red("name", value=["pouet", "stuff"]) == red[:2].node_list
-    assert red("name", value=("pouet", "stuff")) == red[:2].node_list
+    assert red.find("name", value=["pouet", "stuff"]) == red[:2].node_list
+    assert red.find("name", value=("pouet", "stuff")) == red[:2].node_list
 
 
 def test_identifier_find_kwarg_list_tuple_instance():
@@ -957,8 +950,8 @@ def test_identifier_find_kwarg_list_tuple_instance():
 
 def test_identifier_find_all_kwarg_list_tuple_instance():
     red = RedBaron("pouet\n'string'\n1")
-    assert red(["name", "string"]) == red[:2].node_list
-    assert red(("name", "string")) == red[:2].node_list
+    assert red.find(["name", "string"]) == red[:2].node_list
+    assert red.find(("name", "string")) == red[:2].node_list
 
 
 def test_default_test_value_find():
@@ -968,7 +961,7 @@ def test_default_test_value_find():
 
 def test_default_test_value_find_all():
     red = RedBaron("badger\nmushroom\nsnake")
-    assert red("name", "snake") == red("name", value="snake")
+    assert red.find("name", "snake") == red.find("name", value="snake")
 
 
 def test_find_comment_node():

@@ -10,6 +10,8 @@ import baron.path
 from baron.render import nodes_rendering_order
 
 from .node_path import Path
+from .node_property import (node_property,
+                            nodelist_property)
 from .syntax_highlight import (help_highlight,
                                python_highlight)
 from .utils import (display_property_atttributeerror_exceptions,
@@ -21,7 +23,6 @@ from .utils import (display_property_atttributeerror_exceptions,
 
 NODES_RENDERING_ORDER = nodes_rendering_order
 NODES_RENDERING_ORDER["root"] = [('list', 'value', True)]
-NODE_TYPE_MAPPING = {}
 
 
 class BaseNodeMixin:
@@ -257,54 +258,96 @@ class NodeList(UserList, BaseNodeMixin):
     def node_list(self):
         return self
 
+    def append(self, item):
+        item.parent = self
+        item.on_attribute = None
+        super().append(item)
 
-class Node(BaseNodeMixin):
+
+class NodeRegistration(type):
+    node_type_mapping = {}
+
+    def __init__(cls, name, bases, attrs):
+        super().__init__(name, bases, attrs)
+        if name not in ("Node", "IterableNode", "CodeBlockNode"):
+            baron_type = redbaron_classname_to_baron_type(name)
+            NodeRegistration.register_type(baron_type, cls)
+            if baron_type in NODES_RENDERING_ORDER:
+                cls.define_attributes_from_baron(baron_type)  # pylint: disable=no-value-for-parameter
+
+    def define_attributes_from_baron(cls, baron_type):
+        cls.type = baron_type
+
+        cls._str_keys = ["type"]
+        cls._list_keys = []
+        cls._dict_keys = []
+
+        for kind, key, _ in NODES_RENDERING_ORDER[baron_type]:
+            if kind == "constant":
+                pass
+            elif kind in ("bool", "string"):
+                cls._str_keys.append(key)
+            elif kind == "key":
+                if not hasattr(cls, key):
+                    setattr(cls, key, node_property(key))
+                cls._dict_keys.append(key)
+            elif kind in ("list", "formatting"):
+                if not hasattr(cls, key):
+                    setattr(cls, key, nodelist_property(key))
+                cls._list_keys.append(key)
+            else:
+                raise Exception(f"Invalid kind {kind} for {baron_type}.{key}")
+
+    @classmethod
+    def register_type(mcs, baron_type, node_class):
+        mcs.node_type_mapping[baron_type] = node_class
+
+    @classmethod
+    def class_from_baron_type(mcs, baron_type):
+        return mcs.node_type_mapping[baron_type]
+
+    @classmethod
+    def all_types(mcs):
+        return mcs.node_type_mapping
+
+
+class Node(BaseNodeMixin, metaclass=NodeRegistration):
     _other_identifiers = []
     _default_test_value = "value"
-    first_formatting = None
-    second_formatting = None
-    third_formatting = None
-    fourth_formatting = None
-    fifth_formatting = None
-    formatting = None
+    first_formatting = nodelist_property("first_formatting")
+    second_formatting = nodelist_property("second_formatting")
+    third_formatting = nodelist_property("third_formatting")
+    fourth_formatting = nodelist_property("fourth_formatting")
+    fifth_formatting = nodelist_property("fifth_formatting")
+    sixth_formatting = nodelist_property("sixth_formatting")
+    formatting = nodelist_property("formatting")
+    indent = ""
 
     def __init__(self, fst=None, parent=None, on_attribute=None):
         if fst is None:
             fst = self._default_fst()
 
-        self._str_keys = ["type"]
-        self._list_keys = []
-        self._dict_keys = []
-
         self.parent = parent
         self.on_attribute = on_attribute
-        self.type = fst["type"]
-        self.indent = ""
 
         for kind, key, _ in self._render():
             if kind == "constant":
-                pass
-            elif kind == "key":
-                setattr(self, key, fst[key])
-                if fst[key]:
-                    new_value = getattr(self, key)
-                    assert isinstance(getattr(self, key), Node), \
-                        f"invalid {new_value} for {self.__class__.__name__}.{key}"
-                self._dict_keys.append(key)
-            elif kind in ("bool", "string"):
-                setattr(self, key, fst[key])
-                self._str_keys.append(key)
+                continue
+
+            # if key in fst:
+            setattr(self, key, fst[key])
+
+            if kind == "key" and fst[key]:
+                new_value = getattr(self, key)
+                assert isinstance(getattr(self, key), Node), \
+                    f"invalid {new_value} for {type(self).__name__}.{key}"
             elif kind in ("list", "formatting"):
-                setattr(self, key, fst[key])
                 new_value = getattr(self, key)
                 assert isinstance(new_value, NodeList), \
-                    f"invalid {new_value} for {self.__class__.__name__}.{key}"
-                self._list_keys.append(key)
-            else:
-                raise Exception(f"Invalid kind {kind} for {fst['type']}")
+                    f"invalid {new_value} for {type(self).__name__}.{key}"
 
     def from_fst(self, node, on_attribute=None):
-        cls = NODE_TYPE_MAPPING[node['type']]
+        cls = NodeRegistration.class_from_baron_type(node['type'])
         return cls(node, parent=self, on_attribute=on_attribute)
 
     def nodelist_from_fst(self, node_list, on_attribute=None):
@@ -429,7 +472,7 @@ class Node(BaseNodeMixin):
         if key.endswith("_") and key[:-1] in self._dict_keys + self._list_keys + self._str_keys:
             return getattr(self, key[:-1])
 
-        if key != "value" and hasattr(self, "value"):
+        if key != "value" and not key.startswith("_") and hasattr(self, "value"):
             return getattr(self.value, key)
 
         raise AttributeError("%s not found" % key)
@@ -667,34 +710,10 @@ class Node(BaseNodeMixin):
         return self.from_fst(self.fst(), on_attribute=self.on_attribute)
 
     def __setattr__(self, name, value):
-        if name in ('_str_keys', '_dict_keys', '_list_keys'):
-            return super().__setattr__(name, value)
-
-        if name == 'formatting' and not isinstance(value, NodeList):
-            if isinstance(value, str):
-                value = baron.parse(value)
-            value = self.nodelist_from_fst(value, on_attribute=name)
-
         # convert "async_" to "async"
         # (but we don't want to mess with "__class__" for example)
         if name.endswith("_") and not name.endswith("__"):
             name = name[:-1]
-
-        if name in self._str_keys:
-            assert isinstance(value, (str, bool))
-
-        elif name in self._dict_keys:
-            if isinstance(value, str):
-                value = self.from_str(value, on_attribute=name)
-            elif isinstance(value, dict):
-                value = self.from_fst(value, on_attribute=name)
-            assert isinstance(value, Node)
-
-        elif name in self._list_keys:
-            if isinstance(value, str):
-                value = self.nodelist_from_str(value, on_attribute=name)
-            elif isinstance(value, list):
-                value = self.from_fst(value, on_attribute=name)
 
         return super().__setattr__(name, value)
 
@@ -768,15 +787,8 @@ class IterableNode(Node):
 
 
 class CodeBlockNode(IterableNode):
-    def __setattr__(self, key, value):
-        from .proxy_list import CodeProxyList
-
-        if key == "value" and not isinstance(value, CodeProxyList):
-            if isinstance(value, str):
-                value = self.nodelist_from_str(value, on_attribute=key)
-            value = CodeProxyList(value, parent=self, on_attribute=key)
-
-        super().__setattr__(key, value)
+    from .proxy_list import CodeProxyList
+    value = nodelist_property("value", list_type=CodeProxyList)
 
 
 class IfElseBlockSiblingNode(CodeBlockNode):

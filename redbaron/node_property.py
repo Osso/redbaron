@@ -2,8 +2,6 @@ from functools import partial
 
 import baron
 
-from .base_nodes import NodeList
-
 
 class NodeProperty:
     def __init__(self, name, str_to_fst=None):
@@ -25,7 +23,6 @@ class NodeProperty:
         return getattr(obj, self.attr_name)
 
     def __set__(self, obj, value):
-        print(f"Setting {type(obj)}.{self.attr_name} to {value}")
         if isinstance(value, str):
             value = self.str_to_fst(value)
 
@@ -40,12 +37,22 @@ class NodeProperty:
         return obj.from_fst(value, on_attribute=self.name)
 
 
-def node_property():
-    return NodeProperty
+def node_property(name=None):
+    attr = NodeProperty
+
+    if name:
+        assert isinstance(name, str)
+        return attr(name)
+
+    return attr
 
 
-def nodelist_property(name=None, list_type=NodeList):
-    attr = partial(NodeListProperty, list_type=list_type)
+def nodelist_property(name=None, list_type=None):
+    from .base_nodes import NodeList
+    if list_type is None:
+        list_type = NodeList
+
+    attr = partial(NodeListProperty, list_type)
 
     if name:
         assert isinstance(name, str)
@@ -55,10 +62,11 @@ def nodelist_property(name=None, list_type=NodeList):
 
 
 class NodeListProperty(NodeProperty):
-    def __init__(self, name, str_to_fst=None, list_type=NodeList):
+    def __init__(self, list_type, name, str_to_fst=None):
         self.list_type = list_type
         super().__init__(name, str_to_fst=str_to_fst)
 
     def fst_to_value(self, obj, value):
-        return self.list_type([obj.from_fst(el) for el in value],
-                              parent=obj, on_attribute=self.name)
+        nodes = [obj.from_fst(el) if isinstance(el, dict) else el
+                 for el in value]
+        return self.list_type(nodes, parent=obj, on_attribute=self.name)
