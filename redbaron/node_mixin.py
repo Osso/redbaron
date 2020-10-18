@@ -3,7 +3,9 @@ import ast
 import baron
 import baron.path
 
-from .node_property import (node_property,
+from .base_nodes import NodeList
+from .node_property import (NodeListProperty,
+                            NodeProperty,
                             nodelist_property)
 from .proxy_list import LineProxyList
 
@@ -24,7 +26,7 @@ class LiteralyEvaluableMixin:
 
 
 class DecoratorsMixin:
-    @nodelist_property(list_type=LineProxyList)
+    @nodelist_property(LineProxyList)
     def decorators(self, value):
         assert value.lstrip()[0] == '@'
 
@@ -36,15 +38,11 @@ class DecoratorsMixin:
         return baron.parse(code)[0]["decorators"]
 
 
-class ValueMixin:
-    value = node_property("value")
-
-
 class AnnotationMixin:
-    annotation_first_formatting = nodelist_property("annotation_first_formatting")
-    annotation_second_formatting = nodelist_property("annotation_second_formatting")
+    annotation_first_formatting = NodeListProperty(NodeList)
+    annotation_second_formatting = NodeListProperty(NodeList)
 
-    @node_property()
+    @NodeProperty
     def annotation(self, value):
         return baron.parse("a: %s = a" % value)[0]["annotation"]
 
@@ -62,10 +60,10 @@ class AnnotationMixin:
 
 
 class ReturnAnnotationMixin:
-    return_annotation_first_formatting = nodelist_property("return_annotation_first_formatting")
-    return_annotation_second_formatting = nodelist_property("return_annotation_second_formatting")
+    return_annotation_first_formatting = NodeListProperty(NodeList)
+    return_annotation_second_formatting = NodeListProperty(NodeList)
 
-    @node_property()
+    @NodeProperty
     def return_annotation(self, value):
         code = "def a() -> %s: pass" % value
         return baron.parse(code)[0]["return_annotation"]

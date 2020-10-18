@@ -9,8 +9,8 @@ import baron.path
 from baron.render import nodes_rendering_order
 
 from .node_path import Path
-from .node_property import (node_property,
-                            nodelist_property)
+from .node_property import (NodeListProperty,
+                            NodeProperty)
 from .syntax_highlight import (help_highlight,
                                python_highlight)
 from .utils import (in_a_shell,
@@ -286,6 +286,7 @@ class NodeRegistration(type):
             NodeRegistration.register_type(baron_type, cls)
             if baron_type in NODES_RENDERING_ORDER:
                 cls.define_attributes_from_baron(baron_type)  # pylint: disable=no-value-for-parameter
+        cls.set_name_for_node_properties()  # pylint: disable=no-value-for-parameter
 
     def define_attributes_from_baron(cls, baron_type):
         cls.type = baron_type
@@ -301,14 +302,20 @@ class NodeRegistration(type):
                 cls._str_keys.append(key)
             elif kind == "key":
                 if not hasattr(cls, key):
-                    setattr(cls, key, node_property(key))
+                    setattr(cls, key, NodeProperty())
                 cls._dict_keys.append(key)
             elif kind in ("list", "formatting"):
                 if not hasattr(cls, key):
-                    setattr(cls, key, nodelist_property(key))
+                    setattr(cls, key, NodeListProperty(NodeList))
                 cls._list_keys.append(key)
             else:
                 raise Exception(f"Invalid kind {kind} for {baron_type}.{key}")
+
+    def set_name_for_node_properties(cls):
+        for attr_name in dir(cls):
+            attr = getattr(cls, attr_name)
+            if isinstance(attr, NodeProperty):
+                attr.name = attr_name
 
     @classmethod
     def register_type(mcs, baron_type, node_class):
@@ -326,13 +333,13 @@ class NodeRegistration(type):
 class Node(BaseNodeMixin, metaclass=NodeRegistration):
     _other_identifiers = []
     _default_test_value = "value"
-    first_formatting = nodelist_property("first_formatting")
-    second_formatting = nodelist_property("second_formatting")
-    third_formatting = nodelist_property("third_formatting")
-    fourth_formatting = nodelist_property("fourth_formatting")
-    fifth_formatting = nodelist_property("fifth_formatting")
-    sixth_formatting = nodelist_property("sixth_formatting")
-    formatting = nodelist_property("formatting")
+    first_formatting = NodeListProperty(NodeList)
+    second_formatting = NodeListProperty(NodeList)
+    third_formatting = NodeListProperty(NodeList)
+    fourth_formatting = NodeListProperty(NodeList)
+    fifth_formatting = NodeListProperty(NodeList)
+    sixth_formatting = NodeListProperty(NodeList)
+    formatting = NodeListProperty(NodeList)
     indent = ""
 
     def __init__(self, fst=None, parent=None, on_attribute=None):
@@ -802,7 +809,7 @@ class IterableNode(Node):
 
 class CodeBlockNode(IterableNode):
     from .proxy_list import CodeProxyList
-    value = nodelist_property("value", list_type=CodeProxyList)
+    value = NodeListProperty(CodeProxyList)
 
 
 class IfElseBlockSiblingNode(CodeBlockNode):
