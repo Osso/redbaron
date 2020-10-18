@@ -89,3 +89,15 @@ class NodeListProperty(NodeProperty):
         nodes = [obj.from_fst(el) if isinstance(el, dict) else el
                  for el in value]
         return self.list_type(nodes, parent=obj, on_attribute=self.name)
+
+    def __get__(self, obj, objtype=None):
+        if obj is None:
+            return self
+
+        try:
+            value = getattr(obj, self.attr_name)
+        except AttributeError:
+            setattr(obj, self.name, [])
+            value = getattr(obj, self.attr_name)
+
+        return value

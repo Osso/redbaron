@@ -59,3 +59,25 @@ class AnnotationMixin:
 
             if not self.annotation_second_formatting:
                 self.annotation_second_formatting = [" "]
+
+
+class ReturnAnnotationMixin:
+    return_annotation_first_formatting = nodelist_property("return_annotation_first_formatting")
+    return_annotation_second_formatting = nodelist_property("return_annotation_second_formatting")
+
+    @node_property()
+    def return_annotation(self, value):
+        code = "def a() -> %s: pass" % value
+        return baron.parse(code)[0]["return_annotation"]
+
+    @return_annotation.after_set
+    def return_annotation_after_set(self, value):
+        if not value:
+            self.return_annotation_first_formatting = []
+            self.return_annotation_second_formatting = []
+        else:
+            if not self.return_annotation_first_formatting:
+                self.return_annotation_first_formatting = [" "]
+
+            if not self.return_annotation_second_formatting:
+                self.return_annotation_second_formatting = [" "]
