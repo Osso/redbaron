@@ -21,12 +21,12 @@ Nodes References Page
 TopClass
 ========
 
-.. _CodeBlockNode:
+.. _CodeBlockMixin:
 
-CodeBlockNode
+CodeBlockMixin
 =============
 
-CodeBlockNode is a type of node that has a body composed of indented code
+CodeBlockMixin is a type of node that has a body composed of indented code
 like the DefNode or the IfNode. Great care has been taken on the SetAttr of
 their value so you don't have to take care about reindenting and other
 formatting details.
@@ -308,8 +308,8 @@ A node representing a class definition.
 SetAttr
 -------
 
-ClassNode is a CodeBlockNode which means its value attribute accepts a wide
-range of values, see :ref:`CodeBlockNode` for more information. Most other
+ClassNode is a CodeBlockMixin which means its value attribute accepts a wide
+range of values, see :ref:`CodeBlockMixin` for more information. Most other
 attributes work as expected:
 
 .. ipython:: python
@@ -443,8 +443,8 @@ A node representing a function definition.
 SetAttr
 -------
 
-DefNode is a CodeBlockNode which means its value attribute accepts a wide
-range of values, see :ref:`CodeBlockNode` for more information. Most other
+DefNode is a CodeBlockMixin which means its value attribute accepts a wide
+range of values, see :ref:`CodeBlockMixin` for more information. Most other
 attributes works as expected:
 
 .. ipython:: python
@@ -674,8 +674,8 @@ The ElifNode, like the :ref:`IfNode` or the :ref:`ElseNode` are stored in a :ref
 SetAttr
 -------
 
-ElifNode is a CodeBlockNode which means its value attribute accepts a wide range
-of values, see :ref:`CodeBlockNode` for more information. Other attributes
+ElifNode is a CodeBlockMixin which means its value attribute accepts a wide range
+of values, see :ref:`CodeBlockMixin` for more information. Other attributes
 work as expected:
 
 .. ipython:: python
@@ -701,8 +701,8 @@ The ElseNode, like the :ref:`IfNode` or the :ref:`ElifNode`, is stored in a :ref
 SetAttr
 -------
 
-ElifNode is a CodeBlockNode which means its value attribute accepts a wide range
-of values, see :ref:`CodeBlockNode` for more information.
+ElifNode is a CodeBlockMixin which means its value attribute accepts a wide range
+of values, see :ref:`CodeBlockMixin` for more information.
 
 EllipsisNode
 ============
@@ -742,8 +742,8 @@ A node representing an except statement (member of a :ref:`TryNode`).
 SetAttr
 -------
 
-ExceptNode is a CodeBlockNode which means its value attribute accepts a wide range
-of values, see :ref:`CodeBlockNode` for more information. Other attributes
+ExceptNode is a CodeBlockMixin which means its value attribute accepts a wide range
+of values, see :ref:`CodeBlockMixin` for more information. Other attributes
 work as expected:
 
 .. ipython:: python
@@ -796,8 +796,8 @@ A node representing a finally statement (member of a :ref:`TryNode`).
 SetAttr
 -------
 
-FinallyNode is a CodeBlockNode which means its value attribute accepts a wide range
-of values, see :ref:`CodeBlockNode` for more information.
+FinallyNode is a CodeBlockMixin which means its value attribute accepts a wide range
+of values, see :ref:`CodeBlockMixin` for more information.
 
 ForNode
 =======
@@ -811,8 +811,8 @@ A node representing a for loop.
 SetAttr
 -------
 
-ForNode is a CodeBlockNode which means its value attribute accepts a wide range
-of values, see :ref:`CodeBlockNode` for more information. The else attributes
+ForNode is a CodeBlockMixin which means its value attribute accepts a wide range
+of values, see :ref:`CodeBlockMixin` for more information. The else attributes
 accept a great ranges of inputs, since :file:`else` is a reserved python
 keyword, you need to access it using the :file:`else_` attribute. Other
 attributes work as expected:
@@ -964,8 +964,8 @@ The IfNode, like the :ref:`ElifNode` or the :ref:`ElseNode`, is stored in an :re
 SetAttr
 -------
 
-IfNode is a CodeBlockNode which means its value attribute accepts a wide range
-of values, see :ref:`CodeBlockNode` for more information. Other attributes
+IfNode is a CodeBlockMixin which means its value attribute accepts a wide range
+of values, see :ref:`CodeBlockMixin` for more information. Other attributes
 work as expected:
 
 .. ipython:: python
@@ -1459,10 +1459,10 @@ A node representing a try statement. This node is responsible for holding the
 SetAttr
 -------
 
-TryNode is a CodeBlockNode which means its value attribute accepts a wide range
-of values, see :ref:`CodeBlockNode` for more information. For the :file:`else`
+TryNode is a CodeBlockMixin which means its value attribute accepts a wide range
+of values, see :ref:`CodeBlockMixin` for more information. For the :file:`else`
 and the :file:`finally` and the :file:`excepts` attributes, TryNode is very
-flexible on the range of inputs it can get, like for a CodeBlockNode value's
+flexible on the range of inputs it can get, like for a CodeBlockMixin value's
 attribute.
 
 **Important**: Since :file:`else` and :file:`finally` are reserved keywords in python, you
@@ -1600,8 +1600,8 @@ A node representing a while loop.
 SetAttr
 -------
 
-WhileNode is a CodeBlockNode which means its value attribute accepts a wide
-range of values, see :ref:`CodeBlockNode` for more information. The else
+WhileNode is a CodeBlockMixin which means its value attribute accepts a wide
+range of values, see :ref:`CodeBlockMixin` for more information. The else
 attributes accept a great ranges of inputs, since :file:`else` is a reserved
 python keyword, you need to access it using the :file:`else_` attribute. Other
 attributes work as expected:
@@ -1663,8 +1663,8 @@ A node representing a with statement.
 SetAttr
 -------
 
-WithNode is a CodeBlockNode which means its value attribute accepts a wide range
-of values, see :ref:`CodeBlockNode` for more information. Other attributes
+WithNode is a CodeBlockMixin which means its value attribute accepts a wide range
+of values, see :ref:`CodeBlockMixin` for more information. Other attributes
 work as expected:
 
 .. ipython:: python

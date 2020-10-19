@@ -10,12 +10,13 @@ from baron.render import nodes_rendering_order
 
 from .node_path import Path
 from .node_property import (NodeListProperty,
-                            NodeProperty)
+                            NodeProperty,
+                            nodelist_property)
 from .syntax_highlight import (help_highlight,
                                python_highlight)
 from .utils import (in_a_shell,
                     in_ipython,
-                    indent,
+                    indent_str,
                     redbaron_classname_to_baron_type,
                     squash_successive_duplicates,
                     truncate)
@@ -145,6 +146,28 @@ class BaseNodeMixin:
     def _generate_nodes_in_rendering_order(self):
         yield from squash_successive_duplicates(self._iter_in_rendering_order())
 
+    @property
+    def indent(self):
+        return self._indent
+
+    @indent.fset
+    def indent(self, value):
+        self._indent = value
+
+    @property
+    def indent_unit(self):
+        if self.parent:
+            indent = self.parent.indent_unit
+            if indent is None:
+                raise Exception("node is not attached to ")
+            return indent
+
+        try:
+            indent = self._indent_unit
+        except AttributeError:
+            indent = 4 * " "
+        return indent
+
 
 class NodeList(UserList, BaseNodeMixin):
     def __init__(self, node_list=None, parent=None, on_attribute=None):
@@ -155,6 +178,7 @@ class NodeList(UserList, BaseNodeMixin):
 
         self.parent = parent
         self.on_attribute = on_attribute
+        self.indent = getattr(node_list, "indent", "")
 
     @classmethod
     def generic_from_fst(cls, fst_list, parent=None, on_attribute=None):
@@ -281,7 +305,7 @@ class NodeRegistration(type):
 
     def __init__(cls, name, bases, attrs):
         super().__init__(name, bases, attrs)
-        if name not in ("Node", "IterableNode", "CodeBlockNode"):
+        if name not in ("Node", "IterableNode", "CodeBlockMixin"):
             baron_type = redbaron_classname_to_baron_type(name)
             NodeRegistration.register_type(baron_type, cls)
             if baron_type in NODES_RENDERING_ORDER:
@@ -315,7 +339,11 @@ class NodeRegistration(type):
         for attr_name in dir(cls):
             attr = getattr(cls, attr_name)
             if isinstance(attr, NodeProperty):
-                attr.name = attr_name
+                if attr_name.ends_with('_'):
+                    delattr(cls, attr_name)
+                    attr_name = attr_name[:-1]
+                    setattr(cls, attr_name, attr)
+                attr.name = attr_name[:-1]
 
     @classmethod
     def register_type(mcs, baron_type, node_class):
@@ -340,7 +368,6 @@ class Node(BaseNodeMixin, metaclass=NodeRegistration):
     fifth_formatting = NodeListProperty(NodeList)
     sixth_formatting = NodeListProperty(NodeList)
     formatting = NodeListProperty(NodeList)
-    indent = ""
 
     def __init__(self, fst=None, parent=None, on_attribute=None):
         if fst is None:
@@ -348,6 +375,7 @@ class Node(BaseNodeMixin, metaclass=NodeRegistration):
 
         self.parent = parent
         self.on_attribute = on_attribute
+        self.indent = getattr(fst, "indent", "")
 
         for kind, key, _ in self._baron_attributes():
             if kind == "constant":
@@ -680,7 +708,7 @@ class Node(BaseNodeMixin, metaclass=NodeRegistration):
                 to_join.append("# default test value: %s" % self._default_test_value)
             to_join += ["%s=%s" % (key, repr(getattr(self, key))) for key in self._str_keys if
                         key != "type" and "formatting" not in key]
-            to_join += ["%s ->\n    %s" % (key, indent(
+            to_join += ["%s ->\n    %s" % (key, indent_str(
                 getattr(self, key).__help__(deep=new_deep,
                                             with_formatting=with_formatting),
                 "    ").lstrip() if getattr(self, key) else getattr(self, key))
@@ -693,9 +721,9 @@ class Node(BaseNodeMixin, metaclass=NodeRegistration):
                 to_join.append(("%s ->" % key))
                 for i in getattr(self, key):
                     to_join.append(
-                        "  * " + indent(i.__help__(deep=new_deep,
-                                                   with_formatting=with_formatting),
-                                        "      ").lstrip())
+                        "  * " + indent_str(i.__help__(deep=new_deep,
+                                                       with_formatting=with_formatting),
+                                            "      ").lstrip())
 
         if deep and with_formatting:
             to_join += ["%s=%s" % (key, repr(getattr(self, key))) for key in self._str_keys if
@@ -709,9 +737,9 @@ class Node(BaseNodeMixin, metaclass=NodeRegistration):
                 to_join.append(("%s ->" % key))
                 for i in getattr(self, key):
                     to_join.append(
-                        "  * " + indent(i.__help__(deep=new_deep,
-                                                   with_formatting=with_formatting),
-                                        "      ").lstrip())
+                        "  * " + indent_str(i.__help__(deep=new_deep,
+                                                       with_formatting=with_formatting),
+                                            "      ").lstrip())
 
         return "\n  ".join(to_join)
 
@@ -805,28 +833,3 @@ class IterableNode(Node):
 
     def index(self, item):
         return self.value.index(item)
-
-
-class CodeBlockNode(IterableNode):
-    from .proxy_list import CodeProxyList
-    value = NodeListProperty(CodeProxyList)
-
-
-class IfElseBlockSiblingNode(CodeBlockNode):
-    @property
-    def next_intuitive(self):
-        next_ = super().next
-
-        if next_ is None and self.parent:
-            next_ = self.parent.next
-
-        return next_
-
-    @property
-    def previous_intuitive(self):
-        previous_ = super().previous
-
-        if previous_ is None and self.parent:
-            previous_ = self.parent.previous
-
-        return previous_

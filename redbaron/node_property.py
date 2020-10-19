@@ -1,8 +1,6 @@
 from functools import partial
 from typing import Callable
 
-from decorator import decorator
-
 import baron
 
 
@@ -85,7 +83,6 @@ class NodeListProperty(NodeProperty):
 
 
 class ConditionalFormattingProperty(NodeListProperty):
-    @decorator
     def __init__(self, condition, list_type, default_true, default_false):
         super().__init__(list_type=list_type, str_to_fst=None)
         self.condition = condition

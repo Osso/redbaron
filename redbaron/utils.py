@@ -40,7 +40,7 @@ def in_ipython():
         return True
 
 
-def indent(block_of_text, indentation):
+def indent_str(block_of_text, indentation):
     """
     Helper function to indent a block of text.
 

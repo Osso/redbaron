@@ -7,7 +7,9 @@ from .base_nodes import NodeList
 from .node_property import (NodeListProperty,
                             NodeProperty,
                             nodelist_property)
-from .proxy_list import LineProxyList
+from .proxy_list import (CodeProxyList,
+                         LineProxyList)
+from .utils import indent_str
 
 
 class LiteralyEvaluableMixin:
@@ -79,3 +81,34 @@ class ReturnAnnotationMixin:
 
             if not self.return_annotation_second_formatting:
                 self.return_annotation_second_formatting = [" "]
+
+
+class CodeBlockMixin:
+    value = NodeListProperty(CodeProxyList)
+
+
+class IndentedCodeBlockMixin:
+    @nodelist_property(CodeProxyList)
+    def value(self, value):
+        value = indent_str(value, self.indent_unit)
+        return baron.parse(value)
+
+
+class IfElseBlockSiblingMixin:
+    @property
+    def next_intuitive(self):
+        next_ = super().next
+
+        if next_ is None and self.parent:
+            next_ = self.parent.next
+
+        return next_
+
+    @property
+    def previous_intuitive(self):
+        previous_ = super().previous
+
+        if previous_ is None and self.parent:
+            previous_ = self.parent.previous
+
+        return previous_
