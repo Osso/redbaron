@@ -5,13 +5,14 @@ import baron
 
 
 class NodeProperty:
-    _after_set: Callable = lambda obj, value: None
+    _after_set: Callable
     name = None
 
     def __init__(self, str_to_fst=None):
         self.str_to_fst = str_to_fst if str_to_fst else self.default_str_to_fst
+        self._after_set = lambda obj, value: None
 
-    def default_str_to_fst(self, value):
+    def default_str_to_fst(self, obj, value):  # pylint: disable=unused-argument
         return baron.parse(value)[0]
 
     @property
@@ -19,6 +20,9 @@ class NodeProperty:
         return "_" + self.name
 
     def __get__(self, obj, objtype=None):  # pylint: disable=method-hidden
+        if not obj:
+            return self
+
         return getattr(obj, self.attr_name)
 
     def getter(self, fun):
@@ -32,7 +36,7 @@ class NodeProperty:
 
     def to_value(self, obj, value):
         if isinstance(value, str):
-            value = self.str_to_fst(value)
+            value = self.str_to_fst(obj, value)
             assert isinstance(value, (dict, list))
 
         if isinstance(value, (dict, list)):
@@ -41,12 +45,15 @@ class NodeProperty:
         return value
 
     def fst_to_node(self, obj, value):
+        from .base_nodes import Node
+        assert isinstance(obj, Node)
+        assert isinstance(value, dict)
         if not value:
             return None
 
-        assert value["type"] == obj.type, f"{value['type']} != {obj.type}"
-
-        return obj.from_fst(value, on_attribute=self.name)
+        node = obj.from_fst(value, on_attribute=self.name)
+        assert value["type"] == node.type, f"{value['type']} != {node.type}"
+        return node
 
     def after_set(self, after_set):
         new_property = self.copy()
@@ -64,15 +71,25 @@ class NodeListProperty(NodeProperty):
         super().__init__(str_to_fst=str_to_fst)
         self.list_type = list_type
 
-    def default_str_to_fst(self, value):
+    def default_str_to_fst(self, obj, value):  # pylint: disable=unused-argument
         return baron.parse(value)
 
-    def fst_to_value(self, obj, value):
-        nodes = [obj.from_fst(el) if isinstance(el, dict) else el
-                 for el in value]
+    def fst_to_node(self, obj, value):
+        from .base_nodes import Node
+
+        def _convert(el):
+            if isinstance(el, str):
+                return Node.generic_from_str(el)
+            if isinstance(el, dict):
+                return Node.generic_from_fst(el)
+            return el
+        nodes = [_convert(el) for el in value]
         return self.list_type(nodes, parent=obj, on_attribute=self.name)
 
     def __get__(self, obj, objtype=None):
+        if not obj:
+            return self
+
         try:
             value = getattr(obj, self.attr_name)
         except AttributeError:
@@ -81,21 +98,35 @@ class NodeListProperty(NodeProperty):
 
         return value
 
+    def copy(self):
+        new_property = type(self)(self.list_type)
+        new_property.__dict__ = self.__dict__.copy()
+        return new_property
+
 
 class ConditionalFormattingProperty(NodeListProperty):
+    _default = None
+
     def __init__(self, condition, list_type, default_true, default_false):
         super().__init__(list_type=list_type, str_to_fst=None)
         self.condition = condition
-        self.default = {
-            True: self.to_value(self, default_true),
-            False: self.to_value(self, default_false),
-        }
+        self._default_true = default_true
+        self._default_false = default_false
 
     def __get__(self, obj, objtype=None):
-        try:
-            return getattr(obj, self.attr_name)
-        except AttributeError:
-            return self.default[bool(self.condition())]
+        if not obj:
+            return self
+
+        if self._default is None:
+            self._default = {
+                True: self.to_value(obj, self._default_true),
+                False: self.to_value(obj, self._default_false),
+            }
+
+        user_defined_value = getattr(obj, self.attr_name, None)
+        if user_defined_value:
+            return user_defined_value
+        return self._default[bool(self.condition(obj))]
 
 
 def node_property():
@@ -110,3 +141,14 @@ def conditional_formatting_property(list_type, default_true, default_false):
     return partial(ConditionalFormattingProperty,
                    list_type=list_type, default_true=default_true,
                    default_false=default_false)
+
+
+def set_name_for_node_properties(cls):
+    for attr_name in dir(cls):
+        attr = getattr(cls, attr_name)
+        if isinstance(attr, NodeProperty):
+            if attr_name.endswith('_'):
+                delattr(cls, attr_name)
+                attr_name = attr_name[:-1]
+                setattr(cls, attr_name, attr)
+            attr.name = attr_name

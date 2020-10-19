@@ -2,14 +2,14 @@ import re
 
 import baron
 
-from .base_nodes import (CodeBlockMixin,
-                         IndentedCodeBlockMixin,
-                         IterableNode,
+from .base_nodes import (IterableNode,
                          Node,
                          NodeList)
 from .node_mixin import (AnnotationMixin,
+                         CodeBlockMixin,
                          DecoratorsMixin,
                          IfElseBlockSiblingMixin,
+                         IndentedCodeBlockMixin,
                          LiteralyEvaluableMixin,
                          ReturnAnnotationMixin)
 from .node_property import (NodeListProperty,

@@ -6,7 +6,8 @@ import baron.path
 from .base_nodes import NodeList
 from .node_property import (NodeListProperty,
                             NodeProperty,
-                            nodelist_property)
+                            nodelist_property,
+                            set_name_for_node_properties)
 from .proxy_list import (CodeProxyList,
                          LineProxyList)
 from .utils import indent_str

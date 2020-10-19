@@ -11,7 +11,7 @@ from baron.render import nodes_rendering_order
 from .node_path import Path
 from .node_property import (NodeListProperty,
                             NodeProperty,
-                            nodelist_property)
+                            set_name_for_node_properties)
 from .syntax_highlight import (help_highlight,
                                python_highlight)
 from .utils import (in_a_shell,
@@ -150,7 +150,7 @@ class BaseNodeMixin:
     def indent(self):
         return self._indent
 
-    @indent.fset
+    @indent.setter
     def indent(self, value):
         self._indent = value
 
@@ -305,14 +305,14 @@ class NodeRegistration(type):
 
     def __init__(cls, name, bases, attrs):
         super().__init__(name, bases, attrs)
-        if name not in ("Node", "IterableNode", "CodeBlockMixin"):
+        if name not in ("Node", "IterableNode"):
             baron_type = redbaron_classname_to_baron_type(name)
             NodeRegistration.register_type(baron_type, cls)
             if baron_type in NODES_RENDERING_ORDER:
-                cls.define_attributes_from_baron(baron_type)  # pylint: disable=no-value-for-parameter
-        cls.set_name_for_node_properties()  # pylint: disable=no-value-for-parameter
+                cls.define_attributes_from_baron(baron_type, attrs)  # pylint: disable=no-value-for-parameter
+        set_name_for_node_properties(cls)  # pylint: disable=no-value-for-parameter
 
-    def define_attributes_from_baron(cls, baron_type):
+    def define_attributes_from_baron(cls, baron_type, attrs):
         cls.type = baron_type
 
         cls._str_keys = ["type"]
@@ -325,25 +325,15 @@ class NodeRegistration(type):
             elif kind in ("bool", "string"):
                 cls._str_keys.append(key)
             elif kind == "key":
-                if not hasattr(cls, key):
+                if key not in attrs:
                     setattr(cls, key, NodeProperty())
                 cls._dict_keys.append(key)
             elif kind in ("list", "formatting"):
-                if not hasattr(cls, key):
+                if key not in attrs:
                     setattr(cls, key, NodeListProperty(NodeList))
                 cls._list_keys.append(key)
             else:
                 raise Exception(f"Invalid kind {kind} for {baron_type}.{key}")
-
-    def set_name_for_node_properties(cls):
-        for attr_name in dir(cls):
-            attr = getattr(cls, attr_name)
-            if isinstance(attr, NodeProperty):
-                if attr_name.ends_with('_'):
-                    delattr(cls, attr_name)
-                    attr_name = attr_name[:-1]
-                    setattr(cls, attr_name, attr)
-                attr.name = attr_name[:-1]
 
     @classmethod
     def register_type(mcs, baron_type, node_class):
@@ -406,10 +396,16 @@ class Node(BaseNodeMixin, metaclass=NodeRegistration):
         return NodeList.generic_from_fst(node_list, parent=self,
                                          on_attribute=on_attribute)
 
-    def from_str(self, value: str, on_attribute=None):
+    @staticmethod
+    def generic_from_str(value: str, parent=None, on_attribute=None):
         assert isinstance(value, str)
         value = baron.parse(value)[0]
-        return self.from_fst(value, on_attribute=on_attribute)
+        return Node.generic_from_fst(value, parent=parent,
+                                     on_attribute=on_attribute)
+
+    def from_str(self, value: str, on_attribute=None):
+        return Node.generic_from_str(value, parent=self,
+                                     on_attribute=on_attribute)
 
     def nodelist_from_str(self, value: str, on_attribute=None):
         assert isinstance(value, str)
@@ -524,7 +520,7 @@ class Node(BaseNodeMixin, metaclass=NodeRegistration):
                 key[:-1] in self._dict_keys + self._list_keys + self._str_keys:
             return getattr(self, key[:-1])
 
-        if key != "value":
+        if key not in ("value", "_value"):
             value = getattr(self, "value", None)
             if value:
                 return getattr(self.value, key)
