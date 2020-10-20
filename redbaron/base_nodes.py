@@ -23,6 +23,7 @@ from .utils import (in_a_shell,
 
 NODES_RENDERING_ORDER = nodes_rendering_order
 NODES_RENDERING_ORDER["root"] = [('list', 'value', True)]
+NODES_RENDERING_ORDER["empty_line"] = []
 
 
 class BaseNodeMixin:
@@ -309,10 +310,10 @@ class NodeRegistration(type):
             baron_type = redbaron_classname_to_baron_type(name)
             NodeRegistration.register_type(baron_type, cls)
             if baron_type in NODES_RENDERING_ORDER:
-                cls.define_attributes_from_baron(baron_type, attrs)  # pylint: disable=no-value-for-parameter
+                cls.define_attributes_from_baron(baron_type)  # pylint: disable=no-value-for-parameter
         set_name_for_node_properties(cls)  # pylint: disable=no-value-for-parameter
 
-    def define_attributes_from_baron(cls, baron_type, attrs):
+    def define_attributes_from_baron(cls, baron_type):
         cls.type = baron_type
 
         cls._str_keys = ["type"]
@@ -325,11 +326,11 @@ class NodeRegistration(type):
             elif kind in ("bool", "string"):
                 cls._str_keys.append(key)
             elif kind == "key":
-                if key not in attrs:
+                if not hasattr(cls, key):
                     setattr(cls, key, NodeProperty())
                 cls._dict_keys.append(key)
             elif kind in ("list", "formatting"):
-                if key not in attrs:
+                if not hasattr(cls, key):
                     setattr(cls, key, NodeListProperty(NodeList))
                 cls._list_keys.append(key)
             else:
