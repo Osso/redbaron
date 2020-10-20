@@ -44,6 +44,8 @@ class Path:
                 raise ValueError("node is None")
 
             if isinstance(key, str):
+                if key in node._str_keys:
+                    break
                 try:
                     node = getattr(node, key)
                 except AttributeError:
@@ -53,6 +55,7 @@ class Path:
                     node = node.get_from_baron_index(key)
                 except IndexError:
                     raise ValueError(f"{node} has no index {key}")
+            print(type(node))
 
         return cls(node)
 

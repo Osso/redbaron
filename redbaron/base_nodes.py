@@ -57,12 +57,17 @@ class BaseNodeMixin:
                     return n
             return node
 
-        # assumed node.absolute_bounding_box.top_left.line == line_no
         while node.parent and node.parent.absolute_bounding_box.top_left.line == line_no:
-            # Don't break out of the self box
-            if node.parent is self:
-                break
             node = node.parent
+
+        while node.previous_nodelist and \
+                node.previous_nodelist.absolute_bounding_box.top_left.line == line_no:
+            node = node.previous_nodelist
+
+        if node.type == 'endl':
+            _next = node.next_nodelist
+            if _next and _next.type != 'endl':
+                node = _next
 
         return node
 
@@ -96,7 +101,10 @@ class BaseNodeMixin:
         if self.on_attribute == "root":
             return self
 
-        return getattr(self.parent, self.on_attribute)
+        if self.on_attribute:
+            return getattr(self.parent, self.on_attribute)
+
+        return None
 
     @on_attribute_node.setter
     def set_on_attribute_node(self, node):
@@ -148,26 +156,90 @@ class BaseNodeMixin:
         yield from squash_successive_duplicates(self._iter_in_rendering_order())
 
     @property
-    def indent(self):
-        return self._indent
+    def indentation(self):
+        return self._indentation
 
-    @indent.setter
-    def indent(self, value):
-        self._indent = value
+    @indentation.setter
+    def indentation(self, value):
+        self._indentation = value
 
     @property
-    def indent_unit(self):
+    def indentation_unit(self):
         if self.parent:
-            indent = self.parent.indent_unit
-            if indent is None:
+            indentation = self.parent.indentation_unit
+            if indentation is None:
                 raise Exception("node is not attached to ")
-            return indent
+            return indentation
 
         try:
-            indent = self._indent_unit
+            indentation = self._indentation_unit
         except AttributeError:
-            indent = 4 * " "
-        return indent
+            indentation = 4 * " "
+        return indentation
+
+    @property
+    def neighbors(self):
+        return self.parent if isinstance(self.parent, NodeList) else []
+
+    @property
+    def neighbors_nodelist(self):
+        return self.parent.node_list if isinstance(self.parent, NodeList) else []
+
+    @property
+    def next_neighbors(self):
+        neighbors = self.neighbors
+        if not neighbors:
+            return iter([])
+
+        neighbors = dropwhile(lambda x: x is not self, neighbors)
+        next(neighbors)
+        return neighbors
+
+    @property
+    def next_neighbors_nodelist(self):
+        neighbors = self.neighbors_nodelist
+        if not neighbors:
+            return iter([])
+
+        neighbors = dropwhile(lambda x: x is not self, neighbors)
+        next(neighbors)
+        return neighbors
+
+    @property
+    def previous_neighbors(self):
+        neighbors = list(reversed(self.neighbors))
+        if not neighbors:
+            return iter([])
+
+        neighbors = dropwhile(lambda x: x is not self, neighbors)
+        next(neighbors)
+        return neighbors
+
+    @property
+    def previous_neighbors_nodelist(self):
+        neighbors = list(reversed(self.neighbors_nodelist))
+        if not neighbors:
+            return iter([])
+
+        neighbors = dropwhile(lambda x: x is not self, neighbors)
+        next(neighbors)
+        return neighbors
+
+    @property
+    def next(self):
+        return next(self.next_neighbors, None)
+
+    @property
+    def next_nodelist(self):
+        return next(self.next_neighbors_nodelist, None)
+
+    @property
+    def previous(self):
+        return next(self.previous_neighbors, None)
+
+    @property
+    def previous_nodelist(self):
+        return next(self.previous_neighbors_nodelist, None)
 
 
 class NodeList(UserList, BaseNodeMixin):
@@ -179,7 +251,7 @@ class NodeList(UserList, BaseNodeMixin):
 
         self.parent = parent
         self.on_attribute = on_attribute
-        self.indent = getattr(node_list, "indent", "")
+        self.indentation = getattr(node_list, "indentation", "")
 
     @classmethod
     def generic_from_fst(cls, fst_list, parent=None, on_attribute=None):
@@ -366,7 +438,9 @@ class Node(BaseNodeMixin, metaclass=NodeRegistration):
 
         self.parent = parent
         self.on_attribute = on_attribute
-        self.indent = getattr(fst, "indent", "")
+        self.indentation = getattr(fst, "indentation", "")
+        self.indent = NodeConstant(self.indentation, parent=self,
+                                   on_attribute="indent")
 
         for kind, key, _ in self._baron_attributes():
             if kind == "constant":
@@ -396,9 +470,9 @@ class Node(BaseNodeMixin, metaclass=NodeRegistration):
         return Node.generic_from_fst(fst, parent=self,
                                      on_attribute=on_attribute)
 
-    def nodelist_from_fst(self, node_list, on_attribute=None):
-        return NodeList.generic_from_fst(node_list, parent=self,
-                                         on_attribute=on_attribute)
+    # def nodelist_from_fst(self, node_list, on_attribute=None):
+    #     return NodeList.generic_from_fst(node_list, parent=self,
+    #                                      on_attribute=on_attribute)
 
     @staticmethod
     def generic_from_str(value: str, parent=None, on_attribute=None):
@@ -411,38 +485,10 @@ class Node(BaseNodeMixin, metaclass=NodeRegistration):
         return Node.generic_from_str(value, parent=self,
                                      on_attribute=on_attribute)
 
-    def nodelist_from_str(self, value: str, on_attribute=None):
-        assert isinstance(value, str)
-        fst = baron.parse(value)
-        return self.nodelist_from_fst(fst, on_attribute=on_attribute)
-
-    @property
-    def neighbors(self):
-        neighbors = self.on_attribute_node
-        if isinstance(neighbors, NodeList):
-            return neighbors
-        return []
-
-    @property
-    def next_neighbors(self):
-        neighbors = dropwhile(lambda x: x is not self, self.neighbors)
-        next(neighbors)
-        return neighbors
-
-    @property
-    def previous_neighbors(self):
-        neighbors = dropwhile(lambda x: x is not self,
-                              reversed(self.neighbors))
-        next(neighbors)
-        return neighbors
-
-    @property
-    def next(self):
-        return next(self.next_neighbors, None)
-
-    @property
-    def previous(self):
-        return next(self.previous_neighbors, None)
+    # def nodelist_from_str(self, value: str, on_attribute=None):
+    #     assert isinstance(value, str)
+    #     fst = baron.parse(value)
+    #     return self.nodelist_from_fst(fst, on_attribute=on_attribute)
 
     @property
     def next_intuitive(self):
@@ -789,11 +835,11 @@ class Node(BaseNodeMixin, metaclass=NodeRegistration):
         path = self.path().to_baron_path() + [attribute]
         return baron.path.path_to_bounding_box(self.root.fst(), path)
 
-    def increase_indentation(self, number_of_spaces):
-        self.indent += number_of_spaces * " "
+    def increase_indentation(self, number_of_units):
+        self.indentation += number_of_units * self.indentation_unit
 
-    def decrease_indentation(self, number_of_spaces):
-        self.indent = self.indent[:-len(number_of_spaces)]
+    def decrease_indentation(self, number_of_units):
+        self.indentation = self.indentation[:-len(self.indentation_unit)*number_of_units]
 
     def insert_before(self, value, offset=0):
         self.parent.insert(self.index_on_parent - offset, value)
