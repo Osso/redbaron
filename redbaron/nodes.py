@@ -48,8 +48,13 @@ class AssertNode(Node):
 
 class AssignmentNode(Node, AnnotationMixin):
     _other_identifiers = ["assign"]
+    _operator = ''
 
-    @NodeProperty
+    @property
+    def operator(self):
+        return self._operator
+
+    @operator.setter
     def operator(self, value):
         if len(value) == 2 and value[1] == "=":
             value = value[0]
@@ -62,7 +67,7 @@ class AssignmentNode(Node, AnnotationMixin):
                             "string of one or two char, for "
                             "eg: '+', '+=', '=', ''")
 
-        return baron.parse(value)[0]
+        self._operator = value
 
     @NodeProperty
     def target(self, value):
@@ -1136,7 +1141,7 @@ class WithNode(IndentedCodeBlockMixin):
 
     @conditional_formatting_property(NodeList, [" "], [])
     def async_formatting(self):
-        return self.async
+        return self.async  # pylint: disable=no-member
 
 
 class EmptyLine(Node):
