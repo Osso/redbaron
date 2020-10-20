@@ -269,8 +269,11 @@ class CodeProxyList(LineProxyList):
         from .nodes import EmptyLine
 
         data = []
+        leftover_indent = ''
         for node in node_list:
             if node.type == "endl":
+                leftover_indent = node.indent
+                node.indent = ''
                 if not data:
                     self.header.append(node)
                 elif data[-1][1] is not None:
@@ -283,6 +286,4 @@ class CodeProxyList(LineProxyList):
         return data
 
     def _item_from_data_tuple(self, el):
-        from .nodes import EmptyLine
-        node, sep = el
-        return node if not isinstance(node, EmptyLine) else sep
+        return el[0]

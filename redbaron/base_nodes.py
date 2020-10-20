@@ -26,10 +26,15 @@ NODES_RENDERING_ORDER["root"] = [('list', 'value', True)]
 NODES_RENDERING_ORDER["empty_line"] = []
 
 
-class BaseNodeMixin:
+class BaseNode:
     """
-    Mixen top class for Node and NodeList that contains generic methods that are used by both.
+    Abstract class for Node and NodeList that contains methods
+    that are used by both.
     """
+    def __init__(self, parent, on_attribute):
+        self.parent = parent
+        self.on_attribute = on_attribute
+
     @property
     def bounding_box(self):
         return baron.path.node_to_bounding_box(self.fst())
@@ -78,24 +83,6 @@ class BaseNodeMixin:
             current = current.parent
         return current
 
-    def _iter_in_rendering_order(self):
-        for kind, key, display in self._baron_attributes():
-            if display is not True:
-                continue
-
-            if kind == "constant":
-                yield self
-            elif kind == "string":
-                if getattr(self, key) is not None:
-                    yield self
-            elif kind == "key":
-                node = getattr(self, key)
-                if node:
-                    yield from node._iter_in_rendering_order()
-            elif kind in ("list", "formatting"):
-                for node in getattr(self, key):
-                    yield from node._iter_in_rendering_order()
-
     @property
     def on_attribute_node(self):
         if self.on_attribute == "root":
@@ -116,14 +103,23 @@ class BaseNodeMixin:
     def path(self):
         return Path(self)
 
+    def fst(self):
+        raise NotImplementedError()
+
     def dumps(self):
         return baron.dumps(self.fst())
 
     def find_all(self, identifier, *args, **kwargs):
         return list(self.find_iter(identifier, *args, **kwargs))
 
+    def find_iter(self, identifier, *args, recursive=True, **kwargs):
+        raise NotImplementedError()
+
     def find(self, identifier, *args, **kwargs):
         return next(self.find_iter(identifier, *args, **kwargs), None)
+
+    def from_str(self, value: str, on_attribute=None):
+        raise NotImplementedError()
 
     def replace(self, new_node):
         new_node = self.from_str(new_node, on_attribute=self.on_attribute)
@@ -152,30 +148,11 @@ class BaseNodeMixin:
 
         return node_list.index(self)
 
+    def _iter_in_rendering_order(self):
+        raise NotImplementedError()
+
     def _generate_nodes_in_rendering_order(self):
         yield from squash_successive_duplicates(self._iter_in_rendering_order())
-
-    @property
-    def indentation(self):
-        return self._indentation
-
-    @indentation.setter
-    def indentation(self, value):
-        self._indentation = value
-
-    @property
-    def indentation_unit(self):
-        if self.parent:
-            indentation = self.parent.indentation_unit
-            if indentation is None:
-                raise Exception("node is not attached to ")
-            return indentation
-
-        try:
-            indentation = self._indentation_unit
-        except AttributeError:
-            indentation = 4 * " "
-        return indentation
 
     @property
     def neighbors(self):
@@ -242,16 +219,41 @@ class BaseNodeMixin:
         return next(self.previous_neighbors_nodelist, None)
 
 
-class NodeList(UserList, BaseNodeMixin):
-    def __init__(self, node_list=None, parent=None, on_attribute=None):
-        super().__init__(node_list)
+class IndentationMixin:
+    def __init__(self, indent):
+        self.indent = NodeConstant(indent, parent=self, on_attribute="indent")
 
+    @property
+    def indentation(self):
+        return self.indent.value
+
+    @indentation.setter
+    def indentation(self, value):
+        self.indent.value = value
+
+    @property
+    def indentation_unit(self):
+        if self.parent:
+            indentation = self.parent.indentation_unit
+            if indentation is None:
+                raise Exception("node is not attached to ")
+            return indentation
+
+        try:
+            indentation = self._indentation_unit
+        except AttributeError:
+            indentation = 4 * " "
+        return indentation
+
+
+class NodeList(UserList, BaseNode, IndentationMixin):
+    def __init__(self, node_list, parent=None, on_attribute=None):
         for node in node_list:
             node.parent = self
 
-        self.parent = parent
-        self.on_attribute = on_attribute
-        self.indentation = getattr(node_list, "indentation", "")
+        UserList.__init__(self, node_list)
+        BaseNode.__init__(self, parent=parent, on_attribute=on_attribute)
+        IndentationMixin.__init__(self, getattr(node_list, "indentation", ""))
 
     @classmethod
     def generic_from_fst(cls, fst_list, parent=None, on_attribute=None):
@@ -265,6 +267,10 @@ class NodeList(UserList, BaseNodeMixin):
         return cls.generic_from_fst(baron.parse(value), parent=parent,
                                     on_attribute=on_attribute)
 
+    def from_str(self, value: str, on_attribute=None):
+        return self.generic_from_str(value, parent=self,
+                                     on_attribute=on_attribute)
+
     def __setitem__(self, key, value):
         if isinstance(value, str):
             value = Node.generic_from_str(value)
@@ -275,7 +281,7 @@ class NodeList(UserList, BaseNodeMixin):
         value.on_attribute = None
         self.data[key] = value
 
-    def find_iter(self, identifier, *args, **kwargs):
+    def find_iter(self, identifier, *args, recursive=True, **kwargs):
         for node in self.data:
             for matched_node in node.find_iter(identifier, *args, **kwargs):
                 yield matched_node
@@ -421,7 +427,7 @@ class NodeRegistration(type):
         return mcs.node_type_mapping
 
 
-class Node(BaseNodeMixin, metaclass=NodeRegistration):
+class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
     _other_identifiers = []
     _default_test_value = "value"
     first_formatting = NodeListProperty(NodeList)
@@ -436,12 +442,11 @@ class Node(BaseNodeMixin, metaclass=NodeRegistration):
         if fst is None:
             fst = self._default_fst()
 
-        self.parent = parent
-        self.on_attribute = on_attribute
-        self.indentation = getattr(fst, "indentation", "")
-        self.indent = NodeConstant(self.indentation, parent=self,
-                                   on_attribute="indent")
+        BaseNode.__init__(self, parent=parent, on_attribute=on_attribute)
+        IndentationMixin.__init__(self, getattr(fst, "indentation", ""))
+        self.set_attributes_from_fst(fst)
 
+    def set_attributes_from_fst(self, fst):
         for kind, key, _ in self._baron_attributes():
             if kind == "constant":
                 setattr(self, key, NodeConstant(getattr(fst, key, ""),
@@ -854,6 +859,24 @@ class Node(BaseNodeMixin, metaclass=NodeRegistration):
     def node_list(self):
         return self
 
+    def _iter_in_rendering_order(self):
+        for kind, key, display in self._baron_attributes():
+            if display is not True:
+                continue
+
+            if kind == "constant":
+                yield self
+            elif kind == "string":
+                if getattr(self, key) is not None:
+                    yield self
+            elif kind == "key":
+                node = getattr(self, key)
+                if node:
+                    yield from node._iter_in_rendering_order()
+            elif kind in ("list", "formatting"):
+                for node in getattr(self, key):
+                    yield from node._iter_in_rendering_order()
+
 
 class IterableNode(Node):
     def __len__(self):
@@ -881,8 +904,22 @@ class IterableNode(Node):
         return self.value.index(item)
 
 
-class NodeConstant(BaseNodeMixin):
+class NodeConstant(BaseNode):
     def __init__(self, value, parent, on_attribute):
+        super().__init__(parent=parent, on_attribute=on_attribute)
         self.value = value
-        self.parent = parent
-        self.on_attribute = on_attribute
+
+    def fst(self):
+        return self.value
+
+    def find_iter(self, identifier, *args, recursive=True, **kwargs):
+        if self.on_attribute == self.value:
+            return self
+        return None
+
+    def from_str(self, value: str, on_attribute=None):
+        return NodeConstant(value, parent=self.parent,
+                            on_attribute=on_attribute)
+
+    def _iter_in_rendering_order(self):
+        yield self
