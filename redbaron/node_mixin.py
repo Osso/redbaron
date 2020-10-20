@@ -87,8 +87,16 @@ class ReturnAnnotationMixin:
 class CodeBlockMixin:
     value = NodeListProperty(CodeProxyList)
 
+    @property
+    def leftover_indentation(self):
+        return self.value.leftover_indentation
 
-class IndentedCodeBlockMixin:
+    @leftover_indentation.setter
+    def leftover_indentation(self, value):
+        self.value._leftover_indentation = value
+
+
+class IndentedCodeBlockMixin(CodeBlockMixin):
     @nodelist_property(CodeProxyList)
     def value(self, value):
         value = indent_str(value, self.indent_unit)

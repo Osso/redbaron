@@ -233,17 +233,14 @@ class DecoratorNode(Node):
         return baron.parse("@a%s\ndef a(): pass" % value)
 
 
-class DefNode(IterableNode, IndentedCodeBlockMixin, DecoratorsMixin,
-              ReturnAnnotationMixin):
+class DefNode(IndentedCodeBlockMixin, DecoratorsMixin,
+              ReturnAnnotationMixin, IterableNode):
     _other_identifiers = ["funcdef", "funcdef_"]
     _default_test_value = "name"
 
     @conditional_formatting_property(NodeList, [" "], [])
     def async_formatting(self):
-        return self.async
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        return self.async.value
 
     @nodelist_property(CommaProxyList)
     def arguments(self, value):
@@ -980,6 +977,11 @@ class SpaceNode(Node):
     def _default_fst(self):
         return {"type": "space", "value": " "}
 
+    @classmethod
+    def make(cls, value, parent=None, on_attribute=None):
+        return cls({"type": "space", "value": value}, parent=parent,
+                   on_attribute=on_attribute)
+
 
 class StandaloneAnnotationNode(Node):
     pass
@@ -1144,6 +1146,6 @@ class WithNode(IndentedCodeBlockMixin):
         return self.async  # pylint: disable=no-member
 
 
-class EmptyLine(Node):
+class EmptyLineNode(Node):
     def _default_fst(self):
         return {"type": "space", "value": ""}

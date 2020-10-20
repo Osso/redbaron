@@ -62,7 +62,7 @@ disable-msg=C0323,W0142,C0301,C0103,C0111,E0213,C0302,C0203,W0703,R0201
 # --disable=W"
 disable=missing-docstring,too-many-lines,protected-access,invalid-name,
         too-many-ancestors,no-self-use,too-many-public-methods,
-        global-statement,not-context-manager,unused-argument
+        global-statement,not-context-manager,unused-argument,no-member
 
 [REPORTS]
 

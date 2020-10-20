@@ -1,7 +1,8 @@
 from redbaron.utils import (in_a_shell,
                             truncate)
 
-from .base_nodes import NodeList
+from .base_nodes import (Node,
+                         NodeList)
 
 
 class ProxyList(NodeList):
@@ -10,15 +11,13 @@ class ProxyList(NodeList):
 
     def __init__(self, node_list, parent=None, on_attribute="value",
                  trailing_separator=False):
+        super().__init__([], parent=parent, on_attribute=on_attribute)
         self.header = []
         self.trailing_separator = trailing_separator
         self._data = self._node_list_to_data(node_list)
         assert isinstance(self._data, list)
-
-        super().__init__(node_list, parent=parent, on_attribute=on_attribute)
-
-    def nodelist_from_str(self, value):
-        return self.parent.nodelist_from_str(value, self.on_attribute)
+        # Remove indentation from endl
+        self._synchronise()
 
     def _node_list_to_data(self, node_list):
         data = []
@@ -31,13 +30,16 @@ class ProxyList(NodeList):
                     if empty_el:
                         self.header.append(i)
                         continue
+
                     raise Exception("node_list starts with separator "
                                     "for %s" % self.__class__.__name__)
+
                 if data[-1][1] is not None:
                     empty_el = self.make_empty_el()
                     if empty_el:
                         data.append([empty_el, i])
                         continue
+
                     raise Exception("node_list has two successive separators "
                                     "for %s" % self.__class__.__name__)
                 data[-1][1] = i
@@ -49,16 +51,20 @@ class ProxyList(NodeList):
 
         return data
 
-    def _data_nodelist_from_str(self, data):
+    def _data_to_node_list(self, data):
+        from .nodes import SpaceNode
         expected_list = []
 
         for el in self.header:
             expected_list.append(el)
 
-        for el in data:
-            expected_list.append(el[0])
-            if el[1] is not None:
-                expected_list.append(el[1])
+        for node, sep in data:
+            if node.indentation:
+                expected_list.append(SpaceNode.make(node.indentation,
+                                                    parent=self))
+            expected_list.append(node)
+            if sep is not None:
+                expected_list.append(sep)
 
         return expected_list
 
@@ -68,19 +74,19 @@ class ProxyList(NodeList):
         separator.on_attribute = self.on_attribute
         return separator
 
-    def make_empty_el(self):
+    def make_empty_el(self, value=""):
         return None
 
     def _synchronise(self):
-        if not self.trailing_separator:
+        if not self.trailing_separator and self._data:
             self._data[-1][1] = None
-        self._data = self._data_nodelist_from_str(self._data)
+        self.data = self._data_to_node_list(self._data)
 
     def __len__(self):
         return len(self._data)
 
     def _insert(self, index, item):
-        value = self.from_str_el(item)
+        value = Node.generic_from_str(item, parent=self)
         self._check_for_separator(index)
         self._data.insert(index, [value, self.make_separator()])
 
@@ -149,7 +155,7 @@ class ProxyList(NodeList):
         self._synchronise()
 
     def __setslice__(self, i, j, value):
-        _nodes = self.nodelist_from_str(value)
+        _nodes = self.from_str(value)
         self._check_for_separator(i)
         self._data[i:j] = ([node, self.make_separator()] for node in _nodes)
         self._synchronise()
@@ -233,16 +239,6 @@ class DotProxyList(ProxyList):
         self.middle_separator = DotNode()
         super().__init__(node_list, parent=parent, on_attribute=on_attribute)
 
-    def nodelist_from_str(self, value):
-        if value.startswith(("(", "[")):
-            value = "a%s" % value
-        else:
-            value = "a.%s" % value
-
-        node_list = self.parent.nodelist_from_str(
-            value, on_attribute=self.on_attribute)
-        return node_list.filtered()
-
 
 class LineProxyList(ProxyList):
     needs_separator = False
@@ -250,40 +246,64 @@ class LineProxyList(ProxyList):
     def __init__(self, node_list, parent=None, on_attribute="value"):
         from .nodes import EndlNode
         self.middle_separator = EndlNode()
-        super().__init__(node_list, parent=parent, on_attribute=on_attribute)
+        super().__init__(node_list, parent=parent, on_attribute=on_attribute,
+                         trailing_separator=True)
 
-    def make_empty_el(self):
-        from .nodes import EmptyLine
-        return EmptyLine()
-
-    # def get_absolute_bounding_box_of_attribute(self, index):
-    #     if index >= len(self._data) or index < 0:
-    #         raise IndexError()
-    #     index = self[index].index_on_parent_raw
-    #     path = self.path().to_baron_path() + [index]
-    #     return baron.path.path_to_bounding_box(self.root.fst(), path)
+    def make_empty_el(self, value=""):
+        from .nodes import SpaceNode
+        return SpaceNode.make(value, parent=self)
 
 
 class CodeProxyList(LineProxyList):
     def _node_list_to_data(self, node_list):
-        from .nodes import EmptyLine
+        from .nodes import SpaceNode, EmptyLineNode
+
+        def _make_empty_el_and_consume_leftover():
+            if leftover_indent:
+                empty_line = SpaceNode.make(consume_leftover(), parent=self)
+            else:
+                empty_line = EmptyLineNode()
+
+            return empty_line
+
+        def consume_leftover():
+            nonlocal leftover_indent
+            r = leftover_indent
+            leftover_indent = ''
+            return r
 
         data = []
         leftover_indent = ''
+        if self.parent.type == 'def':
+            import pdb; pdb.set_trace()
         for node in node_list:
             if node.type == "endl":
+                if not data:
+                    if leftover_indent:
+                        self.header.append(_make_empty_el_and_consume_leftover())
+                    self.header.append(node)
+                else:
+                    if data[-1][1] is not None:
+                        empty_line = _make_empty_el_and_consume_leftover()
+                        data.append([empty_line, node])
+                    else:
+                        data[-1][1] = node
                 leftover_indent = node.indent
                 node.indent = ''
-                if not data:
-                    self.header.append(node)
-                elif data[-1][1] is not None:
-                    data.append([EmptyLine(parent=self), node])
-                else:
-                    data[-1][1] = node
             else:
+                # if data and data[-1][1] is None:
+                #     assert leftover_indent == ""
+                #     node.indentation = data[-1][0].consume_leftover_indentation()
+                # else:
+                node.indentation += consume_leftover()
                 data.append([node, None])
+                # if node.type == 'def':
+                #     import pdb; pdb.set_trace()
+                leftover_indent = node.consume_leftover_indentation()
+
+        # if self.parent.type == 'def':
+        #     import pdb; pdb.set_trace()
+        if leftover_indent:
+            self.leftover_indentation = leftover_indent
 
         return data
-
-    def _item_from_data_tuple(self, el):
-        return el[0]

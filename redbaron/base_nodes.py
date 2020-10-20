@@ -31,6 +31,8 @@ class BaseNode:
     Abstract class for Node and NodeList that contains methods
     that are used by both.
     """
+    _leftover_indentation = ""
+
     def __init__(self, parent, on_attribute):
         self.parent = parent
         self.on_attribute = on_attribute
@@ -245,6 +247,19 @@ class IndentationMixin:
             indentation = 4 * " "
         return indentation
 
+    @property
+    def leftover_indentation(self):
+        return self._leftover_indentation
+
+    @leftover_indentation.setter
+    def leftover_indentation(self, value):
+        self._leftover_indentation = value
+
+    def consume_leftover_indentation(self):
+        r = self.leftover_indentation
+        self.leftover_indentation = ""
+        return r
+
 
 class NodeList(UserList, BaseNode, IndentationMixin):
     def __init__(self, node_list, parent=None, on_attribute=None):
@@ -398,7 +413,10 @@ class NodeRegistration(type):
         cls._list_keys = []
         cls._dict_keys = []
 
-        for kind, key, _ in cls._baron_attributes():
+        for kind, key, render in cls._baron_attributes():
+            if not render:
+                continue
+
             if kind == "constant":
                 pass
             elif kind in ("bool", "string"):
@@ -905,6 +923,8 @@ class IterableNode(Node):
 
 
 class NodeConstant(BaseNode):
+    type = "constant"
+
     def __init__(self, value, parent, on_attribute):
         super().__init__(parent=parent, on_attribute=on_attribute)
         self.value = value

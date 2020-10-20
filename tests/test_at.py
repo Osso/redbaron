@@ -44,7 +44,7 @@ def test_at_7():
 
 
 def test_at_8():
-    assert red.at(8) is red.find_all('EndlNode')[6]
+    assert red.at(8) is red.find_all('EmptyLineNode')[6]
 
 
 def test_at_9():
