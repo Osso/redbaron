@@ -40,11 +40,11 @@ class BaseNodeMixin:
         return baron.path.path_to_bounding_box(self.root.fst(), path)
 
     def find_by_position(self, position):
-        path = baron.path.position_to_path(self.fst(), position)
+        path = baron.path.position_to_path(self.fst()['value'], position) or []
         return self.find_by_path(path)
 
     def at(self, line_no):
-        if not 0 <= line_no <= self.absolute_bounding_box.bottom_right.line:
+        if not 0 < line_no <= self.absolute_bounding_box.bottom_right.line:
             raise IndexError(f"Line number {line_no} is outside of the file")
 
         node = self.find_by_position((line_no, 1))
@@ -370,6 +370,9 @@ class Node(BaseNodeMixin, metaclass=NodeRegistration):
 
         for kind, key, _ in self._baron_attributes():
             if kind == "constant":
+                setattr(self, key, NodeConstant(getattr(fst, key, ""),
+                                                parent=self,
+                                                on_attribute=key))
                 continue
 
             # if key in fst:
@@ -830,3 +833,10 @@ class IterableNode(Node):
 
     def index(self, item):
         return self.value.index(item)
+
+
+class NodeConstant(BaseNodeMixin):
+    def __init__(self, value, parent, on_attribute):
+        self.value = value
+        self.parent = parent
+        self.on_attribute = on_attribute
