@@ -64,17 +64,17 @@ class BaseNode:
                     return n
             return node
 
-        while node.parent and node.parent.absolute_bounding_box.top_left.line == line_no:
+        while node.parent and \
+                node.parent.absolute_bounding_box.top_left.line == line_no:
             node = node.parent
 
         while node.previous_nodelist and \
                 node.previous_nodelist.absolute_bounding_box.top_left.line == line_no:
             node = node.previous_nodelist
 
-        if node.type == 'endl':
-            _next = node.next_nodelist
-            if _next and _next.type != 'endl':
-                node = _next
+        while node.type in ('endl', 'space') and node.next_nodelist and \
+                node.next_nodelist.absolute_bounding_box.top_left.line == line_no:
+            node = node.next_nodelist
 
         return node
 
@@ -413,10 +413,7 @@ class NodeRegistration(type):
         cls._list_keys = []
         cls._dict_keys = []
 
-        for kind, key, render in cls._baron_attributes():
-            if not render:
-                continue
-
+        for kind, key, _ in cls._baron_attributes():
             if kind == "constant":
                 pass
             elif kind in ("bool", "string"):
@@ -466,7 +463,7 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
 
     def set_attributes_from_fst(self, fst):
         for kind, key, _ in self._baron_attributes():
-            if kind == "constant":
+            if kind == "constant" and key not in self._str_keys:
                 setattr(self, key, NodeConstant(getattr(fst, key, ""),
                                                 parent=self,
                                                 on_attribute=key))
@@ -493,10 +490,6 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
         return Node.generic_from_fst(fst, parent=self,
                                      on_attribute=on_attribute)
 
-    # def nodelist_from_fst(self, node_list, on_attribute=None):
-    #     return NodeList.generic_from_fst(node_list, parent=self,
-    #                                      on_attribute=on_attribute)
-
     @staticmethod
     def generic_from_str(value: str, parent=None, on_attribute=None):
         assert isinstance(value, str)
@@ -507,11 +500,6 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
     def from_str(self, value: str, on_attribute=None):
         return Node.generic_from_str(value, parent=self,
                                      on_attribute=on_attribute)
-
-    # def nodelist_from_str(self, value: str, on_attribute=None):
-    #     assert isinstance(value, str)
-    #     fst = baron.parse(value)
-    #     return self.nodelist_from_fst(fst, on_attribute=on_attribute)
 
     @property
     def next_intuitive(self):

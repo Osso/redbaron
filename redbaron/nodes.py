@@ -240,7 +240,7 @@ class DefNode(IndentedCodeBlockMixin, DecoratorsMixin,
 
     @conditional_formatting_property(NodeList, [" "], [])
     def async_formatting(self):
-        return self.async.value
+        return self.async
 
     @nodelist_property(CommaProxyList)
     def arguments(self, value):

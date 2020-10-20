@@ -11,7 +11,7 @@ class ProxyList(NodeList):
 
     def __init__(self, node_list, parent=None, on_attribute="value",
                  trailing_separator=False):
-        super().__init__([], parent=parent, on_attribute=on_attribute)
+        super().__init__(node_list, parent=parent, on_attribute=on_attribute)
         self.header = []
         self.trailing_separator = trailing_separator
         self._data = self._node_list_to_data(node_list)
@@ -262,7 +262,7 @@ class CodeProxyList(LineProxyList):
             if leftover_indent:
                 empty_line = SpaceNode.make(consume_leftover(), parent=self)
             else:
-                empty_line = EmptyLineNode()
+                empty_line = EmptyLineNode(parent=self)
 
             return empty_line
 
@@ -274,8 +274,6 @@ class CodeProxyList(LineProxyList):
 
         data = []
         leftover_indent = ''
-        if self.parent.type == 'def':
-            import pdb; pdb.set_trace()
         for node in node_list:
             if node.type == "endl":
                 if not data:
@@ -291,18 +289,10 @@ class CodeProxyList(LineProxyList):
                 leftover_indent = node.indent
                 node.indent = ''
             else:
-                # if data and data[-1][1] is None:
-                #     assert leftover_indent == ""
-                #     node.indentation = data[-1][0].consume_leftover_indentation()
-                # else:
                 node.indentation += consume_leftover()
                 data.append([node, None])
-                # if node.type == 'def':
-                #     import pdb; pdb.set_trace()
                 leftover_indent = node.consume_leftover_indentation()
 
-        # if self.parent.type == 'def':
-        #     import pdb; pdb.set_trace()
         if leftover_indent:
             self.leftover_indentation = leftover_indent
 
