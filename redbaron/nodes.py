@@ -389,6 +389,11 @@ class EndlNode(Node):
         return {"type": "endl", "formatting": [],
                 "value": "\n", "indent": ""}
 
+    def consume_leftover_indentation(self):
+        indent = self.indent
+        self.indent = ""
+        return indent
+
 
 class ExceptNode(IndentedCodeBlockMixin, IterableNode):
     def else_(self, value):
