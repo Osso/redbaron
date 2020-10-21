@@ -376,13 +376,6 @@ class NodeList(UserList, BaseNode, IndentationMixin):
         for node in self:
             yield from node._iter_in_rendering_order()
 
-    def get_absolute_bounding_box_of_attribute(self, index):
-        if not 0 <= index < len(self.data):
-            raise IndexError("invalid index")
-
-        path = self[index].path().to_baron_path()
-        return self._path_to_bounding_box(self.root.fst(), path)
-
     def increase_indentation(self, number_of_spaces):
         for node in self:
             node.increase_indentation(number_of_spaces)

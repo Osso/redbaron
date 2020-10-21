@@ -60,14 +60,6 @@ def test_bounding_box_of_attribute_no_attribute():
         red().find("def").get_absolute_bounding_box_of_attribute("xxx")
 
 
-def test_bounding_box_of_attribute_no_index():
-    with pytest.raises(KeyError):
-        red().get_absolute_bounding_box_of_attribute(1)
-
-    with pytest.raises(KeyError):
-        red().get_absolute_bounding_box_of_attribute(-1)
-
-
 def test_bounding_box_empty():
     tree = RedBaron("a()")
     boxes = tree.find("atomtrailers").value[1].value.absolute_bounding_box
@@ -124,18 +116,3 @@ def test_bounding_box_with_proxy_list():
     assert ((28, 5), (31, 18)) == RED.find("class").value[9].absolute_bounding_box
     with pytest.raises(IndexError):
         RED.find("class").value[10]  # pylint: disable=expression-not-assigned
-
-
-def test_bounding_box_of_attribute_with_proxy_list():
-    assert ((1, 1), (32, 1)) == RED.absolute_bounding_box
-    assert ((1, 1), (32, 1)) == RED.find("class").absolute_bounding_box
-    assert ((2, 5), (5, 8)) == RED.find("class").value.get_absolute_bounding_box_of_attribute(0)
-    assert ((6, 5), (9, 18)) == RED.find("class").value.get_absolute_bounding_box_of_attribute(1)
-    assert ((10, 1), (11, 5)) == RED.find("class").value.get_absolute_bounding_box_of_attribute(2)
-    assert ((11, 5), (18, 5)) == RED.find("class").value.get_absolute_bounding_box_of_attribute(3)
-    assert ((18, 5), (18, 17)) == RED.find("class").value.get_absolute_bounding_box_of_attribute(4)
-    assert ((19, 1), (20, 5)) == RED.find("class").value.get_absolute_bounding_box_of_attribute(5)
-    assert ((20, 5), (28, 5)) == RED.find("class").value.get_absolute_bounding_box_of_attribute(6)
-    assert ((28, 5), (31, 18)) == RED.find("class").value.get_absolute_bounding_box_of_attribute(7)
-    with pytest.raises(IndexError):
-        RED.find("class").value.get_absolute_bounding_box_of_attribute(8)
