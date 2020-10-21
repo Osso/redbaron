@@ -659,7 +659,7 @@ class FromImportNode(Node):
         For example (notice 'e' instead of 'f'):
             RedBaron("from qsd import a, c, e as f").names() == ['a', 'c', 'e']
         """
-        return [x.value for x in self.targets]   # pylint: disable=not-an-iterable
+        return [x.value.dumps() for x in self.targets]   # pylint: disable=not-an-iterable
 
     def full_path_names(self):
         """Return the list of new names imported with the full module path
@@ -667,7 +667,7 @@ class FromImportNode(Node):
         For example (notice 'e' instead of 'f'):
             RedBaron("from qsd import a, c, e as f").names() == ['qsd.a', 'qsd.c', 'qsd.f']
         """
-        return [self.value.dumps() + "." + (x.target if x.target else x.value)  # pylint: disable=no-member
+        return [self.value.dumps() + "." + (x.target.dumps() if x.target else x.value.dumps())  # pylint: disable=no-member
                 for x in self.targets   # pylint: disable=not-an-iterable
                 if not isinstance(x, (LeftParenthesisNode, RightParenthesisNode))]
 
@@ -677,7 +677,7 @@ class FromImportNode(Node):
         For example (notice 'e' instead of 'f'):
             RedBaron("from qsd import a, c, e as f").names() == ['qsd.a', 'qsd.c', 'qsd.e']
         """
-        return [self.value.dumps() + "." + x.value  # pylint: disable=no-member
+        return [self.value.dumps() + "." + x.value.dumps()  # pylint: disable=no-member
                 for x in self.targets   # pylint: disable=not-an-iterable
                 if not isinstance(x, (LeftParenthesisNode, RightParenthesisNode))]
 
