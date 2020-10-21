@@ -318,7 +318,10 @@ class DottedAsNameNode(IterableNode):
 
     @NodeProperty
     def target(self, value):
-        if not (re.match(r'^[a-zA-Z_]\w*$', value) or value in ("", None)):
+        if value in ("", None):
+            return None
+
+        if not re.match(r'^[a-zA-Z_]\w*$', value):
             raise Exception("The target of a dotted as name node can only "
                             "be a 'name' or an empty string or None")
         return baron.parse(value)[0]
@@ -641,7 +644,7 @@ class FromImportNode(Node):
         For example:
             RedBaron("from qsd import a, c, e as f").names() == ['a', 'c', 'f']
         """
-        return [x.target if getattr(x, "target", None) else x.value
+        return [x.target.dumps() if x.target else x.value.dumps()
                 for x in self.targets   # pylint: disable=not-an-iterable
                 if not isinstance(x, (LeftParenthesisNode, RightParenthesisNode))]
 
@@ -722,19 +725,17 @@ class IfelseblockNode(IterableNode, CodeBlockMixin):
 
 
 class ImportNode(Node):
-    value = NodeListProperty(CommaProxyList)
-
     def modules(self):
         "return a list of string of modules imported"
-        return [x.value.dumps() for x in self.find('dotted_as_name')]
+        return [x.value.dumps() for x in self.find_all('dotted_as_name')]
 
     def names(self):
         "return a list of string of new names inserted in the python context"
-        return [x.target if x.target else x.value.dumps()
-                for x in self.find('dotted_as_name')]
+        return [x.target.dumps() if x.target else x.value.dumps()
+                for x in self.find_all('dotted_as_name')]
 
-    @nodelist_property(NodeList)
-    def generators(self, value):
+    @nodelist_property(CommaProxyList)
+    def value(self, value):
         return baron.parse("import %s" % value)[0]["value"]
 
 
@@ -827,7 +828,10 @@ class TypedNameNode(Node):
 class NameAsNameNode(Node):
     @NodeProperty
     def target(self, value):
-        if not (re.match(r'^[a-zA-Z_]\w*$', value) or value in ("", None)):
+        if value in ("", None):
+            return None
+
+        if not re.match(r'^[a-zA-Z_]\w*$', value):
             raise Exception("The target of a name as name node can only "
                             "be a 'name' or an empty string or None")
         return baron.parse("lambda *%s: x" % value)[0]["arguments"][0]["value"]

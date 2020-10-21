@@ -23,7 +23,7 @@ class NodeProperty:
         if not obj:
             return self
 
-        return getattr(obj, self.attr_name)
+        return getattr(obj, self.attr_name, None)
 
     def getter(self, fun):
         new_property = self.copy()
@@ -37,7 +37,7 @@ class NodeProperty:
     def to_value(self, obj, value):
         if isinstance(value, str):
             value = self.str_to_fst(obj, value)
-            assert isinstance(value, (dict, list))
+            assert value is None or isinstance(value, (dict, list))
 
         if isinstance(value, (dict, list)):
             value = self.fst_to_node(obj, value)
@@ -117,17 +117,20 @@ class ConditionalFormattingProperty(NodeListProperty):
         if not obj:
             return self
 
-        if self._default is None:
-            self._default = {
-                True: self.to_value(obj, self._default_true),
-                False: self.to_value(obj, self._default_false),
-            }
-
         user_defined_value = getattr(obj, self.attr_name, None)
         if user_defined_value:
             return user_defined_value
-        return self._default[bool(self.condition(obj))]
 
+        attr_name_for_default = self.attr_name + "default"
+        default = getattr(obj, attr_name_for_default, None)
+        if default is None:
+            default = {
+                True: self.to_value(obj, self._default_true),
+                False: self.to_value(obj, self._default_false),
+            }
+            setattr(obj, attr_name_for_default, default)
+
+        return default[bool(self.condition(obj))]
 
 def node_property():
     return NodeProperty

@@ -110,6 +110,8 @@ class CodeBlockMixin:
         yield from super().consume_leftover_endl()
         yield from self.value.consume_leftover_endl()
 
+    def get_from_baron_index(self, index):
+        return self.value.get_from_baron_index(index)
 
 class IndentedCodeBlockMixin(CodeBlockMixin):
     @nodelist_property(CodeProxyList)

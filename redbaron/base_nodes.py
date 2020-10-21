@@ -486,7 +486,6 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
                                                 on_attribute=key))
                 continue
 
-            # if key in fst:
             setattr(self, key, fst[key])
 
             if kind == "key" and fst[key]:
@@ -597,11 +596,6 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
         if key.endswith("_") and \
                 key[:-1] in self._dict_keys + self._list_keys + self._str_keys:
             return getattr(self, key[:-1])
-
-        if key not in ("value", "_value"):
-            value = getattr(self, "value", None)
-            if value:
-                return getattr(self.value, key)
 
         raise AttributeError("%s not found" % key)
 
