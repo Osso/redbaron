@@ -95,6 +95,22 @@ class CodeBlockMixin:
     def leftover_indentation(self, value):
         self.value._leftover_indentation = value
 
+    @property
+    def leftover_endl(self):
+        return self.value.leftover_endl
+
+    @leftover_endl.setter
+    def leftover_endl(self, value):
+        self.value._leftover_endl = value
+
+    def consume_leftover_indentation(self):
+        return super().consume_leftover_indentation() + \
+               self.value.consume_leftover_indentation()
+
+    def consume_leftover_endl(self):
+        yield from super().consume_leftover_endl()
+        yield from self.value.consume_leftover_endl()
+
 
 class IndentedCodeBlockMixin(CodeBlockMixin):
     @nodelist_property(CodeProxyList)

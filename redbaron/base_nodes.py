@@ -36,6 +36,7 @@ class BaseNode:
     def __init__(self, parent, on_attribute):
         self.parent = parent
         self.on_attribute = on_attribute
+        self.leftover_endl = []
 
     @property
     def bounding_box(self):
@@ -47,7 +48,7 @@ class BaseNode:
         return baron.path.path_to_bounding_box(self.root.fst(), path)
 
     def find_by_position(self, position):
-        path = baron.path.position_to_path(self.fst()['value'], position) or []
+        path = baron.path.position_to_path(self.fst(), position) or []
         return self.find_by_path(path)
 
     def at(self, line_no):
@@ -259,6 +260,18 @@ class IndentationMixin:
         r = self.leftover_indentation
         self.leftover_indentation = ""
         return r
+
+    @property
+    def leftover_endl(self):
+        return self._leftover_endl
+
+    @leftover_endl.setter
+    def leftover_endl(self, value):
+        self._leftover_endl = value
+
+    def consume_leftover_endl(self):
+        yield from self.leftover_endl
+        self.leftover_endl.clear()
 
 
 class NodeList(UserList, BaseNode, IndentationMixin):

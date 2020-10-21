@@ -55,7 +55,6 @@ class Path:
                     node = node.get_from_baron_index(key)
                 except IndexError:
                     raise ValueError(f"{node} has no index {key}")
-            print(type(node))
 
         return cls(node)
 

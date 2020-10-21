@@ -16,38 +16,47 @@ class ProxyList(NodeList):
         self.trailing_separator = trailing_separator
         self._data = self._node_list_to_data(node_list)
         assert isinstance(self._data, list)
-        # Remove indentation from endl
-        self._synchronise()
 
     def _node_list_to_data(self, node_list):
         data = []
+        leftover_indent = ""
         separator_type = type(self.middle_separator)
 
-        for i in node_list:
-            if isinstance(i, separator_type):
+        def consume_leftover():
+            nonlocal leftover_indent
+            r = leftover_indent
+            leftover_indent = ''
+            return r
+
+        for node in node_list:
+            if isinstance(node, separator_type):
                 if not data:
                     empty_el = self.make_empty_el()
                     if empty_el:
-                        self.header.append(i)
+                        self.header.append(node)
                         continue
-
-                    raise Exception("node_list starts with separator "
-                                    "for %s" % self.__class__.__name__)
-
-                if data[-1][1] is not None:
+                    else:
+                        raise Exception("node_list starts with separator "
+                                        "for %s" % self.__class__.__name__)
+                elif data[-1][1] is not None:
                     empty_el = self.make_empty_el()
                     if empty_el:
-                        data.append([empty_el, i])
-                        continue
+                        data.append([empty_el, node])
+                    else:
+                        raise Exception("node_list has two successive separators "
+                                        "for %s" % self.__class__.__name__)
+                else:
+                    data[-1][1] = node
+                assert isinstance(node.indentation, str)
+                leftover_indent = node.indentation
+                node.indent = ''
 
-                    raise Exception("node_list has two successive separators "
-                                    "for %s" % self.__class__.__name__)
-                data[-1][1] = i
             else:
                 if data and data[-1][1] is None and self.needs_separator:
                     raise Exception("node_list is missing separator "
                                     "for %s" % self.__class__.__name__)
-                data.append([i, None])
+                node.indentation += consume_leftover()
+                data.append([node, None])
 
         return data
 
@@ -65,10 +74,6 @@ class ProxyList(NodeList):
             expected_list.append(node)
             if sep is not None:
                 expected_list.append(sep)
-
-        if self.leftover_indentation:
-            expected_list.append(SpaceNode.make(self.leftover_indentation,
-                                                parent=self))
 
         return expected_list
 
@@ -259,6 +264,11 @@ class LineProxyList(ProxyList):
 
 
 class CodeProxyList(LineProxyList):
+    def __init__(self, node_list, parent=None, on_attribute="value",
+                 trailing_separator=False):
+        super().__init__(node_list, parent=parent, on_attribute=on_attribute)
+        self._synchronise()
+
     def _node_list_to_data(self, node_list):
         from .nodes import SpaceNode, EmptyLineNode
 
@@ -296,12 +306,41 @@ class CodeProxyList(LineProxyList):
                 node.indentation += consume_leftover()
                 data.append([node, None])
                 leftover_indent = node.consume_leftover_indentation()
+                for el in node.consume_leftover_endl():
+                    el[0].parent = self
+                    if el[1] is not None:
+                        el[1].parent = self
+                    data.append(el)
 
         if leftover_indent:
-            self.leftover_indentation = leftover_indent
+            data.append([SpaceNode.make(leftover_indent, parent=self), None])
 
         return data
 
-    def consume_leftover_indentation(self):
-        super().consume_leftover_indentation()
+    def move_indentation_to_leftover(self):
+        if not self._data or not self.parent:
+            return
+
+        if self._data[-1][0].type == 'space' and self._data[-1][1] is None:
+            self.leftover_indentation = self._data.pop()[0].value
+
         self._synchronise()
+
+    def move_endl_to_leftover(self):
+        if not self._data or not self.parent:
+            return
+
+        index = len(self.leftover_endl)
+
+        while self._data[-1][0].type in ('empty_line', 'space'):
+            self.leftover_endl.insert(index, self._data.pop())
+
+        self._synchronise()
+
+    def consume_leftover_indentation(self):
+        self.move_indentation_to_leftover()
+        return super().consume_leftover_indentation()
+
+    def consume_leftover_endl(self):
+        self.move_endl_to_leftover()
+        return super().consume_leftover_endl()
