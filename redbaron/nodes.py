@@ -164,6 +164,9 @@ class ClassNode(IndentedCodeBlockMixin, IterableNode, DecoratorsMixin):
 
 
 class CommaNode(SeparatorMixin, Node):
+    def __repr__(self):
+        return repr(baron.dumps([self.fst()]))
+
     def _default_fst(self):
         return {"type": "comma", "first_formatting": [],
                 "second_formatting": [{"type": "space", "value": " "}]}
@@ -241,7 +244,7 @@ class DefNode(IndentedCodeBlockMixin, DecoratorsMixin,
 
     @conditional_formatting_property(NodeList, [" "], [])
     def async_formatting(self):
-        return self.async
+        return self.async_
 
     @nodelist_property(CommaProxyList)
     def arguments(self, value):
@@ -601,7 +604,7 @@ class ElseAttributeNode(IndentedCodeBlockMixin, IterableNode):
 class ForNode(IndentedCodeBlockMixin, IterableNode):
     @conditional_formatting_property(NodeList, [" "], [])
     def async_formatting(self):
-        return self.async
+        return self.async_
 
     @NodeProperty
     def target(self, value):
@@ -1139,9 +1142,12 @@ class WithNode(IndentedCodeBlockMixin):
 
     @conditional_formatting_property(NodeList, [" "], [])
     def async_formatting(self):
-        return self.async  # pylint: disable=no-member
+        return self.async_  # pylint: disable=no-member
 
 
 class EmptyLineNode(Node):
     def _default_fst(self):
         return {"type": "space", "value": ""}
+
+    def __repr__(self):
+        return repr(baron.dumps([self.fst()]))

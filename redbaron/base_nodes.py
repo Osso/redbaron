@@ -38,14 +38,25 @@ class BaseNode:
         self.on_attribute = on_attribute
         self.leftover_endl = []
 
+    @staticmethod
+    def fix_baron_bounding_box(box):
+        box.bottom_right.column += 1
+        return box
+
+    @classmethod
+    def _path_to_bounding_box(cls, fst, path):
+        box = baron.path.path_to_bounding_box(fst, path)
+        return cls.fix_baron_bounding_box(box)
+
     @property
     def bounding_box(self):
-        return baron.path.node_to_bounding_box(self.fst())
+        box = baron.path.node_to_bounding_box(self.fst())
+        return self.fix_baron_bounding_box(box)
 
     @property
     def absolute_bounding_box(self):
         path = self.path().to_baron_path()
-        return baron.path.path_to_bounding_box(self.root.fst(), path)
+        return self._path_to_bounding_box(self.root.fst(), path)
 
     def find_by_position(self, position):
         path = baron.path.position_to_path(self.fst(), position) or []
@@ -370,7 +381,7 @@ class NodeList(UserList, BaseNode, IndentationMixin):
             raise IndexError("invalid index")
 
         path = self[index].path().to_baron_path()
-        return baron.path.path_to_bounding_box(self.root.fst(), path)
+        return self._path_to_bounding_box(self.root.fst(), path)
 
     def increase_indentation(self, number_of_spaces):
         for node in self:
@@ -857,7 +868,7 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
         if not self.has_render_key(attribute):
             raise KeyError(f"{attribute} not found in {self}")
         path = self.path().to_baron_path() + [attribute]
-        return baron.path.path_to_bounding_box(self.root.fst(), path)
+        return self._path_to_bounding_box(self.root.fst(), path)
 
     def increase_indentation(self, number_of_units):
         self.indentation += number_of_units * self.indentation_unit

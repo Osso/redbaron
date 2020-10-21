@@ -16,6 +16,7 @@ class ProxyList(NodeList):
         self.trailing_separator = trailing_separator
         self._data = self._node_list_to_data(node_list)
         assert isinstance(self._data, list)
+        self._synchronise()
 
     def _node_list_to_data(self, node_list):
         data = []
@@ -47,6 +48,7 @@ class ProxyList(NodeList):
                                         "for %s" % self.__class__.__name__)
                 else:
                     data[-1][1] = node
+
                 leftover_indent = node.consume_leftover_indentation()
 
             else:

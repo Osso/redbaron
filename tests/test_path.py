@@ -112,28 +112,28 @@ def test_path_value_first_endl(red):
 
 
 def test_path_value_assignment(red):
-    check_path(red, red.find("def").value.node_list[1], [0, "value", 1])
+    check_path(red, red.find("def").value.node_list[2], [0, "value", 2])
 
 
 def test_path_value_assignment_target(red):
-    check_path(red, red.find("def").value.node_list[1].target,
-               [0, "value", 1, "target"])
+    check_path(red, red.find("def").value.node_list[2].target,
+               [0, "value", 2, "target"])
 
 
 def test_path_value_assignment_value(red):
-    check_path(red, red.find("def").value.node_list[1].value,
-               [0, "value", 1, "value"])
+    check_path(red, red.find("def").value.node_list[2].value,
+               [0, "value", 2, "value"])
 
 
 def test_path_value_assignment_value_first(red):
-    check_path(red, red.find("def").value.node_list[1].value.first,
-               [0, "value", 1, "value", "first"])
+    check_path(red, red.find("def").value.node_list[2].value.first,
+               [0, "value", 2, "value", "first"])
 
 
 def test_path_value_assignment_value_second(red):
-    check_path(red, red.find("def").value.node_list[1].value.second,
-               [0, "value", 1, "value", "second"])
+    check_path(red, red.find("def").value.node_list[2].value.second,
+               [0, "value", 2, "value", "second"])
 
 
 def test_path_value_second_endl(red):
-    check_path(red, red.find("def").value.node_list[2], [0, "value", 2])
+    check_path(red, red.find("def").value.node_list[3], [0, "value", 3])
