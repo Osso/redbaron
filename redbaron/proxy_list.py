@@ -66,6 +66,10 @@ class ProxyList(NodeList):
             if sep is not None:
                 expected_list.append(sep)
 
+        if self.leftover_indentation:
+            expected_list.append(SpaceNode.make(self.leftover_indentation,
+                                                parent=self))
+
         return expected_list
 
     def make_separator(self):
@@ -297,3 +301,7 @@ class CodeProxyList(LineProxyList):
             self.leftover_indentation = leftover_indent
 
         return data
+
+    def consume_leftover_indentation(self):
+        super().consume_leftover_indentation()
+        self._synchronise()
