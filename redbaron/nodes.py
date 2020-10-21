@@ -11,7 +11,8 @@ from .node_mixin import (AnnotationMixin,
                          IfElseBlockSiblingMixin,
                          IndentedCodeBlockMixin,
                          LiteralyEvaluableMixin,
-                         ReturnAnnotationMixin)
+                         ReturnAnnotationMixin,
+                         SeparatorMixin)
 from .node_property import (NodeListProperty,
                             NodeProperty,
                             conditional_formatting_property,
@@ -162,7 +163,7 @@ class ClassNode(IndentedCodeBlockMixin, IterableNode, DecoratorsMixin):
         self.parenthesis = bool(value)
 
 
-class CommaNode(Node):
+class CommaNode(SeparatorMixin, Node):
     def _default_fst(self):
         return {"type": "comma", "first_formatting": [],
                 "second_formatting": [{"type": "space", "value": " "}]}
@@ -965,7 +966,7 @@ class SliceNode(Node):
         return baron.parse("a[::%s]" % value)[0]["value"][1]["value"]["step"]
 
 
-class SpaceNode(Node):
+class SpaceNode(SeparatorMixin, Node):
     def __repr__(self):
         return repr(baron.dumps([self.fst()]))
 

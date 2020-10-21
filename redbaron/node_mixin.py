@@ -6,8 +6,7 @@ import baron.path
 from .base_nodes import NodeList
 from .node_property import (NodeListProperty,
                             NodeProperty,
-                            nodelist_property,
-                            set_name_for_node_properties)
+                            nodelist_property)
 from .proxy_list import (CodeProxyList,
                          LineProxyList)
 from .utils import indent_str
@@ -137,3 +136,19 @@ class IfElseBlockSiblingMixin:
             previous_ = self.parent.previous
 
         return previous_
+
+
+class SeparatorMixin:
+    def consume_leftover_indentation(self):
+        from .nodes import EndlNode
+
+        if not self.second_formatting:
+            return ""
+
+        node = self.second_formatting[-1]
+        if isinstance(node, EndlNode):
+            indent = node.indent
+            node.indent = ""
+            return indent
+
+        return ""
