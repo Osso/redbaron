@@ -48,8 +48,9 @@ class ProxyList(NodeList):
                 else:
                     data[-1][1] = node
                 assert isinstance(node.indentation, str)
-                leftover_indent = node.indentation
-                node.indent = ''
+                if node.second_formatting:
+                    leftover_indent = node.second_formatting[0].indent
+                    node.second_formatting[0].indent = ""
 
             else:
                 if data and data[-1][1] is None and self.needs_separator:
