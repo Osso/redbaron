@@ -14,7 +14,8 @@ from .node_property import (NodeListProperty,
                             set_name_for_node_properties)
 from .syntax_highlight import (help_highlight,
                                python_highlight)
-from .utils import (in_a_shell,
+from .utils import (deindent_str,
+                    in_a_shell,
                     in_ipython,
                     indent_str,
                     redbaron_classname_to_baron_type,
@@ -108,7 +109,7 @@ class BaseNode:
         return None
 
     @on_attribute_node.setter
-    def set_on_attribute_node(self, node):
+    def on_attribute_node(self, node):
         setattr(self.parent, self.on_attribute, node)
 
     def find_by_path(self, path):
@@ -231,6 +232,13 @@ class BaseNode:
     @property
     def previous_nodelist(self):
         return next(self.previous_neighbors_nodelist, None)
+
+    def increase_indentation(self, indent):
+        self.replace(indent_str(self.dumps(), indent))
+
+    def decrease_indentation(self, indent):
+        self.replace(deindent_str(self.dumps(), indent))
+
 
 
 class IndentationMixin:
@@ -361,14 +369,6 @@ class NodeList(UserList, BaseNode, IndentationMixin):
     def _iter_in_rendering_order(self):
         for node in self:
             yield from node._iter_in_rendering_order()
-
-    def increase_indentation(self, indent):
-        for node in self:
-            node.increase_indentation(indent)
-
-    def decrease_indentation(self, indent):
-        for node in self:
-            node.decrease_indentation(indent)
 
     def baron_index(self, value):
         return self.data.index(value)
@@ -844,12 +844,6 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
             raise KeyError(f"{attribute} not found in {self}")
         path = self.path().to_baron_path() + [attribute]
         return self._path_to_bounding_box(self.root.fst(), path)
-
-    def increase_indentation(self, indent):
-        self.indentation += indent
-
-    def decrease_indentation(self, indent):
-        self.indentation = self.indentation[:-len(indent)]
 
     def insert_before(self, value, offset=0):
         self.parent.insert(self.index_on_parent - offset, value)

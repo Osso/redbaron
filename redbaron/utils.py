@@ -50,6 +50,16 @@ def indent_str(block_of_text, indentation):
                       for line in block_of_text.splitlines()])
 
 
+def deindent_str(block_of_text, indentation):
+    """
+    Helper function to indent a block of text.
+
+    Take a block of text, an indentation string and return the indented block.
+    """
+    return "\n".join([line[len(indentation):]
+                      for line in block_of_text.splitlines()])
+
+
 def truncate(text, n):
     if n < 5 or len(text) <= n:
         return text
