@@ -378,18 +378,6 @@ class NodeList(UserList, BaseNode, IndentationMixin):
             node.on_attribute = None
         super().extend(other)
 
-    # def increase_indentation(self, indent):
-    #     from .nodes import EndlNode
-
-    #     for node in self.node_list:
-    #         if isinstance(node, EndlNode):
-    #             # node.increase_indentation(indent)
-    #             node.indent += indent
-
-    # def decrease_indentation(self, indent):
-    #     for node in self:
-    #         node.decrease_indentation(indent)
-
     def increase_indentation(self, indent):
         indented_str = indent_str(self.dumps(), indent)
         if not self.parent:

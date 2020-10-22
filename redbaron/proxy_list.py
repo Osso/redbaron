@@ -251,49 +251,6 @@ class ProxyList(NodeList):
         self._data = new_data
         self._synchronise()
 
-    # def increase_indentation(self, indent):
-    #     super().increase_indentation(indent)
-    #     import pdb; pdb.set_trace()
-    #     self._node_list_to_data()
-    #     self._synchronise()
-
-    # def increase_indentation(self, indent):
-    #     from .node_mixin import CodeBlockMixin
-    #     from .nodes import SpaceNode
-
-    #     first_node = SpaceNode.make(indent)
-    #     self.data.insert(0, first_node)
-
-    #     # for el in self.header:
-    #     #     if isinstance(el, self.separator_type):
-    #     #         el.indent += indent
-    #     # for node, sep in self._data:
-    #     #     if sep:
-    #     #         sep.indent += indent
-    #     #     if isinstance(node, CodeBlockMixin):
-    #     #         node.value.increase_indentation(indent)
-    #     for node in self.data:
-    #         if isinstance(node, self.separator_type):
-    #             node.indent += indent
-    #         if isinstance(node, CodeBlockMixin):
-    #             node.value.increase_indentation(indent)
-    #     # for el in self.footer:
-    #     #     if isinstance(el, self.separator_type):
-    #     #         el.indent += indent
-    #     import pdb; pdb.set_trace()
-    #     self._node_list_to_data()
-    #     self._synchronise()
-
-    # def decrease_indentation(self, indent):
-    #     for el in self.header:
-    #         if isinstance(el, self.separator_type):
-    #             el.indent += indent
-    #     for node, _ in self._data:
-    #         node.decrease_indentation(indent)
-    #     for el in self.footer:
-    #         if isinstance(el, self.separator_type):
-    #             el.indent += indent
-    #     self._data = self._node_list_to_data(self.node_list)
 
 class SpaceProxyList(ProxyList):
     def __init__(self, node_list, parent=None, on_attribute="value"):
