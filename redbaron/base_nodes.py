@@ -221,19 +221,6 @@ class BaseNode:
     def previous_nodelist(self):
         return next(self.previous_neighbors_nodelist, None)
 
-    # def increase_indentation(self, indent):
-    #     indented_str = indent_str(self.dumps(), indent)
-    #     if not self.parent:
-    #         raise ValueError("Cannot indent detached node")
-
-    #     self.replace(indented_str)
-
-    # def decrease_indentation(self, indent):
-    #     indented_str = deindent_str(self.dumps(), indent)
-    #     if not self.parent:
-    #         raise ValueError("Cannot indent detached node")
-
-    #     self.replace(indented_str)
 
 class IndentationMixin:
     def __init__(self, indent):
