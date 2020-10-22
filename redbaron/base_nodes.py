@@ -102,6 +102,8 @@ class BaseNode:
         if not self.parent:
             raise ValueError("Can't set on_attribute_node on root")
 
+        assert self.on_attribute
+
         assert getattr(self.parent, self.on_attribute) is self
         setattr(self.parent, self.on_attribute, node)
 
@@ -376,13 +378,32 @@ class NodeList(UserList, BaseNode, IndentationMixin):
             node.on_attribute = None
         super().extend(other)
 
+    # def increase_indentation(self, indent):
+    #     from .nodes import EndlNode
+
+    #     for node in self.node_list:
+    #         if isinstance(node, EndlNode):
+    #             # node.increase_indentation(indent)
+    #             node.indent += indent
+
+    # def decrease_indentation(self, indent):
+    #     for node in self:
+    #         node.decrease_indentation(indent)
+
     def increase_indentation(self, indent):
-        for node in self:
-            node.increase_indentation(indent)
+        indented_str = indent_str(self.dumps(), indent)
+        if not self.parent:
+            raise ValueError("Cannot indent detached node")
+
+        self.replace(indented_str)
 
     def decrease_indentation(self, indent):
-        for node in self:
-            node.decrease_indentation(indent)
+        indented_str = deindent_str(self.dumps(), indent)
+        if not self.parent:
+            raise ValueError("Cannot indent detached node")
+
+        self.replace(indented_str)
+
 
 class NodeRegistration(type):
     node_type_mapping = {}

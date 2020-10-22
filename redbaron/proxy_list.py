@@ -14,16 +14,19 @@ class ProxyList(NodeList):
         super().__init__(node_list, parent=parent, on_attribute=on_attribute)
         self.header = []
         self.footer = []
+        self._data = []
         self.trailing_separator = trailing_separator
         self.separator_type = type(self.middle_separator)
-        self._data = self._node_list_to_data(node_list)
+        self._node_list_to_data()
         assert isinstance(self._data, list)
         self._synchronise()
 
-    def _node_list_to_data(self, node_list):
+    def _node_list_to_data(self):
         from .nodes import LeftParenthesisNode, RightParenthesisNode, EndlNode
 
         data = []
+        self.header = []
+        self.fooder = []
         leftover_indent = ""
 
         def consume_leftover():
@@ -37,12 +40,12 @@ class ProxyList(NodeList):
             if indent:
                 target_list.append(self.make_empty_el(indent))
 
-        for node in node_list:
+        for node in self.node_list:
             if isinstance(node, LeftParenthesisNode):
-                assert node is node_list[0]
+                assert node is self.node_list[0]
                 self.header.append(node)
             elif isinstance(node, RightParenthesisNode):
-                assert node is node_list[-1]
+                assert node is self.node_list[-1]
                 self.footer.append(node)
             elif isinstance(node, self.separator_type):
                 if not data:
@@ -77,12 +80,16 @@ class ProxyList(NodeList):
         if leftover_indent:
             data.append([self.make_empty_el(leftover_indent), None])
 
+        self._data = data
         return data
 
     def _data_to_node_list(self, data):
         expected_list = []
 
-        expected_list.extend(self.header)
+        for el in self.header:
+            if el.indentation:
+                expected_list.append(self.make_empty_el(el.indentation))
+            expected_list.append(el)
 
         for node, sep in data:
             if node.indentation:
@@ -91,7 +98,10 @@ class ProxyList(NodeList):
             if sep is not None:
                 expected_list.append(sep)
 
-        expected_list.extend(self.footer)
+        for el in self.footer:
+            if el.indentation:
+                expected_list.append(self.make_empty_el(el.indentation))
+            expected_list.append(el)
 
         return expected_list
 
@@ -241,13 +251,49 @@ class ProxyList(NodeList):
         self._data = new_data
         self._synchronise()
 
-    def increase_indentation(self, indent):
-        super().increase_indentation(indent)
-        self._synchronise()
+    # def increase_indentation(self, indent):
+    #     super().increase_indentation(indent)
+    #     import pdb; pdb.set_trace()
+    #     self._node_list_to_data()
+    #     self._synchronise()
 
-    def decrease_indentation(self, indent):
-        super().decrease_indentation(indent)
-        self._synchronise()
+    # def increase_indentation(self, indent):
+    #     from .node_mixin import CodeBlockMixin
+    #     from .nodes import SpaceNode
+
+    #     first_node = SpaceNode.make(indent)
+    #     self.data.insert(0, first_node)
+
+    #     # for el in self.header:
+    #     #     if isinstance(el, self.separator_type):
+    #     #         el.indent += indent
+    #     # for node, sep in self._data:
+    #     #     if sep:
+    #     #         sep.indent += indent
+    #     #     if isinstance(node, CodeBlockMixin):
+    #     #         node.value.increase_indentation(indent)
+    #     for node in self.data:
+    #         if isinstance(node, self.separator_type):
+    #             node.indent += indent
+    #         if isinstance(node, CodeBlockMixin):
+    #             node.value.increase_indentation(indent)
+    #     # for el in self.footer:
+    #     #     if isinstance(el, self.separator_type):
+    #     #         el.indent += indent
+    #     import pdb; pdb.set_trace()
+    #     self._node_list_to_data()
+    #     self._synchronise()
+
+    # def decrease_indentation(self, indent):
+    #     for el in self.header:
+    #         if isinstance(el, self.separator_type):
+    #             el.indent += indent
+    #     for node, _ in self._data:
+    #         node.decrease_indentation(indent)
+    #     for el in self.footer:
+    #         if isinstance(el, self.separator_type):
+    #             el.indent += indent
+    #     self._data = self._node_list_to_data(self.node_list)
 
 class SpaceProxyList(ProxyList):
     def __init__(self, node_list, parent=None, on_attribute="value"):

@@ -382,6 +382,9 @@ class ElseNode(IfElseBlockSiblingMixin, IndentedCodeBlockMixin, IterableNode):
 
 
 class EndlNode(Node):
+    def __init__(self, *args, **kwargs):
+        self._indent = ""
+        super().__init__(*args, **kwargs)
     def __repr__(self):
         return repr(baron.dumps([self.fst()]))
 
@@ -393,6 +396,14 @@ class EndlNode(Node):
         indent = self.indent
         self.indent = ""
         return indent
+
+    @property
+    def indentation(self):
+        return self._indent
+
+    @indentation.setter
+    def indentation(self, value):
+        self._indent = value
 
 
 class ExceptNode(IndentedCodeBlockMixin, IterableNode):
