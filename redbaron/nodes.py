@@ -98,7 +98,7 @@ class AwaitNode(Node):
 
 
 class BinaryNode(Node, LiteralyEvaluableMixin):
-    value = NodeProperty()
+    pass
 
 
 class BinaryOperatorNode(Node):

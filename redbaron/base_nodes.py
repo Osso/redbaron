@@ -489,10 +489,12 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
             setattr(self, key, fst[key])
 
             if kind == "key" and fst[key]:
+                assert isinstance(fst[key], dict)
                 new_value = getattr(self, key)
                 assert isinstance(getattr(self, key), Node), \
                     f"invalid {new_value} for {type(self).__name__}.{key}"
             elif kind in ("list", "formatting"):
+                assert isinstance(fst[key], list)
                 new_value = getattr(self, key)
                 assert isinstance(new_value, NodeList), \
                     f"invalid {new_value} for {type(self).__name__}.{key}"
