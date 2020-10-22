@@ -223,6 +223,10 @@ class BaseNode:
     def previous_nodelist(self):
         return next(self.previous_neighbors_nodelist, None)
 
+    def to_baron_type(self):
+        name = self.__name__
+        name = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name.replace("Node", ""))
+        return re.sub('([a-z0-9])([A-Z])', r'\1_\2', name).lower()
 
 class IndentationMixin:
     def __init__(self, indent):

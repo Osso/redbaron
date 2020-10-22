@@ -9,3 +9,7 @@ class RedBaron(CodeBlockMixin, IterableNode):
     def __init__(self, source_code: str):
         super().__init__()
         self.value = source_code
+
+    @staticmethod
+    def to_baron_type():
+        return "root"
