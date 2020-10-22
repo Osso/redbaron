@@ -826,7 +826,7 @@ class ListNode(Node, LiteralyEvaluableMixin):
         return baron.parse("[%s]" % value)[0]["value"]
 
 
-class LongNode(Node, LiteralyEvaluableMixin):
+class LongNode(Node):
     pass
 
 
@@ -869,7 +869,6 @@ class NonlocalNode(Node):
 
 class OctaNode(Node, LiteralyEvaluableMixin):
     pass
-
 
 class PassNode(Node):
     pass
