@@ -198,7 +198,7 @@ is the equivalent of :file:`red.find("name", value="foo")`.
 
 If the default tested attribute is different, it will be shown in
 :file:`.help()`. For now, the 2 only cases where this happens is on class node
-and funcdef node where the attribute is "name".
+and def node where the attribute is "name".
 
 .. ipython:: python
 

@@ -446,7 +446,7 @@ given as a tuple :file:`(line, column)` with **both starting at 1**.
 .. ipython:: python
 
     red = RedBaron("def a(): return 42")
-    red.funcdef.value.box
+    red.find("def").value.box
 
 You can also get the bounding box of "string" nodes like the left
 parenthesis in the example above by giving the attribute's name to the
@@ -454,7 +454,7 @@ parenthesis in the example above by giving the attribute's name to the
 
 .. ipython:: python
 
-    red.funcdef.box_of_attribute('(')
+    red.find("def").box_of_attribute('(')
 
 This is impossible to do without giving the attribute's name as an
 argument since the left parenthesis is not a redbaron Node.
@@ -470,8 +470,8 @@ root node so the top-left position is always :file:`(1, 1)`.
 .. ipython:: python
 
     red = RedBaron("def a(): return 42")
-    red.funcdef.value.box
-    red.funcdef.value.relative_box
+    red.find("def").value.box
+    red.find("def").value.relative_box
 
 .find_by_position()
 -------------------

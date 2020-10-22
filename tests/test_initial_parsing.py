@@ -3,8 +3,6 @@
 
 import re
 
-import baron
-from baron.render import nodes_rendering_order
 import pytest
 from redbaron import RedBaron
 from redbaron.base_nodes import NodeRegistration
@@ -19,6 +17,9 @@ from redbaron.nodes import (AssignmentNode,
                             NodeList,
                             PassNode)
 
+import baron
+from baron.render import nodes_rendering_order
+
 
 def test_all_baron_types_are_mapped():
     for node_type in nodes_rendering_order:
@@ -30,14 +31,14 @@ def test_empty():
 
 
 def test_is_list():
-    assert [] == list(RedBaron(""))
+    assert list(RedBaron("")) == []
 
 
 def test_name():
     red = RedBaron("a\n")
     assert len(red.node_list) == 2
-    assert isinstance(red.node_list[0], NameNode)
-    assert isinstance(red.node_list[1], EndlNode)
+    assert isinstance(red.value.node_list[0], NameNode)
+    assert isinstance(red.value.node_list[1], EndlNode)
     assert red[0].value == "a"
 
 
@@ -181,9 +182,7 @@ def test_assign_on_object_value_fst():
 
 def test_generate_helpers():
     red = RedBaron("def a(): pass")
-    assert set(red[0].generate_identifiers()) == set([
-        "funcdef", "funcdef_", "defnode", "def", "def_"
-    ])
+    assert set(red[0].generate_identifiers()) == set(["defnode", "def", "def_"])
 
 
 def test_assign_node_list():
@@ -836,10 +835,9 @@ def test_find():
 
 
 def test_find_other_properties():
-    red = RedBaron("def a(): b = c")
-    assert red.def_ == red[0]
-    assert red.funcdef == red[0]
-    assert red.funcdef_ == red[0]
+    red = RedBaron("b = c")
+    assert red.find("assignement") == red[0]
+    assert red.find("assign") == red[0]
 
 
 def test_find_case_insensitive():

@@ -239,7 +239,6 @@ class DecoratorNode(Node):
 
 class DefNode(IndentedCodeBlockMixin, DecoratorsMixin,
               ReturnAnnotationMixin, IterableNode):
-    _other_identifiers = ["funcdef", "funcdef_"]
     _default_test_value = "name"
 
     @conditional_formatting_property(NodeList, [" "], [])
