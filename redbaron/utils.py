@@ -47,7 +47,7 @@ def indent_str(block_of_text, indentation):
     Take a block of text, an indentation string and return the indented block.
     """
     return "\n".join([indentation + line
-                      for line in block_of_text.splitlines()])
+                      for line in block_of_text.split("\n")]).rstrip(" ")
 
 
 def deindent_str(block_of_text, indentation):
@@ -56,8 +56,12 @@ def deindent_str(block_of_text, indentation):
 
     Take a block of text, an indentation string and return the indented block.
     """
-    return "\n".join([line[len(indentation):]
-                      for line in block_of_text.splitlines()])
+    if not indentation:
+        return block_of_text
+
+    text = "\n".join([line[1:] if line.startswith(indentation[-1]) else line
+                      for line in block_of_text.split("\n")])
+    return deindent_str(text, indentation[:-1])
 
 
 def truncate(text, n):

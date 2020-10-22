@@ -339,7 +339,7 @@ class DottedNameNode(IterableNode):
     pass
 
 
-class ElifNode(IndentedCodeBlockMixin, IterableNode, IfElseBlockSiblingMixin):
+class ElifNode(IfElseBlockSiblingMixin, IndentedCodeBlockMixin, IterableNode):
     @NodeProperty
     def test(self, value):
         code = "if %s: pass" % value
@@ -350,7 +350,7 @@ class EllipsisNode(Node):
     pass
 
 
-class ElseNode(IndentedCodeBlockMixin, IterableNode, IfElseBlockSiblingMixin):
+class ElseNode(IfElseBlockSiblingMixin, IndentedCodeBlockMixin, IterableNode):
     @property
     def next_intuitive(self):
         if self.parent.type == "ifelseblock":
@@ -716,17 +716,14 @@ class HexaNode(Node, LiteralyEvaluableMixin):
     pass
 
 
-class IfNode(IndentedCodeBlockMixin, IterableNode, IfElseBlockSiblingMixin):
+class IfNode(IfElseBlockSiblingMixin, IndentedCodeBlockMixin, IterableNode):
     @NodeProperty
     def test(self, value):
         return baron.parse("if %s: pass" % value)[0]["value"][0]["test"]
 
 
-class IfelseblockNode(IterableNode, CodeBlockMixin):
+class IfelseblockNode(CodeBlockMixin, IterableNode):
     pass
-    # @nodelist_property(NodeList)
-    # def value(self, value):
-    #     return baron.parse(value)[0]["value"]
 
 
 class ImportNode(Node):
@@ -1027,7 +1024,7 @@ class TernaryOperatorNode(Node):
         return baron.parse("a if %s else s" % value)[0]["value"]
 
 
-class TryNode(IterableNode, CodeBlockMixin):
+class TryNode(IndentedCodeBlockMixin, IterableNode):
     @property
     def next_intuitive(self):
         if self.excepts:

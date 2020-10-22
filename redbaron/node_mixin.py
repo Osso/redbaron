@@ -113,6 +113,14 @@ class CodeBlockMixin:
     def get_from_baron_index(self, index):
         return self.value.get_from_baron_index(index)
 
+    def increase_indentation(self, indent):
+        super().increase_indentation(indent)
+        self.value.increase_indentation(indent)
+
+    def decrease_indentation(self, indent):
+        super().decrease_indentation(indent)
+        self.value.decrease_indentation(indent)
+
 class IndentedCodeBlockMixin(CodeBlockMixin):
     @nodelist_property(CodeProxyList)
     def value(self, value):
@@ -138,6 +146,12 @@ class IfElseBlockSiblingMixin:
             previous_ = self.parent.previous
 
         return previous_
+
+    def increase_indentation(self, indent):
+        self.value.increase_indentation(indent)
+
+    def decrease_indentation(self, indent):
+        self.value.decrease_indentation(indent)
 
 
 class SeparatorMixin:

@@ -42,6 +42,9 @@ class NodeProperty:
         if isinstance(value, (dict, list)):
             value = self.fst_to_node(obj, value)
 
+        if value:
+            value.parent = obj
+            value.on_attribute = self.name
         return value
 
     def fst_to_node(self, obj, value):
@@ -51,7 +54,7 @@ class NodeProperty:
         if not value:
             return None
 
-        node = obj.from_fst(value, on_attribute=self.name)
+        node = obj.from_fst(value)
         assert value["type"] == node.type, f"{value['type']} != {node.type}"
         return node
 
@@ -84,7 +87,7 @@ class NodeListProperty(NodeProperty):
                 return Node.generic_from_fst(el)
             return el
         nodes = [_convert(el) for el in value]
-        return self.list_type(nodes, parent=obj, on_attribute=self.name)
+        return self.list_type(nodes)
 
     def __get__(self, obj, objtype=None):
         if not obj:

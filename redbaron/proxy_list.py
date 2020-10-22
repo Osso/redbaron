@@ -241,6 +241,14 @@ class ProxyList(NodeList):
         self._data = new_data
         self._synchronise()
 
+    def increase_indentation(self, indent):
+        super().increase_indentation(indent)
+        self._synchronise()
+
+    def decrease_indentation(self, indent):
+        super().decrease_indentation(indent)
+        self._synchronise()
+
 class SpaceProxyList(ProxyList):
     def __init__(self, node_list, parent=None, on_attribute="value"):
         from .nodes import SpaceNode

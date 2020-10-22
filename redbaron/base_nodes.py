@@ -98,18 +98,11 @@ class BaseNode:
             current = current.parent
         return current
 
-    @property
-    def on_attribute_node(self):
-        if self.on_attribute == "root":
-            return self
+    def set_on_attribute_node(self, node):
+        if not self.parent:
+            raise ValueError("Can't set on_attribute_node on root")
 
-        if self.on_attribute:
-            return getattr(self.parent, self.on_attribute)
-
-        return None
-
-    @on_attribute_node.setter
-    def on_attribute_node(self, node):
+        assert getattr(self.parent, self.on_attribute) is self
         setattr(self.parent, self.on_attribute, node)
 
     def find_by_path(self, path):
@@ -137,12 +130,7 @@ class BaseNode:
         raise NotImplementedError()
 
     def replace(self, new_node):
-        new_node = self.from_str(new_node, on_attribute=self.on_attribute)
-        if self is self.on_attribute_node:
-            self.on_attribute_node = new_node
-        else:
-            index = self.on_attribute_node.index(self)
-            self.on_attribute_node[index] = new_node
+        self.set_on_attribute_node(new_node)
 
     @property
     def index_on_parent(self):
@@ -233,13 +221,19 @@ class BaseNode:
     def previous_nodelist(self):
         return next(self.previous_neighbors_nodelist, None)
 
-    def increase_indentation(self, indent):
-        self.replace(indent_str(self.dumps(), indent))
+    # def increase_indentation(self, indent):
+    #     indented_str = indent_str(self.dumps(), indent)
+    #     if not self.parent:
+    #         raise ValueError("Cannot indent detached node")
 
-    def decrease_indentation(self, indent):
-        self.replace(deindent_str(self.dumps(), indent))
+    #     self.replace(indented_str)
 
+    # def decrease_indentation(self, indent):
+    #     indented_str = deindent_str(self.dumps(), indent)
+    #     if not self.parent:
+    #         raise ValueError("Cannot indent detached node")
 
+    #     self.replace(indented_str)
 
 class IndentationMixin:
     def __init__(self, indent):
@@ -290,13 +284,12 @@ class NodeList(UserList, BaseNode, IndentationMixin):
 
     @classmethod
     def generic_from_fst(cls, fst_list, parent=None, on_attribute=None):
-        assert isinstance(parent, Node)
-        nodes = [parent.from_fst(n) for n in fst_list]
+        assert parent is None or isinstance(parent, Node)
+        nodes = [Node.generic_from_fst(n) for n in fst_list]
         return cls(nodes, parent=parent, on_attribute=on_attribute)
 
     @classmethod
     def generic_from_str(cls, value: str, parent=None, on_attribute=None):
-        assert isinstance(parent, Node)
         return cls.generic_from_fst(baron.parse(value), parent=parent,
                                     on_attribute=on_attribute)
 
@@ -396,6 +389,13 @@ class NodeList(UserList, BaseNode, IndentationMixin):
             node.on_attribute = None
         super().extend(other)
 
+    def increase_indentation(self, indent):
+        for node in self:
+            node.increase_indentation(indent)
+
+    def decrease_indentation(self, indent):
+        for node in self:
+            node.decrease_indentation(indent)
 
 class NodeRegistration(type):
     node_type_mapping = {}
@@ -438,7 +438,10 @@ class NodeRegistration(type):
 
     @classmethod
     def class_from_baron_type(mcs, baron_type):
-        return mcs.node_type_mapping[baron_type]
+        try:
+            return mcs.node_type_mapping[baron_type]
+        except IndexError:
+            raise ValueError(f"Invalid baron type {baron_type}")
 
     @classmethod
     def all_types(mcs):
@@ -487,6 +490,8 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
 
     @staticmethod
     def generic_from_fst(fst, parent=None, on_attribute=None):
+        assert parent is None or isinstance(parent, Node)
+        assert 'type' in fst
         cls = NodeRegistration.class_from_baron_type(fst['type'])
         return cls(fst, parent=parent, on_attribute=on_attribute)
 
@@ -875,6 +880,19 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
             elif kind in ("list", "formatting"):
                 for node in getattr(self, key):
                     yield from node._iter_in_rendering_order()
+
+    def set_on_attribute_node(self, node):
+        if not self.parent:
+            raise ValueError("Can't set on_attribute_node on root")
+
+        assert self.parent[self.index_on_parent] is self
+        self.parent[self.index_on_parent] = node
+
+    def increase_indentation(self, indent):
+        self.indentation += indent
+
+    def decrease_indentation(self, indent):
+        self.indentation = self.indentation[len(indent):]
 
 
 class IterableNode(Node):
