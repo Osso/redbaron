@@ -98,17 +98,17 @@ class A:
 
 
 def test_relative_box_with_proxy_list():
-    assert ((1, 1), (32, 1)) == red_2.box
-    assert ((1, 1), (32, 1)) == red_2.find("class").box
-    assert ((2, 5), (5, 8)) == red_2.find("class").value[0].box
-    assert ((6, 5), (9, 18)) == red_2.find("class").value[1].box
-    assert ((10, 1), (10, 1)) == red_2.find("class").value[2].box
-    assert ((11, 5), (17, 1)) == red_2.find("class").value[3].box
-    assert ((17, 1), (17, 1)) == red_2.find("class").value[4].box
-    assert ((18, 5), (18, 17)) == red_2.find("class").value[5].box
-    assert ((19, 1), (19, 1)) == red_2.find("class").value[6].box
-    assert ((20, 5), (27, 1)) == red_2.find("class").value[7].box
-    assert ((27, 1), (27, 1)) == red_2.find("class").value[8].box
-    assert ((28, 5), (31, 18)) == red_2.find("class").value[9].box
+    assert red_2.box == ((1, 1), (32, 1))
+    assert red_2.find("class").box == ((1, 1), (32, 1))
+    assert red_2.find("class").value[0].box == ((2, 5), (5, 8))
+    assert red_2.find("class").value[1].box == ((6, 5), (9, 18))
+    assert red_2.find("class").value[2].box == ((10, 1), (10, 1))
+    assert red_2.find("class").value[3].box == ((11, 5), (17, 1))
+    assert red_2.find("class").value[4].box == ((17, 1), (17, 1))
+    assert red_2.find("class").value[5].box == ((18, 5), (18, 17))
+    assert red_2.find("class").value[6].box == ((19, 1), (19, 1))
+    assert red_2.find("class").value[7].box == ((20, 5), (27, 1))
+    assert red_2.find("class").value[8].box == ((27, 1), (27, 1))
+    assert red_2.find("class").value[9].box == ((28, 5), (31, 18))
     with pytest.raises(IndexError):
         red_2.find("class").value[10]  # pylint: disable=expression-not-assigned
