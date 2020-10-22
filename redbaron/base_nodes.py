@@ -230,10 +230,14 @@ class IndentationMixin:
 
     @property
     def indentation(self):
+        if self.on_attribute:
+            raise ValueError("Unhandled indentation on a node attribute")
         return self.indent.value
 
     @indentation.setter
     def indentation(self, value):
+        if self.on_attribute:
+            raise ValueError("Unhandled indentation on a node attribute")
         self.indent.value = value
 
     @property

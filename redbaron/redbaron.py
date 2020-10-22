@@ -7,7 +7,7 @@ class RedBaron(CodeBlockMixin, IterableNode):
         return {"type": "root", "value": []}
 
     def __init__(self, source_code: str):
-        super().__init__(on_attribute="root")
+        super().__init__()
         self.value = source_code
 
 
