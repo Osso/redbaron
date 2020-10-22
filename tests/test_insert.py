@@ -35,7 +35,7 @@ class A:
 
 
 def test_insert_with_class_0(red_A_B):
-    red_A_B.insert(0, "a = 1")
+    red_A_B.insert(0, "a = 1\n")
 
     assert_with_indent(red_A_B, """\
 a = 1
@@ -48,7 +48,7 @@ class B:
 
 
 def test_insert_with_class_1(red_A_B):
-    red_A_B.insert(1, "a = 1")
+    red_A_B.insert(1, "a = 1\n")
 
     assert_with_indent(red_A_B, """\
 class A:
@@ -61,20 +61,20 @@ class B:
 
 
 def test_insert_with_class_2(red_A_B):
-    red_A_B.insert(2, "a = 1")
+    red_A_B.insert(2, "a = 1\n")
 
     assert_with_indent(red_A_B, """\
 class A:
     pass
 
+a = 1
 class B:
     pass
-a = 1
 """)
 
 
 def test_insert_with_class_3(red_A_B):
-    red_A_B.insert(3, "a = 1")
+    red_A_B.insert(3, "a = 1\n")
 
     assert_with_indent(red_A_B, """\
 class A:
@@ -87,7 +87,7 @@ a = 1
 
 
 def test_insert_class_with_class_0(red_A_B):
-    red_A_B.insert(0, "class C:\n    pass")
+    red_A_B.insert(0, "class C:\n    pass\n")
 
     assert_with_indent(red_A_B, """\
 class C:
@@ -101,7 +101,7 @@ class B:
 
 
 def test_insert_class_with_class_1(red_A_B):
-    red_A_B.insert(1, "class C:\n    pass")
+    red_A_B.insert(1, "class C:\n    pass\n")
 
     assert_with_indent(red_A_B, """\
 class A:
@@ -115,7 +115,7 @@ class B:
 
 
 def test_insert_class_with_class_2(red_A_B):
-    red_A_B.insert(2, "class C:\n    pass")
+    red_A_B.insert(2, "class C:\n    pass\n")
 
     assert_with_indent(red_A_B, """\
 class A:
@@ -129,7 +129,7 @@ class C:
 
 
 def test_insert_class_with_class_3(red_A_B):
-    red_A_B.insert(3, "class C:\n    pass")
+    red_A_B.insert(3, "class C:\n    pass\n")
 
     assert_with_indent(red_A_B, """\
 class A:
@@ -143,7 +143,7 @@ class C:
 
 
 def test_insert_with_nested_class_0(red_nested):
-    red_nested.insert(0, "a = 1")
+    red_nested.insert(0, "a = 1\n")
 
     assert_with_indent(red_nested, """\
 a = 1
@@ -154,7 +154,7 @@ class A:
 
 
 def test_insert_with_nested_class_1(red_nested):
-    red_nested.insert(1, "a = 1")
+    red_nested.insert(1, "a = 1\n")
 
     assert_with_indent(red_nested, """\
 class A:
@@ -165,7 +165,7 @@ a = 1
 
 
 def test_insert_inside_nested_class_0(red_nested):
-    red_nested[0].insert(0, "a = 1")
+    red_nested[0].insert(0, "a = 1\n")
 
     assert_with_indent(red_nested, """\
 class A:
@@ -176,7 +176,7 @@ class A:
 
 
 def test_insert_inside_nested_class_1(red_nested):
-    red_nested[0].insert(1, "a = 1")
+    red_nested[0].insert(1, "a = 1\n")
 
     assert_with_indent(red_nested, """\
 class A:
@@ -187,7 +187,7 @@ class A:
 
 
 def test_insert_inside_nested_class_2(red_nested):
-    red_nested[0].insert(0, "def a(self):\n    pass")
+    red_nested[0].insert(0, "def a(self):\n    pass\n")
 
     assert_with_indent(red_nested, """\
 class A:
@@ -199,7 +199,7 @@ class A:
 
 
 def test_insert_class_inside_nested_class_0(red_nested):
-    red_nested[0].insert(0, "class C:\n    pass")
+    red_nested[0].insert(0, "class C:\n    pass\n")
 
     assert_with_indent(red_nested, """\
 class A:
@@ -211,7 +211,7 @@ class A:
 
 
 def test_insert_class_inside_nested_class_1(red_nested):
-    red_nested[0].insert(1, "class C:\n    pass")
+    red_nested[0].insert(1, "class C:\n    pass\n")
 
     assert_with_indent(red_nested, """\
 class A:
@@ -234,7 +234,7 @@ class A:
 
 
 def test_append_class_inside_nested_class(red_nested):
-    red_nested[0].append("class C:\n    pass")
+    red_nested[0].append("class C:\n    pass\n")
 
     assert_with_indent(red_nested, """\
 class A:
@@ -256,7 +256,7 @@ class A:
 
 """)
 
-    red[0].append("def c(self):\n    pass")
+    red[0].append("def c(self):\n    pass\n")
 
     assert_with_indent(red, """\
 class A:
@@ -282,7 +282,7 @@ class A:
 
 """)
 
-    red[0].append("class C:\n    pass")
+    red[0].append("class C:\n    pass\n")
 
     assert_with_indent(red, """\
 class A:
@@ -305,7 +305,7 @@ def a(self, a):
     return False
 """)
 
-    red.def_.insert(0, "a = 1")
+    red.def_.insert(0, "a = 1\n")
 
     assert_with_indent(red, """\
 def a(self, a):
@@ -324,7 +324,7 @@ def a(self, a):
     return False
 """)
 
-    red.def_.if_.insert(0, "a = 1")
+    red.find("def").find("if").insert(0, "a = 1\n")
 
     assert_with_indent(red, """\
 def a(self, a):
@@ -343,7 +343,7 @@ def a(self, a):
     return False
 """)
 
-    red.def_.if_.insert(0, "a = 1")
+    red.find("def").find("if").insert(0, "a = 1\n")
     assert_with_indent(red, """\
 def a(self, a):
     if a == 42:
@@ -352,7 +352,7 @@ def a(self, a):
     return False
 """)
 
-    red.def_.if_.insert(0, "")
+    red.find("def").find("if").insert(0, "\n")
     assert_with_indent(red, """\
 def a(self, a):
     if a == 42:
@@ -362,7 +362,7 @@ def a(self, a):
     return False
 """)
 
-    red.def_.if_.insert(0, "b = 2")
+    red.find("def").find("if").insert(0, "b = 2\n")
 
     assert_with_indent(red, """\
 def a(self, a):
@@ -383,8 +383,8 @@ def a(self, a):
     return False
 """)
 
-    red.def_.if_.append("")
-    red.def_.if_.extend(["", "a = 1", ""])
+    red.find("def").find("if").append("\n")
+    red.find("def").find("if").extend(["\n", "a = 1\n", "\n"])
 
     assert_with_indent(red, """\
 def a(self, a):
@@ -404,8 +404,8 @@ def a(self, a):
     return False
 """)
 
-    red.def_.extend(["", "def b():\n    return True", ""])
-    red.def_.extend(["", "def b():\n    return True", ""])
+    red.find("def").extend(["\n", "def b():\n    return True\n", "\n"])
+    red.find("def").extend(["\n", "def b():\n    return True\n", "\n"])
 
     assert_with_indent(red, """\
 def a(self, a):
@@ -429,7 +429,7 @@ class A:
 """)
 
     # red.class_.class_.append("def b():\n    return True")
-    red.class_.class_.append("a = 1")
+    red.find("class").class_.append("a = 1\n")
 
     assert_with_indent(red, """\
 class A:
@@ -445,11 +445,11 @@ def a(self, a):
     return False
 """)
 
-    red.def_.append("")
-    red.def_.append("class b:\n    def c(self):\n        return True")
-    red.def_.append("")
-    red.def_.append("class b:\n    def c(self):\n        return True")
-    red.def_.append("")
+    red.find("def").append("\n")
+    red.find("def").append("class b:\n    def c(self):\n        return True\n")
+    red.find("def").append("\n")
+    red.find("def").append("class b:\n    def c(self):\n        return True\n")
+    red.find("def").append("\n")
 
     assert_with_indent(red, """\
 def a(self, a):
@@ -472,11 +472,11 @@ async def a(self, a):
     return False
 """)
 
-    red.def_.append("")
-    red.def_.append("class b:\n    def c(self):\n        return True")
-    red.def_.append("")
-    red.def_.append("class b:\n    async def c(self):\n        return True")
-    red.def_.append("")
+    red.find("def").append("\n")
+    red.find("def").append("class b:\n    def c(self):\n        return True\n")
+    red.find("def").append("\n")
+    red.find("def").append("class b:\n    async def c(self):\n        return True\n")
+    red.find("def").append("\n")
 
     assert_with_indent(red, """\
 async def a(self, a):
@@ -499,10 +499,10 @@ def a(self, a):
     return False
 """)
 
-    red.def_.append("")
-    red.def_.append("class b:\n    def c(self):\n        return True")
-    red.def_.append("class b:\n    def c(self):\n        return True")
-    red.def_.append("")
+    red.find("def").append("\n")
+    red.find("def").append("class b:\n    def c(self):\n        return True\n")
+    red.find("def").append("class b:\n    def c(self):\n        return True\n")
+    red.find("def").append("\n")
 
     assert_with_indent(red, """\
 def a(self, a):

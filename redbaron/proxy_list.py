@@ -141,7 +141,8 @@ class ProxyList(NodeList):
     def _insert(self, index, item):
         value = Node.generic_from_str(item, parent=self)
         self._check_for_separator(index)
-        self._data.insert(index, [value, self.make_separator()])
+        sep = self.make_separator() if self.strict_separator else None
+        self._data.insert(index, [value, sep])
 
     def insert(self, i, item):
         self._insert(i, item)
