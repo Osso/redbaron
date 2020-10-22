@@ -502,8 +502,9 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
     @staticmethod
     def generic_from_str(value: str, parent=None, on_attribute=None):
         assert isinstance(value, str)
-        value = baron.parse(value)[0]
-        return Node.generic_from_fst(value, parent=parent,
+        fst = baron.parse(value)
+        assert len(fst) == 1
+        return Node.generic_from_fst(fst[0], parent=parent,
                                      on_attribute=on_attribute)
 
     def from_str(self, value: str, on_attribute=None):
