@@ -1,7 +1,6 @@
 """ Main redbaron test module """
 
 from redbaron import RedBaron
-from redbaron.utils import truncate
 
 
 def test_other_name_assignment():
@@ -25,4 +24,4 @@ def test_index_raw():
 
 def test_regression_find_all_recursive():
     red = RedBaron("a.b()")
-    assert red[0].value("name", recursive=False) == [red.name, red("name")[1]]
+    assert red[0].value("name", recursive=False) == [red.name, red.find("name")[1]]
