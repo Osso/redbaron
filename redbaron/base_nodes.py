@@ -246,20 +246,6 @@ class IndentationMixin:
         self.indent.value = value
 
     @property
-    def indentation_unit(self):
-        if self.parent:
-            indentation = self.parent.indentation_unit
-            if indentation is None:
-                raise Exception("node is not attached to ")
-            return indentation
-
-        try:
-            indentation = self._indentation_unit
-        except AttributeError:
-            indentation = 4 * " "
-        return indentation
-
-    @property
     def leftover_indentation(self):
         return self._leftover_indentation
 
@@ -376,13 +362,13 @@ class NodeList(UserList, BaseNode, IndentationMixin):
         for node in self:
             yield from node._iter_in_rendering_order()
 
-    def increase_indentation(self, number_of_spaces):
+    def increase_indentation(self, indent):
         for node in self:
-            node.increase_indentation(number_of_spaces)
+            node.increase_indentation(indent)
 
-    def decrease_indentation(self, number_of_spaces):
+    def decrease_indentation(self, indent):
         for node in self:
-            node.decrease_indentation(number_of_spaces)
+            node.decrease_indentation(indent)
 
     def baron_index(self, value):
         return self.data.index(value)
@@ -859,11 +845,11 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
         path = self.path().to_baron_path() + [attribute]
         return self._path_to_bounding_box(self.root.fst(), path)
 
-    def increase_indentation(self, number_of_units):
-        self.indentation += number_of_units * self.indentation_unit
+    def increase_indentation(self, indent):
+        self.indentation += indent
 
-    def decrease_indentation(self, number_of_units):
-        self.indentation = self.indentation[:-len(self.indentation_unit)*number_of_units]
+    def decrease_indentation(self, indent):
+        self.indentation = self.indentation[:-len(indent)]
 
     def insert_before(self, value, offset=0):
         self.parent.insert(self.index_on_parent - offset, value)
