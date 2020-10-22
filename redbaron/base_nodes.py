@@ -506,7 +506,7 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
 
     @staticmethod
     def generic_from_fst(fst, parent=None, on_attribute=None):
-        assert parent is None or isinstance(parent, Node)
+        assert parent is None or isinstance(parent, BaseNode)
         assert 'type' in fst
         cls = NodeRegistration.class_from_baron_type(fst['type'])
         return cls(fst, parent=parent, on_attribute=on_attribute)

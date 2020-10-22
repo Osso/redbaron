@@ -22,11 +22,11 @@ class ProxyList(NodeList):
         self._synchronise()
 
     def _node_list_to_data(self):
-        from .nodes import LeftParenthesisNode, RightParenthesisNode, EndlNode
+        from .nodes import LeftParenthesisNode, RightParenthesisNode
 
         data = []
         self.header = []
-        self.fooder = []
+        self.footer = []
         leftover_indent = ""
 
         def consume_leftover():
@@ -34,11 +34,6 @@ class ProxyList(NodeList):
             r = leftover_indent
             leftover_indent = ''
             return r
-
-        def append_if_leftover_indent(target_list):
-            indent = consume_leftover()
-            if indent:
-                target_list.append(self.make_empty_el(indent))
 
         for node in self.node_list:
             if isinstance(node, LeftParenthesisNode):
@@ -52,7 +47,8 @@ class ProxyList(NodeList):
                     if self.strict_separator:
                         raise Exception("node_list starts with separator "
                                         "for %s" % self.__class__.__name__)
-                    append_if_leftover_indent(self.header)
+                    self.append_leftover_indent_to_header(consume_leftover(),
+                                                          self.header)
                     self.header.append(node)
                 elif data[-1][1] is not None:
                     if self.strict_separator:
@@ -70,40 +66,53 @@ class ProxyList(NodeList):
                 data.append([node, None])
 
             leftover_indent = node.consume_leftover_indentation()
-            if isinstance(self.middle_separator, EndlNode):
-                for el in node.consume_leftover_endl():
-                    el[0].parent = self
-                    if el[1] is not None:
-                        el[1].parent = self
-                    data.append(el)
+            self.append_leftover_endl_to_data(node, data)
 
+        self.append_leftover_indent_to_data(leftover_indent, data)
+        self._data = data
+
+    def append_leftover_endl_to_data(self, node, data):
+        from .nodes import EndlNode
+
+        if isinstance(self.middle_separator, EndlNode):
+            for el in node.consume_leftover_endl():
+                el[0].parent = self
+                if el[1] is not None:
+                    el[1].parent = self
+                data.append(el)
+
+    def append_leftover_indent_to_header(self, leftover_indent, header):
+        if leftover_indent:
+            header.append(self.make_empty_el(leftover_indent))
+
+    def append_leftover_indent_to_data(self, leftover_indent, data):
         if leftover_indent:
             data.append([self.make_empty_el(leftover_indent), None])
 
-        self._data = data
-        return data
-
-    def _data_to_node_list(self, data):
+    def _data_to_node_list(self):
+        from .nodes import EmptyLineNode
         expected_list = []
 
-        for el in self.header:
+        def _append_el(el):
+            if not el:
+                return
             if el.indentation:
                 expected_list.append(self.make_empty_el(el.indentation))
-            expected_list.append(el)
+            if not isinstance(el, EmptyLineNode):
+                expected_list.append(el)
 
-        for node, sep in data:
-            if node.indentation:
-                expected_list.append(self.make_empty_el(node.indentation))
-            expected_list.append(node)
-            if sep is not None:
-                expected_list.append(sep)
+
+        for el in self.header:
+            _append_el(el)
+
+        for node, sep in self._data:
+            _append_el(node)
+            _append_el(sep)
 
         for el in self.footer:
-            if el.indentation:
-                expected_list.append(self.make_empty_el(el.indentation))
-            expected_list.append(el)
+            _append_el(el)
 
-        return expected_list
+        self.data = expected_list
 
     def make_separator(self):
         separator = self.middle_separator.copy()
@@ -124,7 +133,7 @@ class ProxyList(NodeList):
     def _synchronise(self):
         if not self.trailing_separator and self._data:
             self._data[-1][1] = None
-        self.data = self._data_to_node_list(self._data)
+        self._data_to_node_list()
 
     def __len__(self):
         return len(self._data)
@@ -205,7 +214,7 @@ class ProxyList(NodeList):
         self._synchronise()
 
     def _check_for_separator(self, index):
-        if index > 0 and self._data[index-1][1] is None:
+        if index and self._data[index-1][1] is None and self.strict_separator:
             self._data[index-1][1] = self.make_separator()
 
     def __delslice__(self, i, j):

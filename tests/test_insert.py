@@ -53,8 +53,8 @@ def test_insert_with_class_1(red_A_B):
     assert_with_indent(red_A_B, """\
 class A:
     pass
-
 a = 1
+
 class B:
     pass
 """)

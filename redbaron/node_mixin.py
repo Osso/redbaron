@@ -121,6 +121,15 @@ class CodeBlockMixin:
         super().decrease_indentation(indent)
         self.value.decrease_indentation(indent)
 
+    def insert(self, i, item):
+        self.value.insert(i, item)
+
+    def append(self, item):
+        self.value.append(item)
+
+    def extend(self, other):
+        self.value.extend(other)
+
 class IndentedCodeBlockMixin(CodeBlockMixin):
     @nodelist_property(CodeProxyList)
     def value(self, value):
