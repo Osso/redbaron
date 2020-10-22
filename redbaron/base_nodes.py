@@ -9,7 +9,8 @@ import baron.path
 from baron.render import nodes_rendering_order
 
 from .node_path import Path
-from .node_property import (NodeListProperty,
+from .node_property import (AliasProperty,
+                            NodeListProperty,
                             NodeProperty,
                             set_name_for_node_properties)
 from .syntax_highlight import (help_highlight,
@@ -36,56 +37,55 @@ class BaseNode:
     def __init__(self, parent, on_attribute):
         self.parent = parent
         self.on_attribute = on_attribute
-        self.leftover_endl = []
 
     @staticmethod
-    def fix_baron_bounding_box(box):
+    def fix_baron_box(box):
         box.bottom_right.column += 1
         return box
 
-    @classmethod
-    def _path_to_bounding_box(cls, fst, path):
-        box = baron.path.path_to_bounding_box(fst, path)
-        return cls.fix_baron_bounding_box(box)
-
     @property
-    def bounding_box(self):
+    def relative_box(self):
         box = baron.path.node_to_bounding_box(self.fst())
-        return self.fix_baron_bounding_box(box)
+        return self.fix_baron_box(box)
+
+    @classmethod
+    def _baron_path_to_box(cls, fst, path):
+        box = baron.path.path_to_bounding_box(fst, path)
+        return cls.fix_baron_box(box)
 
     @property
-    def absolute_bounding_box(self):
+    def box(self):
         path = self.path().to_baron_path()
-        return self._path_to_bounding_box(self.root.fst(), path)
+        return self._baron_path_to_box(self.root.fst(), path)
 
     def find_by_position(self, position):
         path = baron.path.position_to_path(self.fst(), position) or []
         return self.find_by_path(path)
 
     def at(self, line_no):
-        if not 0 < line_no <= self.absolute_bounding_box.bottom_right.line:
+        if not 0 < line_no <= self.box.bottom_right.line:
             raise IndexError(f"Line number {line_no} is outside of the file")
 
         node = self.find_by_position((line_no, 1))
         if not node:
             return None
 
-        if node.absolute_bounding_box.top_left.line > line_no:
+        if node.box.top_left.line > line_no:
             for n in self._iter_in_rendering_order():
-                if n.absolute_bounding_box.top_left.line == line_no:
+                if n.box.top_left.line == line_no:
                     return n
             return node
 
         while node.parent and \
-                node.parent.absolute_bounding_box.top_left.line == line_no:
+                node.parent.box.top_left.line == line_no:
             node = node.parent
 
         while node.previous_nodelist and \
-                node.previous_nodelist.absolute_bounding_box.top_left.line == line_no:
+                node.previous_nodelist.box.top_left.line == line_no:
             node = node.previous_nodelist
 
         while node.type in ('endl', 'space') and node.next_nodelist and \
-                node.next_nodelist.absolute_bounding_box.top_left.line == line_no:
+                node.next_nodelist.box.top_left.line == line_no:
             node = node.next_nodelist
 
         return node
@@ -229,6 +229,7 @@ class BaseNode:
 class IndentationMixin:
     def __init__(self, indent):
         self.indent = NodeConstant(indent, parent=self, on_attribute="indent")
+        self.leftover_endl = []
 
     @property
     def indentation(self):
@@ -414,8 +415,13 @@ class NodeRegistration(type):
         cls._str_keys = ["type"]
         cls._list_keys = []
         cls._dict_keys = []
+        reserved_keywords = ("async", )
 
         for kind, key, _ in cls._baron_attributes():
+            if key in reserved_keywords:
+                if not hasattr(cls, key + "_"):
+                    setattr(cls, key + "_", AliasProperty(key))
+
             if kind == "constant":
                 pass
             elif kind in ("bool", "string"):
@@ -476,6 +482,9 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
 
     def set_attributes_from_fst(self, fst):
         for kind, key, _ in self._baron_attributes():
+            if key == 'type':
+                assert self.type == fst[key]
+                continue
             if kind == "constant" and key not in self._str_keys:
                 setattr(self, key, NodeConstant(getattr(fst, key, ""),
                                                 parent=self,
@@ -593,13 +602,6 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
             target = target.parent
         return target.previous
 
-    def __getattr__(self, key):
-        if key.endswith("_") and \
-                key[:-1] in self._dict_keys + self._list_keys + self._str_keys:
-            return getattr(self, key[:-1])
-
-        raise AttributeError("%s not found" % key)
-
     def find_iter(self, identifier, *args, recursive=True, **kwargs):
         if self._node_match_query(self, identifier, *args, **kwargs):
             yield self
@@ -714,7 +716,7 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
             'fst',
             'fst',
             'generate_identifiers',
-            'get_absolute_bounding_box_of_attribute',
+            'box_of_attribute',
             'get_indentation_node',
             'get_indentation_node',
             'has_render_key',
@@ -852,11 +854,11 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
                 return True
         return False
 
-    def get_absolute_bounding_box_of_attribute(self, attribute):
+    def box_of_attribute(self, attribute):
         if not self.has_render_key(attribute):
             raise KeyError(f"{attribute} not found in {self}")
         path = self.path().to_baron_path() + [attribute]
-        return self._path_to_bounding_box(self.root.fst(), path)
+        return self._baron_path_to_box(self.root.fst(), path)
 
     def insert_before(self, value, offset=0):
         self.parent.insert(self.index_on_parent - offset, value)

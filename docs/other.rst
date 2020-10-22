@@ -436,7 +436,7 @@ By default, the editor is taken from the variable :file:`EDITOR` in the
 environment variables. If this variable is not present, nano is used. You can
 use a different editor this way: :file:`node.edit(editor="vim")`.
 
-.absolute_bounding_box
+.box
 ----------------------
 
 The absolute bounding box of a node represents its top-left and
@@ -446,32 +446,32 @@ given as a tuple :file:`(line, column)` with **both starting at 1**.
 .. ipython:: python
 
     red = RedBaron("def a(): return 42")
-    red.funcdef.value.absolute_bounding_box
+    red.funcdef.value.box
 
 You can also get the bounding box of "string" nodes like the left
 parenthesis in the example above by giving the attribute's name to the
-:file:`get_absolute_bounding_box_of_attribute()` method:
+:file:`box_of_attribute()` method:
 
 .. ipython:: python
 
-    red.funcdef.get_absolute_bounding_box_of_attribute('(')
+    red.funcdef.box_of_attribute('(')
 
 This is impossible to do without giving the attribute's name as an
 argument since the left parenthesis is not a redbaron Node.
 
-.bounding_box
+.relative_box
 -------------
 
-Every node has the :file:`bounding_box` property which holds the
+Every node has the :file:`relative_box` property which holds the
 top-left and bottom-right position of the node. Compared to the
-:file:`absolute_bounding_box` property, it assumes the node is the
+:file:`box` property, it assumes the node is the
 root node so the top-left position is always :file:`(1, 1)`.
 
 .. ipython:: python
 
     red = RedBaron("def a(): return 42")
-    red.funcdef.value.absolute_bounding_box
-    red.funcdef.value.bounding_box
+    red.funcdef.value.box
+    red.funcdef.value.relative_box
 
 .find_by_position()
 -------------------

@@ -42,7 +42,7 @@ class NodeProperty:
         if isinstance(value, (dict, list)):
             value = self.fst_to_node(obj, value)
 
-        if value:
+        if value is not None:
             value.parent = obj
             value.on_attribute = self.name
         return value
@@ -54,9 +54,7 @@ class NodeProperty:
         if not value:
             return None
 
-        node = obj.from_fst(value)
-        assert value["type"] == node.type, f"{value['type']} != {node.type}"
-        return node
+        return obj.from_fst(value)
 
     def after_set(self, after_set):
         new_property = self.copy()
@@ -158,3 +156,16 @@ def set_name_for_node_properties(cls):
                 attr_name = attr_name[:-1]
                 setattr(cls, attr_name, attr)
             attr.name = attr_name
+
+
+class AliasProperty:
+    def __init__(self, aliased_name):
+        self.aliased_name = aliased_name
+
+    def __get__(self, obj, objtype=None):
+        if not obj:
+            return self
+        return getattr(obj, self.aliased_name)
+
+    def __set__(self, obj, value):
+        setattr(obj, self.aliased_name, value)
