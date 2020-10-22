@@ -2,14 +2,8 @@ from redbaron.utils import (deindent_str,
                             in_a_shell,
                             in_ipython,
                             indent_str,
-                            redbaron_classname_to_baron_type,
                             squash_successive_duplicates,
                             truncate)
-
-
-def test_redbaron_classname_to_baron_type():
-    assert redbaron_classname_to_baron_type("SpaceNode") == 'space'
-    assert redbaron_classname_to_baron_type("RawStringNode") == 'raw_string'
 
 
 def test_in_a_shell():

@@ -18,7 +18,6 @@ from .utils import (deindent_str,
                     in_a_shell,
                     in_ipython,
                     indent_str,
-                    redbaron_classname_to_baron_type,
                     squash_successive_duplicates,
                     truncate)
 
@@ -223,10 +222,9 @@ class BaseNode:
     def previous_nodelist(self):
         return next(self.previous_neighbors_nodelist, None)
 
-    def to_baron_type(self):
-        name = self.__name__
-        name = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name.replace("Node", ""))
-        return re.sub('([a-z0-9])([A-Z])', r'\1_\2', name).lower()
+    @property
+    def type(self):
+        return type(self).baron_type
 
 class IndentationMixin:
     def __init__(self, indent):
@@ -407,15 +405,12 @@ class NodeRegistration(type):
     def __init__(cls, name, bases, attrs):
         super().__init__(name, bases, attrs)
         if name not in ("Node", "IterableNode"):
-            baron_type = redbaron_classname_to_baron_type(name)
-            NodeRegistration.register_type(baron_type, cls)
-            if baron_type in NODES_RENDERING_ORDER:
-                cls.define_attributes_from_baron(baron_type)  # pylint: disable=no-value-for-parameter
+            NodeRegistration.register_type(cls)
+            if cls.baron_type in NODES_RENDERING_ORDER:
+                cls.define_attributes_from_baron(cls.baron_type)  # pylint: disable=no-value-for-parameter
         set_name_for_node_properties(cls)  # pylint: disable=no-value-for-parameter
 
     def define_attributes_from_baron(cls, baron_type):
-        cls.type = baron_type
-
         cls._str_keys = ["type"]
         cls._list_keys = []
         cls._dict_keys = []
@@ -437,8 +432,8 @@ class NodeRegistration(type):
                 raise Exception(f"Invalid kind {kind} for {baron_type}.{key}")
 
     @classmethod
-    def register_type(mcs, baron_type, node_class):
-        mcs.node_type_mapping[baron_type] = node_class
+    def register_type(mcs, node_class):
+        mcs.node_type_mapping[node_class.baron_type] = node_class
 
     @classmethod
     def class_from_baron_type(mcs, baron_type):
@@ -450,6 +445,14 @@ class NodeRegistration(type):
     @classmethod
     def all_types(mcs):
         return mcs.node_type_mapping
+
+    @property
+    def baron_type(cls):
+        name = cls.__name__
+        name = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name.replace("Node", ""))
+        computed_name = re.sub('([a-z0-9])([A-Z])', r'\1_\2', name).lower()
+
+        return getattr(cls, "_baron_type", computed_name)
 
 
 class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
@@ -686,8 +689,8 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
     @classmethod
     def generate_identifiers(cls):
         ids = [
-            redbaron_classname_to_baron_type(cls.__name__),
-            redbaron_classname_to_baron_type(cls.__name__) + "_",
+            cls.baron_type,
+            cls.baron_type + "_",
             cls.__name__,
             cls.__name__.replace("Node", ""),
         ]
@@ -841,7 +844,7 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
 
     @classmethod
     def _baron_attributes(cls):
-        return NODES_RENDERING_ORDER[cls.type]
+        return NODES_RENDERING_ORDER[cls.baron_type]
 
     def has_render_key(self, target_key):
         for _, _, key in baron.render.render(self.fst()):
