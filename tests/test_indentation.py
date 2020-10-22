@@ -23,15 +23,6 @@ def test_increase_indentation():
 def test_decrease_indentation():
     red = RedBaron(test_indent_code)
     red.decrease_indentation("  ")
-    indented_code = """
-def a():
-  # plop
-  1 + 2
-  if caramba:
-      plop
-  pouf
-"""
-    assert deindent_str(test_indent_code, "  ") == indented_code
     assert red.dumps() == deindent_str(test_indent_code, "  ")
 
 

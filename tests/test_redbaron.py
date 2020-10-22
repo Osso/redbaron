@@ -26,10 +26,3 @@ def test_index_raw():
 def test_regression_find_all_recursive():
     red = RedBaron("a.b()")
     assert red[0].value("name", recursive=False) == [red.name, red("name")[1]]
-
-
-def test_truncate():
-    assert truncate("1234", 2) == "1234"
-    assert truncate("12345", 4) == "12345"
-    assert truncate("123456", 5) == "1...6"
-    assert truncate("12345678901234567890", 10) == "123456...0"

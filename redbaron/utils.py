@@ -14,10 +14,6 @@ def redbaron_classname_to_baron_type(name):
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', name).lower()
 
 
-def log(msg, *args):
-    logger.DEBUG(msg, *args)
-
-
 def in_a_shell():
     # the isinstance here is for building sphinx doc
     if isinstance(sys.stdout, StringIO):
@@ -72,18 +68,6 @@ def truncate(text, n):
     truncated[-3:-1] = ['.', '.', '.']
     del truncated[n-4:-4]
     return "".join(truncated)
-
-
-def display_property_atttributeerror_exceptions(function):
-    def wrapper(*args, **kwargs):
-        try:
-            return function(*args, **kwargs)
-        except AttributeError:
-            import traceback
-            traceback.print_exc()
-            raise
-
-    return wrapper
 
 
 def squash_successive_duplicates(iterable):
