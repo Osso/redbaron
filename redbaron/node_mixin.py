@@ -130,6 +130,9 @@ class CodeBlockMixin:
     def extend(self, other):
         self.value.extend(other)
 
+    def __getitem__(self, index):
+        return self.value[index]
+
 class IndentedCodeBlockMixin(CodeBlockMixin):
     @nodelist_property(CodeProxyList)
     def value(self, value):
