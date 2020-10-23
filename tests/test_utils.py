@@ -31,7 +31,29 @@ def a():
             plop
         pouf
 """
-    assert indent_str(test_indent_code, "    ") == "    " + indented_code
+    assert indent_str(test_indent_code, "    ") == indented_code
+
+
+def test_indent_str_empty_line():
+    test_indent_code = """
+def a():
+    # plop
+    1 + 2
+
+    if caramba:
+        plop
+    pouf
+"""
+    indented_code = """
+    def a():
+        # plop
+        1 + 2
+
+        if caramba:
+            plop
+        pouf
+"""
+    assert indent_str(test_indent_code, "    ") == indented_code
 
 
 def test_deindent_str():

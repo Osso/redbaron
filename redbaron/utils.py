@@ -33,7 +33,7 @@ def indent_str(block_of_text, indentation):
 
     Take a block of text, an indentation string and return the indented block.
     """
-    return "\n".join([indentation + line
+    return "\n".join([indentation + line if line else line
                       for line in block_of_text.split("\n")]).rstrip(" ")
 
 
