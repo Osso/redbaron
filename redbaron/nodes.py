@@ -1060,7 +1060,7 @@ class WithContextItemNode(Node):
         return self.as_
 
 
-class WithNode(IndentedCodeBlockMixin):
+class WithNode(IndentedCodeBlockMixin, IterableNode):
     @nodelist_property(CommaProxyList)
     def contexts(self, value):
         return baron.parse("with %s: pass" % value)[0]["contexts"]
