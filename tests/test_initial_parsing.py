@@ -36,7 +36,7 @@ def test_is_list():
 
 def test_name():
     red = RedBaron("a\n")
-    assert len(red.node_list) == 2
+    assert len(red.value.node_list) == 2
     assert isinstance(red.value.node_list[0], NameNode)
     assert isinstance(red.value.node_list[1], EndlNode)
     assert red[0].value == "a"
