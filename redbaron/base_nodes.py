@@ -577,7 +577,7 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
         previous = None
         target = self.parent
         while target is not None:
-            for i in reversed(target._generate_nodes_in_rendering_order()):
+            for i in reversed(list(target._generate_nodes_in_rendering_order())):
                 if i is self and previous is not None:
                     return previous
                 previous = i
@@ -754,6 +754,13 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
             'previous_neighbors',
             'replace',
             'to_python',
+            'consume_leftover_endl',
+            'consume_leftover_indentation',
+            'on_attribute_from_str',
+            'set_attributes_from_fst',
+            'set_on_attribute_node',
+            'to_node',
+            'baron_index_on_parent',
         ])
         return [x for x in dir(self) if not x.startswith("_") and
                 x not in not_helpers and inspect.ismethod(getattr(self, x))]
