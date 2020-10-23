@@ -3,14 +3,13 @@ from redbaron.utils import (in_a_shell,
 
 from .base_nodes import (Node,
                          NodeList)
-from .utils import indent_str
 
 
 class ProxyList(NodeList):
     strict_separator = True
     middle_separator = None
 
-    def __init__(self, node_list, parent=None, on_attribute="value",
+    def __init__(self, node_list, parent=None, on_attribute=None,
                  trailing_separator=False):
         super().__init__(node_list, parent=parent, on_attribute=on_attribute)
         self.header = []
@@ -18,12 +17,10 @@ class ProxyList(NodeList):
         self._data = []
         self.trailing_separator = trailing_separator
         self.separator_type = type(self.middle_separator)
-        self._node_list_to_data()
-        assert isinstance(self._data, list)
-        self._synchronise()
+        self.replace_node_list(node_list)
 
     def _node_list_to_data(self):
-        from .nodes import LeftParenthesisNode, RightParenthesisNode
+        from .nodes import LeftParenthesisNode, RightParenthesisNode, SpaceNode
 
         data = []
         self.header = []
@@ -59,6 +56,8 @@ class ProxyList(NodeList):
                     data.append([empty_el, node])
                 else:
                     data[-1][1] = node
+            elif isinstance(node, SpaceNode):
+                pass
             else:
                 if data and data[-1][1] is None and self.strict_separator:
                     raise Exception("node_list is missing separator "
@@ -118,7 +117,6 @@ class ProxyList(NodeList):
     def make_separator(self):
         separator = self.middle_separator.copy()
         separator.parent = self
-        separator.on_attribute = self.on_attribute
         return separator
 
     def make_empty_el(self, value=""):
@@ -140,7 +138,7 @@ class ProxyList(NodeList):
         return len(self._data)
 
     def _insert(self, index, item):
-        value = Node.generic_from_str(item, parent=self)
+        value = Node.to_node(item)
         self._check_for_separator(index)
         sep = self.make_separator() if self.strict_separator else None
         self._data.insert(index, [value, sep])
@@ -262,16 +260,21 @@ class ProxyList(NodeList):
         self._data = new_data
         self._synchronise()
 
+    def replace_node_list(self, new_data):
+        self.data = new_data
+        self._node_list_to_data()
+        self._synchronise()
+
 
 class SpaceProxyList(ProxyList):
-    def __init__(self, node_list, parent=None, on_attribute="value"):
+    def __init__(self, node_list, parent=None, on_attribute=None):
         from .nodes import SpaceNode
         self.middle_separator = SpaceNode()
         super().__init__(node_list, parent=parent, on_attribute=on_attribute)
 
 
 class CommaProxyList(ProxyList):
-    def __init__(self, node_list, parent=None, on_attribute="value"):
+    def __init__(self, node_list, parent=None, on_attribute=None):
         from .nodes import CommaNode
         self.style = "flat"
         self.middle_separator = CommaNode()
@@ -289,7 +292,7 @@ class CommaProxyList(ProxyList):
 class DotProxyList(ProxyList):
     strict_separator = False
 
-    def __init__(self, node_list, parent=None, on_attribute="value"):
+    def __init__(self, node_list, parent=None, on_attribute=None):
         from .nodes import DotNode
         self.middle_separator = DotNode()
         super().__init__(node_list, parent=parent, on_attribute=on_attribute)
@@ -298,7 +301,7 @@ class DotProxyList(ProxyList):
 class LineProxyList(ProxyList):
     strict_separator = False
 
-    def __init__(self, node_list, parent=None, on_attribute="value"):
+    def __init__(self, node_list, parent=None, on_attribute=None):
         from .nodes import EndlNode
         self.middle_separator = EndlNode()
         super().__init__(node_list, parent=parent, on_attribute=on_attribute,
@@ -306,7 +309,7 @@ class LineProxyList(ProxyList):
 
 
 class CodeProxyList(LineProxyList):
-    def __init__(self, node_list, parent=None, on_attribute="value",
+    def __init__(self, node_list, parent=None, on_attribute=None,
                  trailing_separator=False):
         super().__init__(node_list, parent=parent, on_attribute=on_attribute)
         self._synchronise()
@@ -348,10 +351,15 @@ class CodeProxyList(LineProxyList):
 
 
     def _insert(self, index, item):
-        code_list = self.on_attribute_from_str(item)
-        for endl in code_list.header:
-            self._data.insert(index, [self.make_empty_el(), endl])
-            index += 1
-        for el in code_list._data:
-            self._data.insert(index, el)
-            index += 1
+        if isinstance(item, str):
+            code_list = self.on_attribute_from_str(item)
+            for endl in code_list.header:
+                self._data.insert(index, [self.make_empty_el(), endl])
+                index += 1
+            for el in code_list._data:
+                self._data.insert(index, el)
+                index += 1
+        elif isinstance(item, self.separator_type):
+            self._data.insert(index, [self.make_empty_el(), item])
+        else:
+            self._data.insert(index, [item, None])

@@ -292,10 +292,9 @@ class A:
 
     def b(self):
         pass
-
 """)
 
-    red[0].append("class C:\n    pass\n")
+    red[0].append("\nclass C:\n    pass\n")
 
     assert_with_indent(red, """\
 class A:
@@ -318,7 +317,7 @@ def a(self, a):
     return False
 """)
 
-    red.def_.insert(0, "a = 1\n")
+    red.find("def").insert(0, "a = 1\n")
 
     assert_with_indent(red, """\
 def a(self, a):

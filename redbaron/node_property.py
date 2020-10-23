@@ -80,12 +80,14 @@ class NodeListProperty(NodeProperty):
 
         def _convert(el):
             if isinstance(el, str):
-                return Node.generic_from_str(el)
+                return Node.generic_from_str(el, parent=node_list)
             if isinstance(el, dict):
-                return Node.generic_from_fst(el)
+                return Node.generic_from_fst(el, parent=node_list)
             return el
-        nodes = [_convert(el) for el in value]
-        return self.list_type(nodes)
+
+        node_list = self.list_type([], parent=obj, on_attribute=self.name)
+        node_list.replace_node_list([_convert(el) for el in value])
+        return node_list
 
     def __get__(self, obj, objtype=None):
         if not obj:

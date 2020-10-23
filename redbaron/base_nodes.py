@@ -117,7 +117,7 @@ class BaseNode:
         raise NotImplementedError()
 
     def dumps(self):
-        return baron.dumps(self.fst())
+        return self.indentation + baron.dumps(self.fst())
 
     def find_all(self, identifier, *args, **kwargs):
         return list(self.find_iter(identifier, *args, **kwargs))
@@ -230,6 +230,21 @@ class BaseNode:
         node_property = getattr(type(self.parent), self.on_attribute)
         return node_property.to_value(self, source_code)
 
+    @classmethod
+    def to_node(cls, value, parent=None, on_attribute=None):
+        if isinstance(value, str):
+            node = cls.generic_from_str(value, parent=parent,
+                                        on_attribute=on_attribute)
+        elif isinstance(value, dict):
+            node = cls.generic_from_fst(value, parent=parent,
+                                        on_attribute=on_attribute)
+        else:
+            node = value
+            node.parent = parent
+            node.on_attribute = on_attribute
+
+        return node
+
 
 class IndentationMixin:
     def __init__(self, indent):
@@ -239,13 +254,13 @@ class IndentationMixin:
     @property
     def indentation(self):
         if self.on_attribute:
-            raise ValueError("Unhandled indentation on a node attribute")
+            raise ValueError("Unhandled indentation on a node list attribute")
         return self.indent.value
 
     @indentation.setter
     def indentation(self, value):
         if self.on_attribute:
-            raise ValueError("Unhandled indentation on a node attribute")
+            raise ValueError("Unhandled indentation on a node list attribute")
         self.indent.value = value
 
     @property
@@ -403,6 +418,9 @@ class NodeList(UserList, BaseNode, IndentationMixin):
             raise ValueError("Cannot indent detached node")
 
         self.replace(indented_str)
+
+    def replace_node_list(self, new_data):
+        self.replace_data(new_data)
 
 
 class NodeRegistration(type):
@@ -833,14 +851,6 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
         # not very optimised but at least very simple
         return Node.generic_from_fst(self.fst(), parent=self,
                                      on_attribute=self.on_attribute)
-
-    def __setattr__(self, name, value):
-        # convert "async_" to "async"
-        # (but we don't want to mess with "__class__" for example)
-        if name.endswith("_") and not name.endswith("__"):
-            name = name[:-1]
-
-        return super().__setattr__(name, value)
 
     @classmethod
     def _baron_attributes(cls):

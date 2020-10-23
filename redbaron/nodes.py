@@ -902,6 +902,10 @@ class SpaceNode(SeparatorMixin, Node):
         return cls({"type": "space", "value": value}, parent=parent,
                    on_attribute=on_attribute)
 
+    def consume_leftover_indentation(self):
+        indent = self.value  # pylint: disable=access-member-before-definition
+        self.value = ""  # pylint: disable=attribute-defined-outside-init
+        return indent
 
 class StandaloneAnnotationNode(Node):
     pass
