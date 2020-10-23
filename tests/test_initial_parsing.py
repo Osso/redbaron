@@ -134,7 +134,7 @@ def test_help_is_not_crashing3():
 def test_help_is_not_crashing4():
     some_code = "a(b)"
     red = RedBaron(some_code)
-    red[0].call.append("c")
+    red[0].find("call").append("c")
     red.help()
     red[0].help()
     red.help(5)
@@ -185,7 +185,6 @@ def test_assign_node_list():
     tree.value = "pouet"
     assert tree.value[0].value == "pouet"
     assert tree.value[0].type == "name"
-    assert isinstance(tree.value.node_list, NodeList)
     assert isinstance(tree.value, CommaProxyList)
     tree.value = ["pouet"]
     assert tree.value[0].value == "pouet"

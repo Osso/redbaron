@@ -140,7 +140,6 @@ class CodeBlockMixin:
 class IndentedCodeBlockMixin(CodeBlockMixin):
     @nodelist_property(CodeProxyList)
     def value(self, value):
-        import pdb; pdb.set_trace()
         value = indent_str(value, self.el_indentation)
         fst = baron.parse("while a:\n%s" % value)[0]['value']
         fst[0] = {"type": "space", "value": fst[0]['indent']}
