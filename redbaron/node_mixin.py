@@ -133,11 +133,21 @@ class CodeBlockMixin:
     def __getitem__(self, index):
         return self.value[index]
 
+    @property
+    def el_indentation(self):
+        return self.indentation
+
 class IndentedCodeBlockMixin(CodeBlockMixin):
     @nodelist_property(CodeProxyList)
     def value(self, value):
-        value = indent_str(value, self.indent_unit)
-        return baron.parse(value)
+        value = indent_str(value, self.el_indentation)
+        fst = baron.parse("while a:\n%s" % value)[0]['value']
+        fst[0] = {"type": "space", "value": fst[0]['indent']}
+        return fst
+
+    @property
+    def el_indentation(self):
+        return self.indentation + self.indent_unit
 
 
 class IfElseBlockSiblingMixin:

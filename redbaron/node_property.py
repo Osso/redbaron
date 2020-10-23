@@ -54,7 +54,7 @@ class NodeProperty:
         if not value:
             return None
 
-        return obj.from_fst(value)
+        return Node.generic_from_fst(value, parent=obj)
 
     def after_set(self, after_set):
         new_property = self.copy()

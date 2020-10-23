@@ -33,6 +33,7 @@ class BaseNode:
     that are used by both.
     """
     _leftover_indentation = ""
+    indent_unit = 4 * " "
 
     def __init__(self, parent, on_attribute):
         self.parent = parent
@@ -126,9 +127,6 @@ class BaseNode:
 
     def find(self, identifier, *args, **kwargs):
         return next(self.find_iter(identifier, *args, **kwargs), None)
-
-    def from_str(self, value: str, on_attribute=None):
-        raise NotImplementedError()
 
     def replace(self, new_node):
         self.set_on_attribute_node(new_node)
@@ -226,6 +224,13 @@ class BaseNode:
     def type(self):
         return type(self).baron_type
 
+    def on_attribute_from_str(self, source_code: str):
+        assert self.parent
+        assert self.on_attribute
+        node_property = getattr(type(self.parent), self.on_attribute)
+        return node_property.to_value(self, source_code)
+
+
 class IndentationMixin:
     def __init__(self, indent):
         self.indent = NodeConstant(indent, parent=self, on_attribute="indent")
@@ -280,7 +285,7 @@ class NodeList(UserList, BaseNode, IndentationMixin):
 
     @classmethod
     def generic_from_fst(cls, fst_list, parent=None, on_attribute=None):
-        assert parent is None or isinstance(parent, Node)
+        assert parent is None or isinstance(parent, BaseNode)
         nodes = [Node.generic_from_fst(n) for n in fst_list]
         return cls(nodes, parent=parent, on_attribute=on_attribute)
 
@@ -511,20 +516,12 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
         cls = NodeRegistration.class_from_baron_type(fst['type'])
         return cls(fst, parent=parent, on_attribute=on_attribute)
 
-    def from_fst(self, fst, on_attribute=None):
-        return Node.generic_from_fst(fst, parent=self,
-                                     on_attribute=on_attribute)
-
     @staticmethod
-    def generic_from_str(value: str, parent=None, on_attribute=None):
-        assert isinstance(value, str)
-        fst = baron.parse(value)
+    def generic_from_str(source_code: str, parent=None, on_attribute=None):
+        assert isinstance(source_code, str)
+        fst = baron.parse(source_code)
         assert len(fst) == 1
         return Node.generic_from_fst(fst[0], parent=parent,
-                                     on_attribute=on_attribute)
-
-    def from_str(self, value: str, on_attribute=None):
-        return Node.generic_from_str(value, parent=self,
                                      on_attribute=on_attribute)
 
     @property
@@ -834,7 +831,8 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
 
     def copy(self):
         # not very optimised but at least very simple
-        return self.from_fst(self.fst(), on_attribute=self.on_attribute)
+        return Node.generic_from_fst(self.fst(), parent=self,
+                                     on_attribute=self.on_attribute)
 
     def __setattr__(self, name, value):
         # convert "async_" to "async"

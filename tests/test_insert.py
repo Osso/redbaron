@@ -106,9 +106,9 @@ def test_insert_class_with_class_1(red_A_B):
     assert_with_indent(red_A_B, """\
 class A:
     pass
-
 class C:
     pass
+
 class B:
     pass
 """)
@@ -121,6 +121,20 @@ def test_insert_class_with_class_2(red_A_B):
 class A:
     pass
 
+class C:
+    pass
+class B:
+    pass
+""")
+
+
+def test_insert_class_with_class_3(red_A_B):
+    red_A_B.insert(3, "class C:\n    pass\n")
+
+    assert_with_indent(red_A_B, """\
+class A:
+    pass
+
 class B:
     pass
 class C:
@@ -128,8 +142,8 @@ class C:
 """)
 
 
-def test_insert_class_with_class_3(red_A_B):
-    red_A_B.insert(3, "class C:\n    pass\n")
+def test_insert_class_with_class_4(red_A_B):
+    red_A_B.insert(4, "class C:\n    pass\n")
 
     assert_with_indent(red_A_B, """\
 class A:
@@ -253,10 +267,9 @@ class A:
 
     def b(self):
         pass
-
 """)
 
-    red[0].append("def c(self):\n    pass\n")
+    red[0].append("\ndef c(self):\n    pass\n")
 
     assert_with_indent(red, """\
 class A:

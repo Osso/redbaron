@@ -3,6 +3,7 @@ from redbaron.utils import (in_a_shell,
 
 from .base_nodes import (Node,
                          NodeList)
+from .utils import indent_str
 
 
 class ProxyList(NodeList):
@@ -209,7 +210,7 @@ class ProxyList(NodeList):
         self._synchronise()
 
     def __setslice__(self, i, j, value):
-        _nodes = self.from_str(value)
+        _nodes = Node.generic_from_str(value, parent=self)
         self._check_for_separator(i)
         self._data[i:j] = ([node, self.make_separator()] for node in _nodes)
         self._synchronise()
@@ -337,3 +338,20 @@ class CodeProxyList(LineProxyList):
     def consume_leftover_endl(self):
         self.move_endl_to_leftover()
         return super().consume_leftover_endl()
+
+    @property
+    def el_indentation(self):
+        if not self.parent:
+            return ""
+
+        return self.parent.el_indentation
+
+
+    def _insert(self, index, item):
+        code_list = self.on_attribute_from_str(item)
+        for endl in code_list.header:
+            self._data.insert(index, [self.make_empty_el(), endl])
+            index += 1
+        for el in code_list._data:
+            self._data.insert(index, el)
+            index += 1
