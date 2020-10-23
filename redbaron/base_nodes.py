@@ -238,11 +238,12 @@ class BaseNode:
         elif isinstance(value, dict):
             node = cls.generic_from_fst(value, parent=parent,
                                         on_attribute=on_attribute)
-        else:
+        elif isinstance(value, BaseNode):
             node = value
             node.parent = parent
             node.on_attribute = on_attribute
-
+        else:
+            raise ValueError(f"Invalid value {value} for to_node()")
         return node
 
 
@@ -854,8 +855,7 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
 
     def copy(self):
         # not very optimised but at least very simple
-        return Node.generic_from_fst(self.fst(), parent=self,
-                                     on_attribute=self.on_attribute)
+        return Node.generic_from_fst(self.fst())
 
     @classmethod
     def _baron_attributes(cls):

@@ -12,7 +12,8 @@ from .node_mixin import (AnnotationMixin,
                          IndentedCodeBlockMixin,
                          LiteralyEvaluableMixin,
                          ReturnAnnotationMixin,
-                         SeparatorMixin)
+                         SeparatorMixin,
+                         ValueIterableMixin)
 from .node_property import (NodeListProperty,
                             NodeProperty,
                             conditional_formatting_property,
@@ -133,7 +134,7 @@ class BreakNode(Node):
     pass
 
 
-class CallNode(Node):
+class CallNode(ValueIterableMixin, Node):
     @nodelist_property(CommaProxyList)
     def value(self, value):
         return baron.parse("a(%s)" % value)[0]["value"][1]["value"]

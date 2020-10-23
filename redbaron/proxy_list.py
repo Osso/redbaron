@@ -203,7 +203,7 @@ class ProxyList(NodeList):
         if isinstance(index, slice):
             self.__setslice__(index.start, index.stop, value)
         else:
-            self._data[index][0] = self.parent.from_str(value)
+            self._data[index][0] = Node.to_node(value, parent=self)
         self._synchronise()
 
     def __setslice__(self, i, j, value):

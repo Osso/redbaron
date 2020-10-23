@@ -83,7 +83,22 @@ class ReturnAnnotationMixin:
                 self.return_annotation_second_formatting = [" "]
 
 
-class CodeBlockMixin:
+class ValueIterableMixin:
+    def insert(self, i, item):
+        self.value.insert(i, item)
+
+    def append(self, item):
+        self.value.append(item)
+
+    def extend(self, other):
+        self.value.extend(other)
+
+    def __getitem__(self, index):
+        return self.value[index]
+
+
+
+class CodeBlockMixin(ValueIterableMixin):
     value = NodeListProperty(CodeProxyList)
 
     @property
@@ -120,18 +135,6 @@ class CodeBlockMixin:
     def decrease_indentation(self, indent):
         super().decrease_indentation(indent)
         self.value.decrease_indentation(indent)
-
-    def insert(self, i, item):
-        self.value.insert(i, item)
-
-    def append(self, item):
-        self.value.append(item)
-
-    def extend(self, other):
-        self.value.extend(other)
-
-    def __getitem__(self, index):
-        return self.value[index]
 
     @property
     def el_indentation(self):
