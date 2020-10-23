@@ -91,12 +91,6 @@ def test_dumps():
     assert some_code == red.dumps()
 
 
-def test_fst():
-    some_code = "ax + (z * 4)"
-    red = RedBaron(some_code)
-    assert baron.parse(some_code) == red.fst()
-
-
 def test_get_helpers():
     red = RedBaron("a")
     assert red[0]._get_helpers() == []
