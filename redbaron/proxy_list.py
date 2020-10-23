@@ -98,8 +98,7 @@ class ProxyList(NodeList):
                 return
             if el.indentation:
                 expected_list.append(self.make_empty_el(el.indentation))
-            if not isinstance(el, EmptyLineNode):
-                expected_list.append(el)
+            expected_list.append(el)
 
 
         for el in self.header:

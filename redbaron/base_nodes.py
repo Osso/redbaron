@@ -117,7 +117,7 @@ class BaseNode:
         raise NotImplementedError()
 
     def dumps(self):
-        return self.indentation + baron.dumps(self.fst())
+        return baron.dumps(self.fst())
 
     def find_all(self, identifier, *args, **kwargs):
         return list(self.find_iter(identifier, *args, **kwargs))
@@ -250,18 +250,6 @@ class IndentationMixin:
     def __init__(self, indent):
         self.indent = NodeConstant(indent, parent=self, on_attribute="indent")
         self.leftover_endl = []
-
-    @property
-    def indentation(self):
-        if self.on_attribute:
-            raise ValueError("Unhandled indentation on a node list attribute")
-        return self.indent.value
-
-    @indentation.setter
-    def indentation(self, value):
-        if self.on_attribute:
-            raise ValueError("Unhandled indentation on a node list attribute")
-        self.indent.value = value
 
     @property
     def leftover_indentation(self):
@@ -421,6 +409,16 @@ class NodeList(UserList, BaseNode, IndentationMixin):
 
     def replace_node_list(self, new_data):
         self.replace_data(new_data)
+
+    @property
+    def indentation(self):
+        if self.on_attribute:
+            raise ValueError("Unhandled indentation on a node list attribute")
+
+    @indentation.setter
+    def indentation(self, value):
+        if self.on_attribute:
+            raise ValueError("Unhandled indentation on a node list attribute")
 
 
 class NodeRegistration(type):
@@ -911,6 +909,17 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
 
     def decrease_indentation(self, indent):
         self.indentation = self.indentation[len(indent):]
+
+    def dumps(self):
+        return self.indentation + super().dumps()
+
+    @property
+    def indentation(self):
+        return self.indent.value
+
+    @indentation.setter
+    def indentation(self, value):
+        self.indent.value = value
 
 
 class IterableNode(Node):

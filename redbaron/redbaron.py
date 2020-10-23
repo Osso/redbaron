@@ -11,3 +11,12 @@ class RedBaron(CodeBlockMixin, IterableNode):
     def __init__(self, source_code: str):
         super().__init__()
         self.value = source_code
+
+    @property
+    def indentation(self):
+        return ""
+
+    @indentation.setter
+    def indentation(self, value):
+        if self.on_attribute:
+            raise ValueError("Unhandled indentation on root")
