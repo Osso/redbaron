@@ -535,7 +535,7 @@ def a(self, a):
 def test_dont_add_newlines_after_import():
     red = RedBaron("import a\n\nimport b\n\npouet\n")
     red.append("plop")
-    assert red.dumps() == "import a\n\nimport b\n\npouet\nplop\n"
+    assert red.dumps() == "import a\n\nimport b\n\npouet\nplop"
 
 
 def test_insert_before():
