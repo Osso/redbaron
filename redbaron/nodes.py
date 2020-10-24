@@ -47,7 +47,7 @@ class AssertNode(Node):
         return self.message
 
 
-class AssignmentNode(Node, AnnotationMixin):
+class AssignmentNode(AnnotationMixin, Node):
     _other_identifiers = ["assign"]
     _operator = ''
 
@@ -726,7 +726,7 @@ class ListComprehensionNode(Node):
         return baron.parse("[%s for x in x]" % value)[0]["result"]
 
 
-class ListNode(Node, LiteralyEvaluableMixin, ValueIterableMixin):
+class ListNode(ValueIterableMixin, LiteralyEvaluableMixin, Node):
     @nodelist_property(CommaProxyList)
     def value(self, value):
         return baron.parse("[%s]" % value)[0]["value"]
@@ -736,7 +736,7 @@ class LongNode(Node):
     pass
 
 
-class NameNode(Node, LiteralyEvaluableMixin):
+class NameNode(LiteralyEvaluableMixin, Node):
     pass
 
 
@@ -773,7 +773,7 @@ class NonlocalNode(Node):
         return baron.parse("global %s" % value)[0]["value"]
 
 
-class OctaNode(Node, LiteralyEvaluableMixin):
+class OctaNode(LiteralyEvaluableMixin, Node):
     pass
 
 
@@ -832,7 +832,7 @@ class RaiseNode(Node):
         return baron.parse("raise a, b, %s" % value)[0]["traceback"]
 
 
-class RawStringNode(Node, LiteralyEvaluableMixin):
+class RawStringNode(LiteralyEvaluableMixin, Node):
     pass
 
 
@@ -909,6 +909,7 @@ class SpaceNode(SeparatorMixin, Node):
         self.value = ""  # pylint: disable=attribute-defined-outside-init
         return indent
 
+
 class StandaloneAnnotationNode(Node):
     pass
 
@@ -921,11 +922,11 @@ class StarNode(Node):
     pass
 
 
-class StringNode(Node, LiteralyEvaluableMixin):
+class StringNode(LiteralyEvaluableMixin, Node):
     pass
 
 
-class StringChainNode(Node, LiteralyEvaluableMixin):
+class StringChainNode(LiteralyEvaluableMixin, Node):
     @nodelist_property(NodeList)
     def value(self, value):
         return baron.parse("a = %s" % value)[0]["value"]["value"]
@@ -977,7 +978,7 @@ class TryNode(IndentedCodeBlockMixin, Node):
         return self.excepts[-1]  # pylint: disable=unsubscriptable-object
 
 
-class TupleNode(Node, LiteralyEvaluableMixin):
+class TupleNode(ValueIterableMixin, LiteralyEvaluableMixin, Node):
     @nodelist_property(CommaProxyList)
     def value(self, value):
         fst = baron.parse("(%s)" % value)[0]["value"]
@@ -991,11 +992,11 @@ class TupleNode(Node, LiteralyEvaluableMixin):
         return fst
 
 
-class UnicodeStringNode(Node, LiteralyEvaluableMixin):
+class UnicodeStringNode(LiteralyEvaluableMixin, Node):
     pass
 
 
-class UnicodeRawStringNode(Node, LiteralyEvaluableMixin):
+class UnicodeRawStringNode(LiteralyEvaluableMixin, Node):
     pass
 
 

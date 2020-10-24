@@ -118,7 +118,6 @@ class ValueIterableMixin:
         self.value.extend(other)
 
 
-
 class CodeBlockMixin(ValueIterableMixin):
     value = NodeListProperty(CodeProxyList)
 
