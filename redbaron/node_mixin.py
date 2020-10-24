@@ -84,6 +84,30 @@ class ReturnAnnotationMixin:
 
 
 class ValueIterableMixin:
+    def __len__(self):
+        return len(self.value)
+
+    def __getitem__(self, index):
+        return self.value[index]
+
+    def __getslice__(self, i, j):
+        return self.value.__getslice__(i, j)
+
+    def __setitem__(self, key, value):
+        self.value[key] = value
+
+    def __setslice__(self, i, j, value):
+        return self.value.__setslice__(i, j, value)
+
+    def __delitem__(self, key):
+        del self.value[key]
+
+    def __delslice__(self, i, j):
+        self.value.__delslice__(i, j)
+
+    def index(self, item):
+        return self.value.index(item)
+
     def insert(self, i, item):
         self.value.insert(i, item)
 
@@ -92,9 +116,6 @@ class ValueIterableMixin:
 
     def extend(self, other):
         self.value.extend(other)
-
-    def __getitem__(self, index):
-        return self.value[index]
 
 
 

@@ -38,20 +38,27 @@ def test_assignment():
     assert red[0].target.value == "a"
 
 
-def test_binary_operator():
-    red = RedBaron("z +  42")
-    assert red[0].value == "+"
-    assert isinstance(red[0].first, NameNode)
-    assert red[0].first.value == "z"
-    assert isinstance(red[0].second, IntNode)
-    assert red[0].second.value == "42"
+def test_binary_operator_plus():
+    binop = RedBaron("z +  42")
+    assert binop.value == "+"
+    assert isinstance(binop.first, NameNode)
+    assert binop.first.value == "z"
+    assert isinstance(binop.second, IntNode)
+    assert binop.second.value == "42"
 
-    red = RedBaron("z  -      42")
-    assert red[0].value == "-"
-    assert isinstance(red[0].first, NameNode)
-    assert red[0].first.value == "z"
-    assert isinstance(red[0].second, IntNode)
-    assert red[0].second.value == "42"
+
+def test_binary_operator_minus():
+    binop = RedBaron("z  -      42")[0]
+    assert binop.value == "-"
+    assert isinstance(binop.first, NameNode)
+    assert binop.first.value == "z"
+    assert isinstance(binop.second, IntNode)
+    assert binop.second.value == "42"
+
+
+def test_binary_operator_more_complex():
+    binop = RedBaron("ax + (z * 4)")[0]
+    assert binop.first.value == "ax"
 
 
 def test_pass():

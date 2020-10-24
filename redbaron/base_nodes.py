@@ -432,7 +432,7 @@ class NodeRegistration(type):
 
     def __init__(cls, name, bases, attrs):
         super().__init__(name, bases, attrs)
-        if name not in ("Node", "IterableNode"):
+        if name != "Node":
             NodeRegistration.register_type(cls)
             if cls.baron_type in NODES_RENDERING_ORDER:
                 cls.define_attributes_from_baron(cls.baron_type)  # pylint: disable=no-value-for-parameter
@@ -930,32 +930,6 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
     @indentation.setter
     def indentation(self, value):
         self.indent.value = value
-
-
-class IterableNode(Node):
-    def __len__(self):
-        return len(self.value)
-
-    def __getitem__(self, key):
-        return self.value[key]
-
-    def __getslice__(self, i, j):
-        return self.value.__getslice__(i, j)
-
-    def __setitem__(self, key, value):
-        self.value[key] = value
-
-    def __setslice__(self, i, j, value):
-        return self.value.__setslice__(i, j, value)
-
-    def __delitem__(self, key):
-        del self.value[key]
-
-    def __delslice__(self, i, j):
-        self.value.__delslice__(i, j)
-
-    def index(self, item):
-        return self.value.index(item)
 
 
 class NodeConstant(BaseNode):

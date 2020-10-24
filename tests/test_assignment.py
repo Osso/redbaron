@@ -1,22 +1,21 @@
-from redbaron import RedBaron
+from redbaron import (RedBaron,
+                      node)
 from redbaron.nodes import NameNode
 from redbaron.proxy_list import CommaProxyList
 
 
 def test_assign_on_string_value():
-    some_code = "ax + (z * 4)"
-    red = RedBaron(some_code)
-    binop = red[0]
+    binop = node("ax + (z * 4)")
     assert binop.first.value == "ax"
+
     binop.first.value = "pouet"
     assert binop.first.value == "pouet"
 
 
 def test_assign_on_object_value():
-    some_code = "ax + (z * 4)"
-    red = RedBaron(some_code)
-    binop = red[0]
+    binop = node("ax + (z * 4)")
     assert binop.first.value == "ax"
+
     binop.first = "pouet"  # will be parsed as a name
     assert binop.first.value == "pouet"
     assert binop.first.type == "name"
@@ -26,25 +25,24 @@ def test_assign_on_object_value():
 
 
 def test_assign_on_object_value_fst():
-    some_code = "ax + (z * 4)"
-    red = RedBaron(some_code)
-    binop = red[0]
+    binop = node("ax + (z * 4)")
+    assert binop.first.value == "ax"
+
     binop.first = {"type": "name", "value": "pouet"}
     assert binop.first.value == "pouet"
     assert binop.first.type == "name"
 
 
 def test_assign_node_list():
-    red = RedBaron("[1, 2, 3]")
-    tree = red[0]
-    tree.value = "pouet"
-    assert tree.value[0].value == "pouet"
-    assert tree.value[0].type == "name"
-    assert isinstance(tree.value, CommaProxyList)
-    tree.value = ["pouet"]
-    assert tree.value[0].value == "pouet"
-    assert tree.value[0].type == "name"
-    assert isinstance(tree.value, CommaProxyList)
+    list_node = node("[1, 2, 3]")
+    list_node.value = "pouet"
+    assert list_node.value[0].value == "pouet"
+    assert list_node.value[0].type == "name"
+    assert isinstance(list_node.value, CommaProxyList)
+    list_node.value = ["pouet"]
+    assert list_node.value[0].value == "pouet"
+    assert list_node.value[0].type == "name"
+    assert isinstance(list_node.value, CommaProxyList)
 
 
 def test_assign_node_list_fst():

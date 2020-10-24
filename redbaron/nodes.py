@@ -2,8 +2,7 @@ import re
 
 import baron
 
-from .base_nodes import (IterableNode,
-                         Node,
+from .base_nodes import (Node,
                          NodeList)
 from .node_mixin import (AnnotationMixin,
                          CodeBlockMixin,
@@ -86,7 +85,7 @@ class AssociativeParenthesisNode(Node):
         return baron.parse("(%s)" % value)[0]["value"]
 
 
-class AtomtrailersNode(Node):
+class AtomtrailersNode(ValueIterableMixin, Node):
     @nodelist_property(DotProxyList)
     def value(self, value):
         return baron.parse("(%s)" % value)[0]["value"]["value"]
@@ -151,7 +150,7 @@ class CallArgumentNode(Node):
         return baron.parse(code)[0]["value"][1]["value"][0]["target"]
 
 
-class ClassNode(IndentedCodeBlockMixin, IterableNode, DecoratorsMixin):
+class ClassNode(IndentedCodeBlockMixin, Node, DecoratorsMixin):
     _default_test_value = "name"
     parenthesis = False
 
@@ -239,7 +238,7 @@ class DecoratorNode(Node):
 
 
 class DefNode(IndentedCodeBlockMixin, DecoratorsMixin,
-              ReturnAnnotationMixin, IterableNode):
+              ReturnAnnotationMixin, Node):
     _default_test_value = "name"
 
     @conditional_formatting_property(NodeList, [" "], [])
@@ -288,7 +287,7 @@ class DictitemNode(Node):
         return baron.parse(code)[0]["value"][0]["key"]
 
 
-class DictNode(Node, LiteralyEvaluableMixin):
+class DictNode(ValueIterableMixin, LiteralyEvaluableMixin, Node):
     @nodelist_property(CommaProxyList)
     def value(self, value):
         code = "{%s}" % value
@@ -310,7 +309,7 @@ class DotNode(Node):
         return {"type": "dot", "first_formatting": [], "second_formatting": []}
 
 
-class DottedAsNameNode(IterableNode):
+class DottedAsNameNode(ValueIterableMixin, Node):
     @nodelist_property(DotProxyList)
     def value(self, value):
         code = "import %s" % value
@@ -335,11 +334,11 @@ class DottedAsNameNode(IterableNode):
         return self.target
 
 
-class DottedNameNode(IterableNode):
+class DottedNameNode(ValueIterableMixin, Node):
     pass
 
 
-class ElifNode(IfElseBlockSiblingMixin, IndentedCodeBlockMixin, IterableNode):
+class ElifNode(IfElseBlockSiblingMixin, IndentedCodeBlockMixin, Node):
     @NodeProperty
     def test(self, value):
         code = "if %s: pass" % value
@@ -350,7 +349,7 @@ class EllipsisNode(Node):
     pass
 
 
-class ElseNode(IfElseBlockSiblingMixin, IndentedCodeBlockMixin, IterableNode):
+class ElseNode(IfElseBlockSiblingMixin, IndentedCodeBlockMixin, Node):
     @property
     def next_intuitive(self):
         if self.parent.type == "ifelseblock":
@@ -385,6 +384,7 @@ class EndlNode(Node):
     def __init__(self, *args, **kwargs):
         self._indent = ""
         super().__init__(*args, **kwargs)
+
     def __repr__(self):
         return repr(baron.dumps([self.fst()]))
 
@@ -406,7 +406,7 @@ class EndlNode(Node):
         self._indent = value
 
 
-class ExceptNode(IndentedCodeBlockMixin, IterableNode):
+class ExceptNode(IndentedCodeBlockMixin, Node):
     def else_(self, value):
         value = indent_str(value, self.indent_unit)
         code = "try: pass\nexcept: pass\nelse:\n%s" % value
@@ -497,7 +497,7 @@ class ExecNode(Node):
         return self.globals
 
 
-class FinallyNode(IndentedCodeBlockMixin, IterableNode):
+class FinallyNode(IndentedCodeBlockMixin, Node):
     value = NodeListProperty(LineProxyList)
 
     @property
@@ -515,7 +515,7 @@ class FinallyNode(IndentedCodeBlockMixin, IterableNode):
         return self.parent
 
 
-class ElseAttributeNode(IndentedCodeBlockMixin, IterableNode):
+class ElseAttributeNode(IndentedCodeBlockMixin, Node):
     def _get_last_member_to_clean(self):
         return self
 
@@ -526,7 +526,7 @@ class ElseAttributeNode(IndentedCodeBlockMixin, IterableNode):
         return baron.parse(code)[0]["else"]
 
 
-class ForNode(IndentedCodeBlockMixin, IterableNode):
+class ForNode(IndentedCodeBlockMixin, Node):
     @conditional_formatting_property(NodeList, [" "], [])
     def async_formatting(self):
         return self.async_
@@ -633,13 +633,13 @@ class HexaNode(Node, LiteralyEvaluableMixin):
     pass
 
 
-class IfNode(IfElseBlockSiblingMixin, IndentedCodeBlockMixin, IterableNode):
+class IfNode(IfElseBlockSiblingMixin, IndentedCodeBlockMixin, Node):
     @NodeProperty
     def test(self, value):
         return baron.parse("if %s: pass" % value)[0]["value"][0]["test"]
 
 
-class IfelseblockNode(CodeBlockMixin, IterableNode):
+class IfelseblockNode(CodeBlockMixin, Node):
     pass
 
 
@@ -726,7 +726,7 @@ class ListComprehensionNode(Node):
         return baron.parse("[%s for x in x]" % value)[0]["result"]
 
 
-class ListNode(Node, LiteralyEvaluableMixin):
+class ListNode(Node, LiteralyEvaluableMixin, ValueIterableMixin):
     @nodelist_property(CommaProxyList)
     def value(self, value):
         return baron.parse("[%s]" % value)[0]["value"]
@@ -775,6 +775,7 @@ class NonlocalNode(Node):
 
 class OctaNode(Node, LiteralyEvaluableMixin):
     pass
+
 
 class PassNode(Node):
     pass
@@ -944,7 +945,7 @@ class TernaryOperatorNode(Node):
         return baron.parse("a if %s else s" % value)[0]["value"]
 
 
-class TryNode(IndentedCodeBlockMixin, IterableNode):
+class TryNode(IndentedCodeBlockMixin, Node):
     @property
     def next_intuitive(self):
         if self.excepts:
@@ -1030,7 +1031,7 @@ class YieldAtomNode(Node):
         return self.value
 
 
-class WhileNode(IndentedCodeBlockMixin, IterableNode):
+class WhileNode(IndentedCodeBlockMixin, Node):
     @NodeProperty
     def test(self, value):
         return baron.parse("while %s: pass" % value)[0]["test"]
@@ -1061,7 +1062,7 @@ class WithContextItemNode(Node):
         return self.as_
 
 
-class WithNode(IndentedCodeBlockMixin, IterableNode):
+class WithNode(IndentedCodeBlockMixin, Node):
     @nodelist_property(CommaProxyList)
     def contexts(self, value):
         return baron.parse("with %s: pass" % value)[0]["contexts"]
