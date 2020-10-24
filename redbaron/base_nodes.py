@@ -312,10 +312,15 @@ class NodeList(UserList, BaseNode, IndentationMixin):
         value.on_attribute = None
         self.data[key] = value
 
-    def find_iter(self, identifier, *args, recursive=True, **kwargs):
+    def _find_iter(self, identifier, *args, recursive=True, **kwargs):
         for node in self.data:
-            for matched_node in node.find_iter(identifier, *args, **kwargs):
+            for matched_node in node._find_iter(identifier, *args,
+                                                recursive=recursive, **kwargs):
                 yield matched_node
+
+    def find_iter(self, identifier, *args, recursive=True, **kwargs):
+        return self._find_iter(identifier, *args,
+                               recursive=recursive, **kwargs)
 
     def fst(self):
         return [x.fst() for x in self.node_list]
@@ -616,23 +621,21 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
             target = target.parent
         return target.previous
 
-    def find_iter(self, identifier, *args, recursive=True, **kwargs):
+    def _find_iter(self, identifier, *args, recursive=True, **kwargs):
         if self._node_match_query(self, identifier, *args, **kwargs):
             yield self
 
         if recursive:
             for kind, key, _ in self._baron_attributes():
-                if kind == "key":
+                if kind in ("key", "list", "formatting"):
                     node = getattr(self, key)
-                    if hasattr(node, "find_iter"):
-                        for matched_node in node.find_iter(identifier,
-                                                           *args, **kwargs):
-                            yield matched_node
-                elif kind in ("list", "formatting"):
-                    nodes = getattr(self, key)
-                    for node in nodes:
-                        for matched_node in node.find_iter(identifier, *args, **kwargs):
-                            yield matched_node
+                    if node:
+                        yield from node._find_iter(identifier, *args, **kwargs)
+
+    def find_iter(self, identifier, *args, recursive=True, **kwargs):
+        return dropwhile(lambda node: node is self,
+                         self._find_iter(identifier, *args,
+                                         recursive=recursive, **kwargs))
 
     def parent_find(self, identifier, *args, **kwargs):
         current = self

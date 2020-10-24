@@ -443,7 +443,7 @@ class A:
 """)
 
     # red.class_.class_.append("def b():\n    return True")
-    red.find("class").class_.append("a = 1\n")
+    red.find("class").find("class").append("a = 1\n")
 
     assert_with_indent(red, """\
 class A:

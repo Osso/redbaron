@@ -140,6 +140,7 @@ class CodeBlockMixin(ValueIterableMixin):
     def el_indentation(self):
         return self.indentation
 
+
 class IndentedCodeBlockMixin(CodeBlockMixin):
     @nodelist_property(CodeProxyList)
     def value(self, value):
