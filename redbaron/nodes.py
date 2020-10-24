@@ -382,7 +382,7 @@ class ElseNode(IfElseBlockSiblingMixin, IndentedCodeBlockMixin, Node):
 
 class EndlNode(Node):
     def __init__(self, *args, **kwargs):
-        self._indent = ""
+        self.indent = ""
         super().__init__(*args, **kwargs)
 
     def __repr__(self):
@@ -399,11 +399,11 @@ class EndlNode(Node):
 
     @property
     def indentation(self):
-        return self._indent
+        return self.indent
 
     @indentation.setter
     def indentation(self, value):
-        self._indent = value
+        self.indent = value
 
 
 class ExceptNode(IndentedCodeBlockMixin, Node):
