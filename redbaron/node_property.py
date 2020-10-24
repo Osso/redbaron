@@ -135,6 +135,7 @@ class ConditionalFormattingProperty(NodeListProperty):
 
         return default[bool(self.condition(obj))]
 
+
 def node_property():
     return NodeProperty
 

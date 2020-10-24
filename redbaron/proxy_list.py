@@ -90,7 +90,6 @@ class ProxyList(NodeList):
             data.append([self.make_empty_el(leftover_indent), None])
 
     def _data_to_node_list(self):
-        from .nodes import EmptyLineNode
         expected_list = []
 
         def _append_el(el):
@@ -99,7 +98,6 @@ class ProxyList(NodeList):
             if el.indentation:
                 expected_list.append(self.make_empty_el(el.indentation))
             expected_list.append(el)
-
 
         for el in self.header:
             _append_el(el)
@@ -260,6 +258,9 @@ class ProxyList(NodeList):
         self._synchronise()
 
     def replace_node_list(self, new_data):
+        for el in new_data:
+            el.parent = self
+            el.on_attribute = None
         self.data = new_data
         self._node_list_to_data()
         self._synchronise()
@@ -347,7 +348,6 @@ class CodeProxyList(LineProxyList):
             return ""
 
         return self.parent.el_indentation
-
 
     def _insert(self, index, item):
         if isinstance(item, str):
