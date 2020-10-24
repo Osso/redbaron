@@ -218,3 +218,11 @@ class SeparatorMixin:
             return indent
 
         return ""
+
+
+class ElseMixin:
+    @nodelist_property(CodeProxyList)
+    def else_(self, value):
+        value = indent_str(value, self.el_indentation)
+        code = "try: pass\nexcept: pass\nelse:\n%s" % value
+        return baron.parse(code)[0]["else"]
