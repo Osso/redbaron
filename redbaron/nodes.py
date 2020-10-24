@@ -408,7 +408,7 @@ class EndlNode(Node):
 
 class ExceptNode(IndentedCodeBlockMixin, Node):
     def else_(self, value):
-        value = indent_str(value, self.indent_unit)
+        value = indent_str(value, self.el_indentation)
         code = "try: pass\nexcept: pass\nelse:\n%s" % value
         return baron.parse(code)[0]["else"]
 
