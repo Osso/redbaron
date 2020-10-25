@@ -446,8 +446,10 @@ class NodeRegistration(type):
 
         for kind, key, _ in cls._baron_attributes():
             if key in reserved_keywords:
-                if not hasattr(cls, key + "_"):
-                    setattr(cls, key + "_", AliasProperty(key))
+                orig_key = key
+                key += "_"
+                if not hasattr(cls, key):
+                    setattr(cls, orig_key, AliasProperty(key))
 
             if kind == "constant":
                 pass

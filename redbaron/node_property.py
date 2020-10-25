@@ -154,10 +154,6 @@ def set_name_for_node_properties(cls):
     for attr_name in dir(cls):
         attr = getattr(cls, attr_name)
         if isinstance(attr, NodeProperty):
-            if attr_name.endswith('_'):
-                delattr(cls, attr_name)
-                attr_name = attr_name[:-1]
-                setattr(cls, attr_name, attr)
             attr.name = attr_name
 
 
