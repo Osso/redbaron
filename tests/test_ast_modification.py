@@ -536,7 +536,7 @@ def test_dont_add_newlines_after_import():
 
 def test_insert_before():
     red = RedBaron("a = 1\nprint(pouet)\n")
-    red.find("print").insert_before("chocolat")
+    red.find("print").insert_before("chocolat\n")
     assert red.dumps() == "a = 1\nchocolat\nprint(pouet)\n"
 
 

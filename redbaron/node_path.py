@@ -44,7 +44,7 @@ class Path:
                 raise ValueError("node is None")
 
             if isinstance(key, str):
-                if key in node._str_keys:
+                if key in node._raw_keys:
                     break
                 try:
                     node = getattr(node, key)

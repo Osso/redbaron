@@ -10,6 +10,7 @@ from baron.render import nodes_rendering_order
 
 from .node_path import Path
 from .node_property import (AliasProperty,
+                            ConstantProperty,
                             NodeListProperty,
                             NodeProperty,
                             set_name_for_node_properties)
@@ -439,30 +440,36 @@ class NodeRegistration(type):
         set_name_for_node_properties(cls)  # pylint: disable=no-value-for-parameter
 
     def define_attributes_from_baron(cls, baron_type):
-        cls._str_keys = ["type"]
+        cls._raw_keys = ["type"]
         cls._list_keys = []
         cls._dict_keys = []
-        reserved_keywords = ("async", )
+        cls._constant_keys = []
+        reserved_keywords = ("async", "class")
 
         for kind, key, _ in cls._baron_attributes():
+            orig_key = key
             if key in reserved_keywords:
-                orig_key = key
                 key += "_"
                 if not hasattr(cls, key):
                     setattr(cls, orig_key, AliasProperty(key))
 
             if kind == "constant":
-                pass
+                if not hasattr(cls, key) and orig_key not in cls._raw_keys:
+                    setattr(cls, key, ConstantProperty())
+                cls._constant_keys.append(orig_key)
             elif kind in ("bool", "string"):
-                cls._str_keys.append(key)
+                # if key in cls._constant_keys:
+                #     del cls._constant_keys[key]
+                #     delattr(cls, key)
+                cls._raw_keys.append(orig_key)
             elif kind == "key":
                 if not hasattr(cls, key):
                     setattr(cls, key, NodeProperty())
-                cls._dict_keys.append(key)
+                cls._dict_keys.append(orig_key)
             elif kind in ("list", "formatting"):
                 if not hasattr(cls, key):
                     setattr(cls, key, NodeListProperty(NodeList))
-                cls._list_keys.append(key)
+                cls._list_keys.append(orig_key)
             else:
                 raise Exception(f"Invalid kind {kind} for {baron_type}.{key}")
 
@@ -510,18 +517,18 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
         self.set_attributes_from_fst(fst)
 
     def set_attributes_from_fst(self, fst):
+        assert self.type == fst["type"]
+
         for kind, key, _ in self._baron_attributes():
-            if key == 'type':
-                assert self.type == fst[key]
-                continue
-            if kind == "constant" and key not in self._str_keys:
-                setattr(self, key, NodeConstant(getattr(fst, key, ""),
-                                                parent=self,
-                                                on_attribute=key))
+            if key == "type":
                 continue
 
-            setattr(self, key, fst[key])
+            if kind == "constant" and key not in fst:
+                pass
+            else:
+                setattr(self, key, fst[key])
 
+            # Checks
             if kind == "key" and fst[key]:
                 assert isinstance(fst[key], dict)
                 new_value = getattr(self, key)
@@ -655,7 +662,7 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
                                            identifier):
             return False
 
-        all_my_keys = node._str_keys + node._list_keys + node._dict_keys
+        all_my_keys = node._raw_keys + node._list_keys + node._dict_keys
 
         if args and isinstance(args[0], (str, re._pattern_type, list, tuple)):
             if not self._attribute_match_query([getattr(node, node._default_test_value)], args[0]):
@@ -773,7 +780,12 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
 
     def fst(self):
         to_return = {}
-        for key in self._str_keys:
+        for key in self._constant_keys:
+            try:
+                to_return[key] = getattr(self, key).value
+            except AttributeError:
+                pass
+        for key in self._raw_keys:
             to_return[key] = getattr(self, key)
         for key in self._list_keys:
             to_return[key] = getattr(self, key).fst()
@@ -803,7 +815,7 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
                 to_join.append("# helpers: %s" % ", ".join(self._get_helpers()))
             if self._default_test_value != "value":
                 to_join.append("# default test value: %s" % self._default_test_value)
-            to_join += ["%s=%s" % (key, repr(getattr(self, key))) for key in self._str_keys if
+            to_join += ["%s=%s" % (key, repr(getattr(self, key))) for key in self._raw_keys if
                         key != "type" and "formatting" not in key]
             to_join += ["%s ->\n    %s" % (key, indent_str(
                 getattr(self, key).__help__(deep=new_deep,
@@ -823,7 +835,7 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
                                             "      ").lstrip())
 
         if deep and with_formatting:
-            to_join += ["%s=%s" % (key, repr(getattr(self, key))) for key in self._str_keys if
+            to_join += ["%s=%s" % (key, repr(getattr(self, key))) for key in self._raw_keys if
                         key != "type" and "formatting" in key]
             to_join += ["%s=%s" % (key, getattr(self, key).__help__(deep=new_deep,
                                                                     with_formatting=with_formatting)

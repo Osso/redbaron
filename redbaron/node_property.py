@@ -4,7 +4,13 @@ from typing import Callable
 import baron
 
 
-class NodeProperty:
+class BaseProperty:
+    @property
+    def attr_name(self):
+        return "_" + self.name
+
+
+class NodeProperty(BaseProperty):
     _after_set: Callable
     name = None
 
@@ -14,10 +20,6 @@ class NodeProperty:
 
     def default_str_to_fst(self, obj, value):  # pylint: disable=unused-argument
         return baron.parse(value)[0]
-
-    @property
-    def attr_name(self):
-        return "_" + self.name
 
     def __get__(self, obj, objtype=None):  # pylint: disable=method-hidden
         if not obj:
@@ -45,6 +47,7 @@ class NodeProperty:
         if value is not None:
             value.parent = obj
             value.on_attribute = self.name
+
         return value
 
     def fst_to_node(self, obj, value):
@@ -153,11 +156,11 @@ def conditional_formatting_property(list_type, default_true, default_false):
 def set_name_for_node_properties(cls):
     for attr_name in dir(cls):
         attr = getattr(cls, attr_name)
-        if isinstance(attr, NodeProperty):
+        if isinstance(attr, BaseProperty):
             attr.name = attr_name
 
 
-class AliasProperty:
+class AliasProperty(BaseProperty):
     def __init__(self, aliased_name):
         self.aliased_name = aliased_name
 
@@ -168,3 +171,29 @@ class AliasProperty:
 
     def __set__(self, obj, value):
         setattr(obj, self.aliased_name, value)
+
+
+class ConstantProperty(BaseProperty):
+    def __repr__(self):
+        try:
+            name = self.name
+        except AttributeError:
+            return f"<Constant>"
+
+        return f"<Constant {name}>"
+
+    def __get__(self, obj, objtype=None):
+        if not obj:
+            return self
+        return getattr(obj, self.attr_name)
+
+    def __set__(self, obj, value):
+        from .base_nodes import NodeConstant
+
+        try:
+            constant = getattr(obj, self.attr_name)
+        except AttributeError:
+            constant = NodeConstant(value, parent=obj, on_attribute=self.name)
+            setattr(obj, self.attr_name, constant)
+        else:
+            constant.value = value

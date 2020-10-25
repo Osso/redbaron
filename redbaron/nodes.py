@@ -1071,7 +1071,10 @@ class WithNode(IndentedCodeBlockMixin, Node):
 
 class EmptyLineNode(Node):
     def _default_fst(self):
-        return {"type": "space", "value": ""}
+        return {"type": "empty_line", "value": ""}
 
     def __repr__(self):
         return repr(baron.dumps([self.fst()]))
+
+    def fst(self):
+        return {"type": "space", "value": ""}
