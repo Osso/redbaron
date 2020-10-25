@@ -2,13 +2,9 @@
 
 # pylint: disable=redefined-outer-name
 import pytest
-import redbaron
 from redbaron import RedBaron
 from redbaron.nodes import (CallNode,
                             NameNode)
-
-# (alekum): switch off debug mode, to reproduce a bug with __repr__ implicit recursion
-redbaron.DEBUG = False
 
 
 def assert_with_indent(left, right):
@@ -540,19 +536,19 @@ def test_dont_add_newlines_after_import():
 
 def test_insert_before():
     red = RedBaron("a = 1\nprint(pouet)\n")
-    red.print_.insert_before("chocolat")
+    red.find("print").insert_before("chocolat")
     assert red.dumps() == "a = 1\nchocolat\nprint(pouet)\n"
 
 
 def test_insert_after():
     red = RedBaron("a = 1\nprint(pouet)\n")
-    red.print_.insert_after("chocolat")
+    red.find("print").insert_after("chocolat")
     assert red.dumps() == "a = 1\nprint(pouet)\nchocolat\n"
 
 
 def test_insert_before_offset():
     red = RedBaron("a = 1\nprint(pouet)\n")
-    red.print_.insert_before("chocolat", offset=1)
+    red.find("print").insert_before("chocolat", offset=1)
     assert red.dumps() == "chocolat\na = 1\nprint(pouet)\n"
 
 
@@ -584,11 +580,6 @@ def test_parent_copy():
 def test_copy_correct_instance():
     red = RedBaron("a()")
     assert isinstance(red[0].value[1].copy(), CallNode)
-
-
-def test_map():
-    red = RedBaron("[1, 2, 3]")
-    assert red.find("int").map(lambda x: x.value) == NodeList(["1", "2", "3"])
 
 
 def test_apply():
