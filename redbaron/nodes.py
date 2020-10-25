@@ -790,11 +790,11 @@ class PrintNode(Node):
 
     @conditional_formatting_property(NodeList, [" "], [])
     def formatting(self):
-        return self.destination or self.value
+        return self.destination
 
     @conditional_formatting_property(NodeList, [" "], [])
     def second_formatting(self):
-        return self.destination and self.value
+        return self.destination
 
 
 class RaiseNode(Node):

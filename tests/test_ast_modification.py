@@ -542,19 +542,19 @@ def test_insert_before():
 
 def test_insert_after():
     red = RedBaron("a = 1\nprint(pouet)\n")
-    red.find("print").insert_after("chocolat")
+    red.find("print").insert_after("chocolat\n")
     assert red.dumps() == "a = 1\nprint(pouet)\nchocolat\n"
 
 
 def test_insert_before_offset():
     red = RedBaron("a = 1\nprint(pouet)\n")
-    red.find("print").insert_before("chocolat", offset=1)
+    red.find("print").insert_before("chocolat\n", offset=1)
     assert red.dumps() == "chocolat\na = 1\nprint(pouet)\n"
 
 
 def test_insert_after_offset():
     red = RedBaron("a = 1\nprint(pouet)\n")
-    red[0].insert_after("chocolat", offset=1)
+    red[0].insert_after("chocolat\n", offset=1)
     assert red.dumps() == "a = 1\nprint(pouet)\nchocolat\n"
 
 
@@ -580,8 +580,3 @@ def test_parent_copy():
 def test_copy_correct_instance():
     red = RedBaron("a()")
     assert isinstance(red[0].value[1].copy(), CallNode)
-
-
-def test_apply():
-    red = RedBaron("a()\nb()")
-    assert red.find("call").apply(str) == red.find("call")
