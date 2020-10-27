@@ -945,7 +945,7 @@ class TernaryOperatorNode(Node):
         return baron.parse("a if %s else s" % value)[0]["value"]
 
 
-class TryNode(IndentedCodeBlockMixin, ElseMixin, Node):
+class TryNode(IndentedCodeBlockMixin, Node):
     @property
     def next_intuitive(self):
         if self.excepts:
