@@ -6,6 +6,11 @@ import sys
 logger = logging.getLogger("redbaron")
 
 
+def fix_baron_box(box):
+    box.bottom_right.column += 1
+    return box
+
+
 def baron_type_from_class(cls):
     name = cls.__name__
     name = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name.replace("Node", ""))

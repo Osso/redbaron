@@ -18,6 +18,7 @@ from .syntax_highlight import (help_highlight,
                                python_highlight)
 from .utils import (baron_type_from_class,
                     deindent_str,
+                    fix_baron_box,
                     in_a_shell,
                     in_ipython,
                     indent_str,
@@ -41,20 +42,15 @@ class BaseNode:
         self.parent = parent
         self.on_attribute = on_attribute
 
-    @staticmethod
-    def fix_baron_box(box):
-        box.bottom_right.column += 1
-        return box
-
     @property
     def relative_box(self):
         box = baron.path.node_to_bounding_box(self.fst())
-        return self.fix_baron_box(box)
+        return fix_baron_box(box)
 
     @classmethod
     def _baron_path_to_box(cls, fst, path):
         box = baron.path.path_to_bounding_box(fst, path)
-        return cls.fix_baron_box(box)
+        return fix_baron_box(box)
 
     @property
     def box(self):
