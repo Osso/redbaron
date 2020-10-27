@@ -86,6 +86,9 @@ class NodeListProperty(NodeProperty):
                 return Node.generic_from_str(el, parent=node_list)
             if isinstance(el, dict):
                 return Node.generic_from_fst(el, parent=node_list)
+
+            el.parent = node_list
+            el.on_attribute = None
             return el
 
         node_list = self.list_type([], parent=obj, on_attribute=self.name)
