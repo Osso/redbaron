@@ -145,9 +145,6 @@ class CodeBlockMixin(ValueIterableMixin):
         yield from super().consume_leftover_endl()
         yield from self.value.consume_leftover_endl()
 
-    def get_from_baron_index(self, index):
-        return self.value.get_from_baron_index(index)
-
     def increase_indentation(self, indent):
         super().increase_indentation(indent)
         self.value.increase_indentation(indent)
@@ -218,11 +215,3 @@ class SeparatorMixin:
             return indent
 
         return ""
-
-
-class ElseMixin:
-    @nodelist_property(CodeProxyList)
-    def else_(self, value):
-        value = indent_str(value, self.el_indentation)
-        code = "try: pass\nexcept: pass\nelse:\n%s" % value
-        return baron.parse(code)[0]["else"]
