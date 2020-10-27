@@ -409,14 +409,6 @@ class EndlNode(Node):
         self.indent = ""
         return indent
 
-    @property
-    def indentation(self):
-        return self.indent
-
-    @indentation.setter
-    def indentation(self, value):
-        self.indent = value
-
 
 class ExceptNode(IndentedCodeBlockMixin, Node):
     @NodeProperty

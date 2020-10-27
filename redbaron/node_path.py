@@ -52,8 +52,11 @@ class Path:
                 raise ValueError("node is None")
 
             try:
-                if key not in getattr(node, "_raw_keys", []):
-                    node = node.get_from_baron_index(key)
+                if key in getattr(node, "_raw_keys", []):
+                    break
+                if key in getattr(node, "_constant_keys", []):
+                    break
+                node = node.get_from_baron_index(key)
             except AttributeError:
                 raise ValueError(f"{node} has no attribute {key}")
             except IndexError:

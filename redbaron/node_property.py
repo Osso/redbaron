@@ -171,29 +171,3 @@ class AliasProperty(BaseProperty):
 
     def __set__(self, obj, value):
         setattr(obj, self.aliased_name, value)
-
-
-class ConstantProperty(BaseProperty):
-    def __repr__(self):
-        try:
-            name = self.name
-        except AttributeError:
-            return f"<Constant>"
-
-        return f"<Constant {name}>"
-
-    def __get__(self, obj, objtype=None):
-        if not obj:
-            return self
-        return getattr(obj, self.attr_name)
-
-    def __set__(self, obj, value):
-        from .base_nodes import NodeConstant
-
-        try:
-            constant = getattr(obj, self.attr_name)
-        except AttributeError:
-            constant = NodeConstant(value, parent=obj, on_attribute=self.name)
-            setattr(obj, self.attr_name, constant)
-        else:
-            constant.value = value

@@ -10,7 +10,6 @@ from baron.render import nodes_rendering_order
 
 from .node_path import Path
 from .node_property import (AliasProperty,
-                            ConstantProperty,
                             NodeListProperty,
                             NodeProperty,
                             set_name_for_node_properties)
@@ -235,7 +234,7 @@ class BaseNode(NeighborsMixin):
 
 class IndentationMixin:
     def __init__(self, indent):
-        self.indent = NodeConstant(indent, parent=self, on_attribute="indent")
+        self.indent = indent
         self.leftover_endl = []
 
     @property
@@ -446,13 +445,9 @@ class NodeRegistration(type):
                     setattr(cls, orig_key, AliasProperty(key))
 
             if kind == "constant":
-                if not hasattr(cls, key) and orig_key not in cls._raw_keys:
-                    setattr(cls, key, ConstantProperty())
-                cls._constant_keys.append(orig_key)
+                if orig_key not in cls._raw_keys:
+                    cls._constant_keys.append(orig_key)
             elif kind in ("bool", "string"):
-                # if key in cls._constant_keys:
-                #     del cls._constant_keys[key]
-                #     delattr(cls, key)
                 cls._raw_keys.append(orig_key)
             elif kind == "key":
                 if not hasattr(cls, key):
@@ -920,34 +915,11 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
 
     @property
     def indentation(self):
-        return self.indent.value
+        return self.indent
 
     @indentation.setter
     def indentation(self, value):
-        self.indent.value = value
+        self.indent = value
 
     def get_from_baron_index(self, index):
         return getattr(self, index)
-
-
-class NodeConstant(BaseNode):
-    type = "constant"
-
-    def __init__(self, value, parent, on_attribute):
-        super().__init__(parent=parent, on_attribute=on_attribute)
-        self.value = value
-
-    def fst(self):
-        return self.value
-
-    def find_iter(self, identifier, *args, recursive=True, **kwargs):
-        if self.on_attribute == self.value:
-            return self
-        return None
-
-    def from_str(self, value: str, on_attribute=None):
-        return NodeConstant(value, parent=self.parent,
-                            on_attribute=on_attribute)
-
-    def _iter_in_rendering_order(self):
-        yield self
