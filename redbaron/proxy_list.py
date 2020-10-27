@@ -255,8 +255,8 @@ class ProxyList(NodeList):
                                if function(node)])
 
     def replace_data(self, new_data):
-        self.set_parent_and_on_attribute([el for el, _ in new_data])
         self._data = new_data
+        self.set_parent_and_on_attribute(self)
         self._synchronise()
 
     def replace_node_list(self, new_data):
