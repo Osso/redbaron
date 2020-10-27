@@ -162,7 +162,7 @@ class BaseNode:
 
     @property
     def next_neighbors(self):
-        self._next_neighbors(self.neighbors)
+        return self._next_neighbors(self.neighbors)
 
     @property
     def previous_neighbors(self):
@@ -235,7 +235,10 @@ class IndentationMixin:
 
 
 class NodeList(UserList, BaseNode, IndentationMixin):
-    def __init__(self, node_list, parent=None, on_attribute=None):
+    def __init__(self, node_list=None, parent=None, on_attribute=None):
+        if node_list is None:
+            node_list = []
+
         for node in node_list:
             node.parent = self
 
@@ -319,10 +322,13 @@ class NodeList(UserList, BaseNode, IndentationMixin):
     def filter(self, function):
         self.data = [x for x in self.data if function(x)]
 
-    def replace_data(self, new_data):
+    def set_parent_and_on_attribute(self, new_data):
         for el in new_data:
             el.parent = self
             el.on_attribute = None
+
+    def replace_data(self, new_data):
+        self.set_parent_and_on_attribute(new_data)
         self.data = new_data
 
     def _iter_in_rendering_order(self):

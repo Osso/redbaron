@@ -9,15 +9,15 @@ class ProxyList(NodeList):
     strict_separator = True
     middle_separator = None
 
-    def __init__(self, node_list, parent=None, on_attribute=None,
+    def __init__(self, node_list=None, parent=None, on_attribute=None,
                  trailing_separator=False):
-        super().__init__(node_list, parent=parent, on_attribute=on_attribute)
+        super().__init__(parent=parent, on_attribute=on_attribute)
         self.header = []
         self.footer = []
         self._data = []
         self.trailing_separator = trailing_separator
         self.separator_type = type(self.middle_separator)
-        self.replace_node_list(node_list)
+        self.replace_node_list(node_list or [])
 
     def _node_list_to_data(self):
         from .nodes import LeftParenthesisNode, RightParenthesisNode, SpaceNode
@@ -219,8 +219,9 @@ class ProxyList(NodeList):
         self._synchronise()
 
     def __getslice__(self, i, j):
-        to_return = [self._item_from_data_tuple(el) for el in self._data[i:j]]
-        return self.__class__(to_return)
+        new_list = type(self)()
+        new_list.replace_data(self._data[i:j])
+        return new_list
 
     def __repr__(self):
         if in_a_shell():
@@ -254,27 +255,25 @@ class ProxyList(NodeList):
                                if function(node)])
 
     def replace_data(self, new_data):
+        self.set_parent_and_on_attribute([el for el, _ in new_data])
         self._data = new_data
         self._synchronise()
 
     def replace_node_list(self, new_data):
-        for el in new_data:
-            el.parent = self
-            el.on_attribute = None
-        self.data = new_data
+        super().replace_data(new_data)
         self._node_list_to_data()
         self._synchronise()
 
 
 class SpaceProxyList(ProxyList):
-    def __init__(self, node_list, parent=None, on_attribute=None):
+    def __init__(self, node_list=None, parent=None, on_attribute=None):
         from .nodes import SpaceNode
         self.middle_separator = SpaceNode()
         super().__init__(node_list, parent=parent, on_attribute=on_attribute)
 
 
 class CommaProxyList(ProxyList):
-    def __init__(self, node_list, parent=None, on_attribute=None):
+    def __init__(self, node_list=None, parent=None, on_attribute=None):
         from .nodes import CommaNode
         self.style = "flat"
         self.middle_separator = CommaNode()
@@ -292,7 +291,7 @@ class CommaProxyList(ProxyList):
 class DotProxyList(ProxyList):
     strict_separator = False
 
-    def __init__(self, node_list, parent=None, on_attribute=None):
+    def __init__(self, node_list=None, parent=None, on_attribute=None):
         from .nodes import DotNode
         self.middle_separator = DotNode()
         super().__init__(node_list, parent=parent, on_attribute=on_attribute)
@@ -301,7 +300,7 @@ class DotProxyList(ProxyList):
 class LineProxyList(ProxyList):
     strict_separator = False
 
-    def __init__(self, node_list, parent=None, on_attribute=None):
+    def __init__(self, node_list=None, parent=None, on_attribute=None):
         from .nodes import EndlNode
         self.middle_separator = EndlNode()
         super().__init__(node_list, parent=parent, on_attribute=on_attribute,
@@ -309,7 +308,7 @@ class LineProxyList(ProxyList):
 
 
 class CodeProxyList(LineProxyList):
-    def __init__(self, node_list, parent=None, on_attribute=None,
+    def __init__(self, node_list=None, parent=None, on_attribute=None,
                  trailing_separator=False):
         super().__init__(node_list, parent=parent, on_attribute=on_attribute)
         self._synchronise()

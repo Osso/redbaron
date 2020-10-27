@@ -1,7 +1,18 @@
-from redbaron import RedBaron
+from redbaron import (RedBaron,
+                      node)
 from redbaron.base_nodes import NodeList
 from redbaron.nodes import (CommaNode,
                             DotNode)
+
+
+def test_node_next_neighbors():
+    red = node("[1, 2, 3]")
+    assert list(red[2].next_neighbors) == list(red[3:])
+
+
+def test_node_previous_neighbors():
+    red = node("[1, 2, 3]")
+    assert list(red[2].previous_neighbors) == list(reversed(red[:2]))
 
 
 def test_node_next():
@@ -54,17 +65,6 @@ def test_node_previous_recursive():
     assert inner[1].previous_recursive == inner[0]
     assert inner[0].previous is None
     assert inner[0].previous_recursive == first
-
-
-def test_node_next_neighbors():
-    red = RedBaron("[1, 2, 3]")
-    assert list(red[0].value[2].next_neighbors()) == list(red[0].value[3:])
-
-
-def test_node_previous_neighbors():
-    red = RedBaron("[1, 2, 3]")
-    assert list(red[0].value.node_list[2].previous_neighbors()) \
-        == list(reversed(red[0].value.node_list[:2]))
 
 
 def test_node_next_intuitive():
