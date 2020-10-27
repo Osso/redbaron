@@ -159,51 +159,59 @@ class BaseNode:
 
     @property
     def neighbors(self):
-        return self.parent if isinstance(self.parent, NodeList) else []
+        if not isinstance(self.parent, NodeList):
+            return []
+
+        if self not in self.parent:
+            # if self in self.parent.node_list:
+            #     return self.neighbors_nodelist
+
+            raise ValueError("Invalid node")
+
+        return self.parent
 
     @property
     def neighbors_nodelist(self):
-        return self.parent.node_list if isinstance(self.parent, NodeList) else []
+        if not isinstance(self.parent, NodeList):
+            return []
+
+        if self not in self.parent.node_list:
+            raise ValueError("Invalid node")
+
+        return self.parent.node_list
+
+    def _next_neighbors(self, neighbors):
+        if not neighbors:
+            return iter([])
+
+        neighbors = dropwhile(lambda x: x is not self, neighbors)
+        next(neighbors)
+        return neighbors
 
     @property
     def next_neighbors(self):
-        neighbors = self.neighbors
-        if not neighbors:
-            return iter([])
-
-        neighbors = dropwhile(lambda x: x is not self, neighbors)
-        next(neighbors)
-        return neighbors
+        self._next_neighbors(self.neighbors)
 
     @property
     def next_neighbors_nodelist(self):
-        neighbors = self.neighbors_nodelist
-        if not neighbors:
-            return iter([])
+        self._next_neighbors(self.neighbors_nodelist)
 
-        neighbors = dropwhile(lambda x: x is not self, neighbors)
-        next(neighbors)
-        return neighbors
+    # def _previous_neighbors(self, neighbors):
+    #     neighbors = list(reversed(neighbors))
+    #     if not neighbors:
+    #         return iter([])
+
+    #     neighbors = dropwhile(lambda x: x is not self, neighbors)
+    #     next(neighbors)
+    #     return neighbors
 
     @property
     def previous_neighbors(self):
-        neighbors = list(reversed(self.neighbors))
-        if not neighbors:
-            return iter([])
-
-        neighbors = dropwhile(lambda x: x is not self, neighbors)
-        next(neighbors)
-        return neighbors
+        return self._previous_neighbors(reversed(self.neighbors))
 
     @property
     def previous_neighbors_nodelist(self):
-        neighbors = list(reversed(self.neighbors_nodelist))
-        if not neighbors:
-            return iter([])
-
-        neighbors = dropwhile(lambda x: x is not self, neighbors)
-        next(neighbors)
-        return neighbors
+        return self._previous_neighbors(reversed(self.neighbors_nodelist))
 
     @property
     def next(self):
