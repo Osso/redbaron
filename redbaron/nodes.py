@@ -154,6 +154,10 @@ class ClassNode(IndentedCodeBlockMixin, Node, DecoratorsMixin):
     _default_test_value = "name"
     parenthesis = False
 
+    def __init__(self, fst=None, parent=None, on_attribute=None):
+        self.class_ = True
+        super().__init__(fst=fst, parent=parent, on_attribute=on_attribute)
+
     @nodelist_property(CommaProxyList)
     def inherit_from(self, value):
         return baron.parse("class a(%s): pass" % value)[0]["inherit_from"]
