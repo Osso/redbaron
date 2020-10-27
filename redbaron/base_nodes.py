@@ -104,8 +104,8 @@ class BaseNode:
             raise ValueError("Can't set on_attribute_node on root")
 
         assert self.on_attribute
-
         assert getattr(self.parent, self.on_attribute) is self
+
         setattr(self.parent, self.on_attribute, node)
 
     def find_by_path(self, path):
@@ -139,18 +139,6 @@ class BaseNode:
 
         return self.parent.index(self)
 
-    @property
-    def baron_index_on_parent(self):
-        if not self.parent:
-            raise ValueError("no parent")
-
-        try:
-            node_list = self.parent.node_list
-        except AttributeError:
-            raise ValueError("parent has no node list")
-
-        return node_list.index(self)
-
     def _iter_in_rendering_order(self):
         raise NotImplementedError()
 
@@ -163,22 +151,9 @@ class BaseNode:
             return []
 
         if self not in self.parent:
-            # if self in self.parent.node_list:
-            #     return self.neighbors_nodelist
-
             raise ValueError("Invalid node")
 
         return self.parent
-
-    @property
-    def neighbors_nodelist(self):
-        if not isinstance(self.parent, NodeList):
-            return []
-
-        if self not in self.parent.node_list:
-            raise ValueError("Invalid node")
-
-        return self.parent.node_list
 
     def _next_neighbors(self, neighbors):
         if not neighbors:
@@ -193,54 +168,29 @@ class BaseNode:
         self._next_neighbors(self.neighbors)
 
     @property
-    def next_neighbors_nodelist(self):
-        self._next_neighbors(self.neighbors_nodelist)
-
-    # def _previous_neighbors(self, neighbors):
-    #     neighbors = list(reversed(neighbors))
-    #     if not neighbors:
-    #         return iter([])
-
-    #     neighbors = dropwhile(lambda x: x is not self, neighbors)
-    #     next(neighbors)
-    #     return neighbors
-
-    @property
     def previous_neighbors(self):
-        return self._previous_neighbors(reversed(self.neighbors))
-
-    @property
-    def previous_neighbors_nodelist(self):
-        return self._previous_neighbors(reversed(self.neighbors_nodelist))
+        return self._next_neighbors(reversed(self.neighbors))
 
     @property
     def next(self):
         return next(self.next_neighbors, None)
 
     @property
-    def next_nodelist(self):
-        return next(self.next_neighbors_nodelist, None)
-
-    @property
     def previous(self):
         return next(self.previous_neighbors, None)
-
-    @property
-    def previous_nodelist(self):
-        return next(self.previous_neighbors_nodelist, None)
 
     @property
     def type(self):
         return type(self).baron_type
 
-    def on_attribute_from_str(self, source_code: str):
+    def to_node(self, source_code: str):
         assert self.parent
         assert self.on_attribute
         node_property = getattr(type(self.parent), self.on_attribute)
         return node_property.to_value(self, source_code)
 
     @classmethod
-    def to_node(cls, value, parent=None, on_attribute=None):
+    def generic_to_node(cls, value, parent=None, on_attribute=None):
         if isinstance(value, str):
             node = cls.generic_from_str(value, parent=parent,
                                         on_attribute=on_attribute)
@@ -777,11 +727,10 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
             'to_python',
             'consume_leftover_endl',
             'consume_leftover_indentation',
-            'on_attribute_from_str',
             'set_attributes_from_fst',
             'set_on_attribute_node',
             'to_node',
-            'baron_index_on_parent',
+            'generic_to_node',
         ])
         return [x for x in dir(self) if not x.startswith("_") and
                 x not in not_helpers and inspect.ismethod(getattr(self, x))]
@@ -952,6 +901,9 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
     @indentation.setter
     def indentation(self, value):
         self.indent.value = value
+
+    def get_from_baron_index(self, index):
+        return getattr(self, index)
 
 
 class NodeConstant(BaseNode):

@@ -135,7 +135,7 @@ class ProxyList(NodeList):
         return len(self._data)
 
     def _insert(self, index, item):
-        value = Node.to_node(item)
+        value = Node.generic_to_node(item)
         self._check_for_separator(index)
         sep = self.make_separator() if self.strict_separator else None
         self._data.insert(index, [value, sep])
@@ -201,7 +201,7 @@ class ProxyList(NodeList):
         if isinstance(index, slice):
             self.__setslice__(index.start, index.stop, value)
         else:
-            self._data[index][0] = Node.to_node(value, parent=self)
+            self._data[index][0] = Node.generic_to_node(value, parent=self)
         self._synchronise()
 
     def __setslice__(self, i, j, value):
@@ -351,7 +351,7 @@ class CodeProxyList(LineProxyList):
 
     def _insert(self, index, item):
         if isinstance(item, str):
-            code_list = self.on_attribute_from_str(item)
+            code_list = self.to_node(item)
             for endl in code_list.header:
                 self._data.insert(index, [self.make_empty_el(), endl])
                 index += 1
