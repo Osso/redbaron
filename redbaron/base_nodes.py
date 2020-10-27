@@ -404,7 +404,8 @@ class NodeRegistration(type):
         cls._list_keys = []
         cls._dict_keys = []
         cls._constant_keys = []
-        reserved_keywords = ("async", "class", "finally")
+        reserved_keywords = ("async", "class", "finally", "except", "else",
+                             "if", "elif", "while", "for", "is", "and", "or")
 
         for kind, key, _ in cls._baron_attributes():
             orig_key = key
