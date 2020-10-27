@@ -30,7 +30,66 @@ NODES_RENDERING_ORDER["root"] = [('list', 'value', True)]
 NODES_RENDERING_ORDER["empty_line"] = []
 
 
-class BaseNode:
+class NeighborsMixin:
+    @property
+    def neighbors(self):
+        if not isinstance(self.parent, NodeList):
+            return []
+
+        if self not in self.parent:
+            raise ValueError("Invalid node")
+
+        return self.parent
+
+    def _next_neighbors(self, neighbors):
+        neighbors = dropwhile(lambda x: x is not self, neighbors)
+        next(neighbors, None)
+        return neighbors
+
+    @property
+    def next_neighbors(self):
+        return self._next_neighbors(self.neighbors)
+
+    @property
+    def previous_neighbors(self):
+        return self._next_neighbors(reversed(self.neighbors))
+
+    @property
+    def next(self):
+        return next(self.next_neighbors, None)
+
+    @property
+    def previous(self):
+        return next(self.previous_neighbors, None)
+
+    @property
+    def neighbors_nodelist(self):
+        if not isinstance(self.parent, NodeList):
+            return []
+
+        if self not in self.parent.node_list:
+            raise ValueError("Invalid node")
+
+        return self.parent.node_list
+
+    @property
+    def next_neighbors_nodelist(self):
+        return self._next_neighbors(self.neighbors_nodelist)
+
+    @property
+    def previous_neighbors_nodelist(self):
+        return self._next_neighbors(reversed(self.neighbors_nodelist))
+
+    @property
+    def next_nodelist(self):
+        return next(self.next_neighbors_nodelist, None)
+
+    @property
+    def previous_nodelist(self):
+        return next(self.previous_neighbors_nodelist, None)
+
+
+class BaseNode(NeighborsMixin):
     """
     Abstract class for Node and NodeList that contains methods
     that are used by both.
@@ -141,37 +200,6 @@ class BaseNode:
 
     def _generate_nodes_in_rendering_order(self):
         yield from squash_successive_duplicates(self._iter_in_rendering_order())
-
-    @property
-    def neighbors(self):
-        if not isinstance(self.parent, NodeList):
-            return []
-
-        if self not in self.parent:
-            raise ValueError("Invalid node")
-
-        return self.parent
-
-    def _next_neighbors(self, neighbors):
-        neighbors = dropwhile(lambda x: x is not self, neighbors)
-        next(neighbors, None)
-        return neighbors
-
-    @property
-    def next_neighbors(self):
-        return self._next_neighbors(self.neighbors)
-
-    @property
-    def previous_neighbors(self):
-        return self._next_neighbors(reversed(self.neighbors))
-
-    @property
-    def next(self):
-        return next(self.next_neighbors, None)
-
-    @property
-    def previous(self):
-        return next(self.previous_neighbors, None)
 
     @property
     def type(self):

@@ -1,4 +1,5 @@
-from redbaron import RedBaron
+from redbaron import (RedBaron,
+                      node)
 from redbaron.nodes import (RawStringNode,
                             SpaceNode)
 
