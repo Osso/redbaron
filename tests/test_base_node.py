@@ -32,3 +32,8 @@ def test_index_raw():
     assert red[0].value.value.node_list[2].index_on_parent_raw == 2
     assert red[0].index_on_parent == 0
     assert red[0].value.index_on_parent_raw is None
+
+
+def test_filter():
+    red = node("[1, 2, 3]")
+    assert red.value.filter(lambda x: x.value == 2) == red.find_all("int", "2")

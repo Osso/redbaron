@@ -531,8 +531,8 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
             if previous_.find("else"):
                 return previous_.find("else")
 
-            if previous_.find("excepts"):
-                return previous_.excepts[-1]
+            if previous_.find("except"):
+                return previous_.find_all("except")[-1]
 
         elif previous_ and previous_.type in ("for", "while"):
             if previous_.find("else"):

@@ -353,7 +353,11 @@ class EllipsisNode(Node):
 class ElseNode(IfElseBlockSiblingMixin, IndentedCodeBlockMixin, Node):
     @property
     def next_intuitive(self):
-        if self.parent.parent.baron_type == "ifelseblock":
+        parent = self.parent
+        if isinstance(parent, NodeList):
+            parent = parent.parent
+
+        if parent.baron_type == "ifelseblock":
             return super().next_intuitive
 
         if self.parent.baron_type == "try":
@@ -369,7 +373,11 @@ class ElseNode(IfElseBlockSiblingMixin, IndentedCodeBlockMixin, Node):
 
     @property
     def previous_intuitive(self):
-        if self.parent.parent.baron_type == "ifelseblock":
+        parent = self.parent
+        if isinstance(parent, NodeList):
+            parent = parent.parent
+
+        if parent.baron_type == "ifelseblock":
             return super().previous_intuitive
 
         if self.parent.baron_type == "try":
@@ -448,17 +456,20 @@ class ExceptNode(IndentedCodeBlockMixin, Node):
 
     @property
     def next_intuitive(self):
-        if self.next:
-            return self.next
+        next_ = self.next
+        if next_:
+            return next_
 
-        if self.parent.parent.else_:
-            return self.parent.parent.else_
+        parent = self.parent.parent
 
-        if self.parent.parent.finally_:
-            return self.parent.parent.finally_
+        if parent.else_:
+            return parent.else_
 
-        if self.parent.parent.next:
-            return self.parent.parent.next
+        if parent.finally_:
+            return parent.finally_
+
+        if parent.next:
+            return parent.next
 
         return None
 
@@ -469,7 +480,7 @@ class ExceptNode(IndentedCodeBlockMixin, Node):
         if previous_:
             return previous_
 
-        return self.parent
+        return self.parent.parent
 
 
 class ExecNode(Node):
@@ -525,7 +536,7 @@ class ElseAttributeNode(IndentedCodeBlockMixin, Node):
         return baron.parse(code)[0]["else"]
 
 
-class ForNode(IndentedCodeBlockMixin, ElseMixin, Node):
+class ForNode(IndentedCodeBlockMixin, Node):
     @conditional_formatting_property(NodeList, [" "], [])
     def async_formatting(self):
         return self.async_
@@ -1030,7 +1041,7 @@ class YieldAtomNode(Node):
         return self.value
 
 
-class WhileNode(IndentedCodeBlockMixin, ElseMixin, Node):
+class WhileNode(IndentedCodeBlockMixin, Node):
     @NodeProperty
     def test(self, value):
         return baron.parse("while %s: pass" % value)[0]["test"]
