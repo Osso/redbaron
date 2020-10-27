@@ -28,6 +28,8 @@ from .utils import (baron_type_from_class,
 NODES_RENDERING_ORDER = nodes_rendering_order
 NODES_RENDERING_ORDER["root"] = [('list', 'value', True)]
 NODES_RENDERING_ORDER["empty_line"] = []
+RESERVED_KEYWORDS = ("async", "class", "finally", "except", "else",
+                     "if", "elif", "while", "for", "is", "and", "or")
 
 
 class NeighborsMixin:
@@ -432,12 +434,10 @@ class NodeRegistration(type):
         cls._list_keys = []
         cls._dict_keys = []
         cls._constant_keys = []
-        reserved_keywords = ("async", "class", "finally", "except", "else",
-                             "if", "elif", "while", "for", "is", "and", "or")
 
         for kind, key, _ in cls._baron_attributes():
             orig_key = key
-            if key in reserved_keywords:
+            if key in RESERVED_KEYWORDS:
                 key += "_"
                 if not hasattr(cls, orig_key):
                     setattr(cls, orig_key, AliasProperty(key))

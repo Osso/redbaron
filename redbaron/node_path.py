@@ -31,8 +31,14 @@ class Path:
 
     @staticmethod
     def get_on_attribute(node):
-        if node.on_attribute:
-            return node.on_attribute
+        from .base_nodes import RESERVED_KEYWORDS
+
+        index = node.on_attribute
+        if index:
+            if index[:-1] in RESERVED_KEYWORDS:
+                assert index[-1] == "_"
+                index = index[:-1]
+            return index
 
         index = node.parent.baron_index(node)
         assert index is not None
