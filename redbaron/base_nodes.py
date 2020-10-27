@@ -193,7 +193,10 @@ class BaseNode(NeighborsMixin):
     @property
     def index_on_parent(self):
         if not self.parent:
-            raise ValueError("no parent")
+            raise ValueError("No parent")
+
+        if not isinstance(self.parent, NodeList):
+            raise ValueError("Parent is not a node list")
 
         return self.parent.index(self)
 

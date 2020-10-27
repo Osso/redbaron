@@ -1,3 +1,4 @@
+import pytest
 from redbaron import (RedBaron,
                       node)
 from redbaron.nodes import (RawStringNode,
@@ -23,9 +24,10 @@ def test_generate_identifiers():
 
 def test_index():
     red = RedBaron("a = [1, 2, 3]")
-    assert red[0].value.value[2].index_on_parent == 2
+    assert red[0].value[2].index_on_parent == 2
     assert red[0].index_on_parent == 0
-    assert red[0].value.index_on_parent is None
+    with pytest.raises(ValueError):
+        red[0].value.index_on_parent  # pylint: disable=pointless-statement
 
 
 def test_index_raw():
