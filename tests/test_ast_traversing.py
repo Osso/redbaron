@@ -58,13 +58,13 @@ def test_node_previous_recursive():
 
 
 def test_node_next_intuitive():
-    red = RedBaron("[1, 2, 3]")
-    assert red[0].value[0].next_intuitive == red[0].node_list[1]
+    red = node("[1, 2, 3]")
+    assert red[0].next_intuitive == red[1]
 
 
 def test_node_previous_intuitive():
-    red = RedBaron("[1, 2, 3]")
-    assert red[0].value[1].previous_intuitive == red[0].node_list[1]
+    red = node("[1, 2, 3]")
+    assert red[1].previous_intuitive == red[0]
 
 
 def test_node_if_ifelseblock_next_intuitive():
