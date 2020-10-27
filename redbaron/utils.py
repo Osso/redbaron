@@ -1,8 +1,16 @@
 from io import StringIO
 import logging
+import re
 import sys
 
 logger = logging.getLogger("redbaron")
+
+
+def baron_type_from_class(cls):
+    name = cls.__name__
+    name = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name.replace("Node", ""))
+    computed_name = re.sub('([a-z0-9])([A-Z])', r'\1_\2', name).lower()
+    return computed_name
 
 
 def in_a_shell():

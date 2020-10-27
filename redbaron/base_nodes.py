@@ -16,7 +16,8 @@ from .node_property import (AliasProperty,
                             set_name_for_node_properties)
 from .syntax_highlight import (help_highlight,
                                python_highlight)
-from .utils import (deindent_str,
+from .utils import (baron_type_from_class,
+                    deindent_str,
                     in_a_shell,
                     in_ipython,
                     indent_str,
@@ -181,7 +182,7 @@ class BaseNode:
 
     @property
     def type(self):
-        return type(self).baron_type
+        return self.baron_type
 
     def to_node(self, source_code: str):
         assert self.parent
@@ -392,6 +393,8 @@ class NodeRegistration(type):
     def __init__(cls, name, bases, attrs):
         super().__init__(name, bases, attrs)
         if name != "Node":
+            cls.baron_type = getattr(cls, "baron_type",
+                                     baron_type_from_class(cls))
             NodeRegistration.register_type(cls)
             if cls.baron_type in NODES_RENDERING_ORDER:
                 cls.define_attributes_from_baron(cls.baron_type)  # pylint: disable=no-value-for-parameter
@@ -445,14 +448,6 @@ class NodeRegistration(type):
     @classmethod
     def all_types(mcs):
         return mcs.node_type_mapping
-
-    @property
-    def baron_type(cls):
-        name = cls.__name__
-        name = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name.replace("Node", ""))
-        computed_name = re.sub('([a-z0-9])([A-Z])', r'\1_\2', name).lower()
-
-        return getattr(cls, "_baron_type", computed_name)
 
 
 class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):

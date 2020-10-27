@@ -3,7 +3,7 @@ from .node_mixin import CodeBlockMixin
 
 
 class RedBaron(CodeBlockMixin, Node):
-    _baron_type = "root"
+    baron_type = "root"
 
     def _default_fst(self):
         return {"type": "root", "value": []}
