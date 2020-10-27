@@ -19,22 +19,20 @@ def test_node_next():
     red = RedBaron("[1, 2, 3]")
     assert red.next is None
     assert red[0].next is None
-    inner = red[0].value
-    assert inner[0].next == inner[1]
-    assert inner[1].next == inner[2]
-    assert inner[2].next is None
+    node_list = red[0].value
+    assert node_list[0].next == node_list[1]
+    assert node_list[1].next == node_list[2]
+    assert node_list[2].next is None
 
 
 def test_node_previous():
     red = RedBaron("[1, 2, 3]")
     assert red.previous is None
     assert red[0].previous is None
-    inner = red[0].value.node_list
-    assert inner[4].previous == inner[3]
-    assert inner[3].previous == inner[2]
-    assert inner[2].previous == inner[1]
-    assert inner[1].previous == inner[0]
-    assert inner[0].previous is None
+    node_list = red[0].value
+    assert node_list[2].previous == node_list[1]
+    assert node_list[1].previous == node_list[0]
+    assert node_list[0].previous is None
 
 
 def test_node_next_recursive():
@@ -42,7 +40,6 @@ def test_node_next_recursive():
     first_def, second_def = red.find_all('def')
 
     assert first_def.next is second_def
-    assert second_def.next is None
     assert second_def.next_recursive is None
 
     assert first_def[0].next_recursive == first_def[1]
@@ -50,18 +47,14 @@ def test_node_next_recursive():
 
 
 def test_node_previous_recursive():
-    red = RedBaron("def a():\n    b = 1\ndef c():\n    d = 1")
-    assert red[0].previous is None
-    assert red[0].previous_recursive is None
-    first, second = red.find_all('def')
-    assert second.previous is first
-    inner = second.value.node_list
-    assert inner[2].previous == inner[1]
-    assert inner[2].previous_recursive == inner[1]
-    assert inner[1].previous == inner[0]
-    assert inner[1].previous_recursive == inner[0]
-    assert inner[0].previous is None
-    assert inner[0].previous_recursive == first
+    red = RedBaron("def a():\n    b = 1\ndef c():\n    d = 1\n    e = 1\n")
+    first_def, second_def = red.find_all('def')
+
+    assert first_def.previous_recursive is None
+    assert second_def.previous_recursive is first_def
+
+    assert second_def[0].previous_recursive == first_def
+    assert second_def[1].previous_recursive == second_def[0]
 
 
 def test_node_next_intuitive():

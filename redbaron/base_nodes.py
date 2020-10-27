@@ -153,11 +153,8 @@ class BaseNode:
         return self.parent
 
     def _next_neighbors(self, neighbors):
-        if not neighbors:
-            return iter([])
-
         neighbors = dropwhile(lambda x: x is not self, neighbors)
-        next(neighbors)
+        next(neighbors, None)
         return neighbors
 
     @property
