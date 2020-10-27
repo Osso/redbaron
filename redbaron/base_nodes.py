@@ -404,13 +404,13 @@ class NodeRegistration(type):
         cls._list_keys = []
         cls._dict_keys = []
         cls._constant_keys = []
-        reserved_keywords = ("async", "class")
+        reserved_keywords = ("async", "class", "finally")
 
         for kind, key, _ in cls._baron_attributes():
             orig_key = key
             if key in reserved_keywords:
                 key += "_"
-                if not hasattr(cls, key):
+                if not hasattr(cls, orig_key):
                     setattr(cls, orig_key, AliasProperty(key))
 
             if kind == "constant":
