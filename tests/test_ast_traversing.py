@@ -174,7 +174,7 @@ def test_node_exceptnode_next_intuitive_except_after():
 
 def test_node_exceptnode_next_intuitive_except_except():
     red = RedBaron("try: pass\nexcept: pass\nexcept: pass")
-    assert red.find("except").next_intuitive is red.find("except")[1]
+    assert red.find("except").next_intuitive is red.find_all("except")[1]
 
 
 def test_node_exceptnode_next_intuitive_else():
@@ -184,7 +184,7 @@ def test_node_exceptnode_next_intuitive_else():
 
 def test_node_exceptnode_next_intuitive_except_else():
     red = RedBaron("try: pass\nexcept: pass\nexcept: pass\nelse: pass")
-    assert red.find("except").next_intuitive is red.find("except")[1]
+    assert red.find("except").next_intuitive is red.find_all("except")[1]
 
 
 def test_node_exceptnode_next_intuitive_finally():
@@ -249,7 +249,7 @@ def test_node_finally_previous_intuitive_except():
 
 def test_node_finally_previous_intuitive_excepts():
     red = RedBaron("try: pass\nexcept: pass\nexcept: pass\nfinally: pass\n")
-    assert red.finally_.previous_intuitive is red.find("except")[-1]
+    assert red.finally_.previous_intuitive is red.find_all("except")[-1]
 
 
 def test_node_finally_previous_intuitive_except_else():
@@ -269,7 +269,7 @@ def test_node_trynode_outside_previous_intuitive_except():
 
 def test_node_trynode_outside_previous_intuitive_except_except():
     red = RedBaron("try:\n    pass\nexcept: pass\nexcept: pass\nafter")
-    assert red.find("name", "after").previous_intuitive is red.find("except")[1]
+    assert red.find("name", "after").previous_intuitive is red.find_all("except")[1]
 
 
 def test_node_trynode_outside_previous_intuitive_except_except_else():
@@ -364,7 +364,7 @@ def test_node_while_next_intuitive_else_after():
 
 def test_node_while_previous_intuitive_after():
     red = RedBaron("before\nwhile a: pass\nafter")
-    assert red.while_.previous_intuitive is red.endl_
+    assert red.find("while").previous_intuitive is red.find("name", "before")
 
 
 def test_node_while_else_next_intuitive():
@@ -402,24 +402,6 @@ def test_node_whilenode_outside_previous_intuitive_else():
     assert red.find("name", "after").previous_intuitive is red.find("else")
 
 
-def test_filtered_endl():
-    red = RedBaron("while a:\n    pass\n")
-    assert red[0].value.node_list.filtered() == (red[0].value.node_list[-2],)
-
-
-def test_filtered_comma():
-    red = RedBaron("[1, 2, 3]")
-    assert red[0].value.filtered() \
-        == tuple(red[0].value.filter(lambda x: not isinstance(x, CommaNode)))
-
-
-def test_filtered_dot():
-    red = RedBaron("a.b.c(d)")
-    assert red[0].value.filtered() \
-        == tuple(red[0].value.filter(lambda x: not isinstance(x, DotNode)))
-
-
 def test_filter():
-    red = RedBaron("[1, 2, 3]")
-    assert red[0].value.filter(lambda x: x.type != "comma") == red.find("int")
-    assert isinstance(red[0].value.filter(lambda x: x.type != "comma"), NodeList)
+    red = node("[1, 2, 3]")
+    assert red.value.filter(lambda x: x.value == 2) == red.find_all("int", "2")

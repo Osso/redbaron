@@ -448,19 +448,17 @@ class ExceptNode(IndentedCodeBlockMixin, Node):
 
     @property
     def next_intuitive(self):
-        next_ = self.next
+        if self.next:
+            return self.next
 
-        if next_:
-            return next_
+        if self.parent.parent.else_:
+            return self.parent.parent.else_
 
-        if self.parent.else_:
-            return self.parent.else_
+        if self.parent.parent.finally_:
+            return self.parent.parent.finally_
 
-        if self.parent.finally_:
-            return self.parent.finally_
-
-        if self.parent.next:
-            return self.parent.next
+        if self.parent.parent.next:
+            return self.parent.parent.next
 
         return None
 
