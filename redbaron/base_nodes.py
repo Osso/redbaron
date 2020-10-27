@@ -567,23 +567,21 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
 
             target = target.parent
 
-    @property
-    def next_recursive(self):
+    def _next_recursive(self, getter):
         target = self
-        while not target.next:
+        while not getter(target):
             if not target.parent:
                 break
             target = target.parent
-        return target.next
+        return getter(target)
+
+    @property
+    def next_recursive(self):
+        return self._next_recursive(lambda node: node.next)
 
     @property
     def previous_recursive(self):
-        target = self
-        while not target.previous:
-            if not target.parent:
-                break
-            target = target.parent
-        return target.previous
+        return self._next_recursive(lambda node: node.previous)
 
     def _find_iter(self, identifier, *args, recursive=True, **kwargs):
         if self._node_match_query(self, identifier, *args, **kwargs):
