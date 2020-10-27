@@ -436,6 +436,10 @@ class ExceptNode(IndentedCodeBlockMixin, Node):
         except AttributeError:
             return "as" if self.target else ""
 
+    @delimiter.setter
+    def delimiter(self, value):
+        self._delimiter = value  # pylint: disable=attribute-defined-outside-init
+
     @NodeProperty
     def exception(self, value):
         value = indent_str(value, self.el_indentation)
