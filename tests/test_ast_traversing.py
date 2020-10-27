@@ -80,10 +80,10 @@ def test_node_if_ifelseblock_previous_intuitive():
     red = RedBaron("if a:\n    pass")
     assert red.find("if").previous_intuitive is None
     red = RedBaron("chocolat\nif a:\n    pass")
-    assert red.find("if").previous_intuitive is red.find("endl")
+    assert red.find("if").previous_intuitive is red.find("name", "chocolat")
     red = RedBaron("pouet\nif a:\n    pass\nelif a:\n    pass\nelse:\n    pass")
     assert red.find("else").previous_intuitive is red.find("elif")
-    assert red.find("if").previous is None
+    assert red.find("elif").previous_intuitive is red.find("if")
 
 
 def test_node_elif_ifelseblock_next_intuitive():
@@ -119,7 +119,7 @@ def test_node_else_elseelseblock_previous_intuitive():
 
 def test_node_if_ifelseblock_outside_next_intuitive():
     red = RedBaron("outside\nif a:\n    pass")
-    assert red.endl_.next_intuitive is red.find("if")
+    assert red.find("name", "outside").next_intuitive is red.find("if")
 
 
 def test_node_if_ifelseblock_outside_previous_intuitive():
@@ -134,7 +134,7 @@ def test_node_if_ifelseblock_outside_previous_intuitive_elif():
 
 def test_node_if_ifelseblock_outside_previous_intuitive_elif_elif():
     red = RedBaron("if a:\n    pass\nelif a: pass\nelif a: pass\nafter")
-    assert red.find("name", "after").previous_intuitive is red.find("elif")[1]
+    assert red.find("name", "after").previous_intuitive is red.find_all("elif")[-1]
 
 
 def test_node_if_ifelseblock_outside_previous_intuitive_else():

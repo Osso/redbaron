@@ -179,8 +179,8 @@ class IfElseBlockSiblingMixin:
     def next_intuitive(self):
         next_ = super().next
 
-        if next_ is None and self.parent:
-            next_ = self.parent.next
+        if next_ is None and self.parent and self.parent.parent:
+            next_ = self.parent.parent.next
 
         return next_
 
@@ -188,8 +188,8 @@ class IfElseBlockSiblingMixin:
     def previous_intuitive(self):
         previous_ = super().previous
 
-        if previous_ is None and self.parent:
-            previous_ = self.parent.previous
+        if previous_ is None and self.parent and self.parent.parent:
+            previous_ = self.parent.parent.previous
 
         return previous_
 

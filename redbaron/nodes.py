@@ -353,29 +353,29 @@ class EllipsisNode(Node):
 class ElseNode(IfElseBlockSiblingMixin, IndentedCodeBlockMixin, Node):
     @property
     def next_intuitive(self):
-        if self.parent.type == "ifelseblock":
+        if self.parent.parent.baron_type == "ifelseblock":
             return super().next_intuitive
 
-        if self.parent.type == "try":
-            if self.parent.finally_:
-                return self.parent.finally_
+        if self.parent.baron_type == "try":
+            if self.parent.find("finally"):
+                return self.parent.find("finally")
 
             return self.parent.next
 
-        if self.parent.type in ("for", "while"):
+        if self.parent.baron_type in ("for", "while"):
             return self.parent.next
 
         return None
 
     @property
     def previous_intuitive(self):
-        if self.parent.type == "ifelseblock":
+        if self.parent.parent.baron_type == "ifelseblock":
             return super().previous_intuitive
 
-        if self.parent.type == "try":
+        if self.parent.baron_type == "try":
             return self.parent.excepts[-1]
 
-        if self.parent.type in ("for", "while"):
+        if self.parent.baron_type in ("for", "while"):
             return self.parent
 
         return None
