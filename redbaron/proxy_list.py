@@ -250,19 +250,29 @@ class ProxyList(NodeList):
         return self.parent.indentation + "    "
 
     def filter(self, function):
-        new_list = self.copy()
+        new_list = type(self)()
         new_list.replace_data([node for node, sep in self._data
                                if function(node)])
 
     def replace_data(self, new_data):
-        self._data = new_data
+        self._data = list(new_data)
         self.set_parent_and_on_attribute(self)
         self._synchronise()
 
-    def replace_node_list(self, new_data):
-        super().replace_data(new_data)
+    def replace_node_list(self, new_node_list):
+        self.data = list(new_node_list)
         self._node_list_to_data()
         self._synchronise()
+
+    def copy(self):
+        new_list = type(self)()
+        new_list.replace_data(self)
+        return new_list
+
+    def deep_copy(self):
+        new_list = type(self)()
+        new_list.replace_data([node.copy() for node in self])
+        return new_list
 
 
 class SpaceProxyList(ProxyList):

@@ -356,10 +356,6 @@ class NodeList(UserList, BaseNode, IndentationMixin):
             el.parent = self
             el.on_attribute = None
 
-    def replace_data(self, new_data):
-        self.set_parent_and_on_attribute(new_data)
-        self.data = new_data
-
     def _iter_in_rendering_order(self):
         for node in self:
             yield from node._iter_in_rendering_order()
@@ -404,8 +400,9 @@ class NodeList(UserList, BaseNode, IndentationMixin):
 
         self.replace(indented_str)
 
-    def replace_node_list(self, new_data):
-        self.replace_data(new_data)
+    def replace_node_list(self, new_node_list):
+        self.set_parent_and_on_attribute(new_node_list)
+        self.data = new_node_list
 
     @property
     def indentation(self):
