@@ -22,9 +22,6 @@ class Test():
         RedBaron("a = 1").help()
         RedBaron("a = 1")[0].help()
 
-    def test_endl_html(self):
-        RedBaron("a\n").node_list[-1]._repr_html_()
-
     def test_regression_repr(self):
         red = RedBaron("a = 1 + caramba")
         red[0].value.first.parent
