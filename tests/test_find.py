@@ -210,3 +210,8 @@ def test_default_test_value_find_def():
 def test_default_test_value_find_class():
     red = RedBaron("class a(): pass\nclass b(): pass")
     assert red.find("class", "b") == red.find("class", name="b")
+
+
+def test_find_other_name_assignment():
+    red = RedBaron("a = b")
+    assert red.find("assign") is red[0]

@@ -1,5 +1,6 @@
 """ Tests initial parsing through the RedBaron() base function """
-from redbaron import RedBaron
+from redbaron import (RedBaron,
+                      node)
 from redbaron.nodes import (AssignmentNode,
                             EndlNode,
                             IntNode,
@@ -24,9 +25,9 @@ def test_name():
 
 
 def test_int():
-    red = RedBaron("1\n")
-    assert isinstance(red[0], IntNode)
-    assert red[0].value == "1"
+    red = node("1")
+    assert isinstance(red, IntNode)
+    assert red.value == "1"
 
 
 def test_assignment():
@@ -39,7 +40,7 @@ def test_assignment():
 
 
 def test_binary_operator_plus():
-    binop = RedBaron("z +  42")
+    binop = node("z +  42")
     assert binop.value == "+"
     assert isinstance(binop.first, NameNode)
     assert binop.first.value == "z"
@@ -48,7 +49,7 @@ def test_binary_operator_plus():
 
 
 def test_binary_operator_minus():
-    binop = RedBaron("z  -      42")[0]
+    binop = node("z  -      42")
     assert binop.value == "-"
     assert isinstance(binop.first, NameNode)
     assert binop.first.value == "z"
@@ -57,18 +58,19 @@ def test_binary_operator_minus():
 
 
 def test_binary_operator_more_complex():
-    binop = RedBaron("ax + (z * 4)")[0]
+    binop = node("ax + (z * 4)")
     assert binop.first.value == "ax"
 
 
 def test_pass():
-    red = RedBaron("pass")
-    assert isinstance(red[0], PassNode)
+    red = node("pass")
+    assert isinstance(red, PassNode)
 
 
 def test_parent_and_on_attribute():
     red = RedBaron("a = 1 + caramba")
     assert red.parent is None
+    assert red.value.parent is red
     assert red[0].parent is red.value
     assert red[0].parent.parent is red
     assert red.value.on_attribute == "value"
@@ -96,8 +98,3 @@ def test_parent_and_on_attribute_list():
 
 def test_kwargs_only_marker_node():
     RedBaron("def a(*): pass")
-
-
-def test_other_name_assignment():
-    red = RedBaron("a = b")
-    assert red.assign is red[0]
