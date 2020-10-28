@@ -1,6 +1,8 @@
 from redbaron.utils import (in_a_shell,
                             truncate)
 
+import baron
+
 from .base_nodes import (Node,
                          NodeList)
 
@@ -135,7 +137,7 @@ class ProxyList(NodeList):
         return len(self._data)
 
     def _insert(self, index, item):
-        value = Node.generic_to_node(item)
+        value = self.el_to_node(item)
         self._check_for_separator(index)
         sep = self.make_separator() if self.strict_separator else None
         self._data.insert(index, [value, sep])
@@ -207,7 +209,7 @@ class ProxyList(NodeList):
         index = key.start
         # First replace values in slice
         for index, el in zip(range(key.stop)[key], values_iter):
-            self._data[index][0] = Node.generic_to_node(el, parent=self)
+            self._data[index][0] = self.el_to_node(el)
         # Second, append the remaining values
         for el in values_iter:
             index += 1
@@ -255,7 +257,7 @@ class ProxyList(NodeList):
 
     def filter(self, function):
         new_list = type(self)()
-        new_list.extend(filter(function, self))
+        new_list.extend([node.copy() for node in filter(function, self)])
         return new_list
 
     def replace_data(self, new_data):
@@ -277,6 +279,9 @@ class ProxyList(NodeList):
         new_list = type(self)()
         new_list.replace_data([node.copy() for node in self])
         return new_list
+
+    def el_to_node(self, el):
+        return Node.generic_to_node(el, parent=self)
 
 
 class SpaceProxyList(ProxyList):
@@ -300,6 +305,10 @@ class CommaProxyList(ProxyList):
             "indent": self._get_separator_indentation(),
             "formatting": [],
             "value": "\n"}])
+
+    def el_to_node(self, el):
+        fst = baron.parse("a(%s)" % el)[0]['value'][1]['value'][0]['value']
+        return Node.generic_from_fst(fst, parent=self)
 
 
 class DotProxyList(ProxyList):

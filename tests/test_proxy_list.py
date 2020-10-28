@@ -55,6 +55,7 @@ def test_comma_proxy_list_append():
     comma_proxy_list = red[0].value
     comma_proxy_list.append("1")
     assert red.dumps() == "[1]"
+    assert comma_proxy_list[0].parent == comma_proxy_list
 
 
 def test_comma_proxy_list_append_2():
@@ -62,6 +63,8 @@ def test_comma_proxy_list_append_2():
     comma_proxy_list = red[0].value
     comma_proxy_list.append("2")
     assert red.dumps() == "[1, 2]"
+    assert comma_proxy_list[0].parent == comma_proxy_list
+    assert comma_proxy_list[1].parent == comma_proxy_list
 
 
 def test_comma_proxy_list_append_3():

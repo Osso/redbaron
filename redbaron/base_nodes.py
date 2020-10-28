@@ -349,7 +349,9 @@ class NodeList(UserList, BaseNode, IndentationMixin):
         return type(self)([node.copy() for node in self])
 
     def filter(self, function):
-        self.data = [x for x in self.data if function(x)]
+        new_list = type(self)()
+        new_list.replace_node_list([x.copy() for x in self.data if function(x)])
+        return new_list
 
     def set_parent_and_on_attribute(self, new_data):
         for el in new_data:

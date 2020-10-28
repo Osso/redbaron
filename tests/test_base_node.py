@@ -1,6 +1,7 @@
 import pytest
 from redbaron import (RedBaron,
                       node)
+from redbaron.base_nodes import NodeList
 from redbaron.nodes import (RawStringNode,
                             SpaceNode)
 
@@ -32,4 +33,6 @@ def test_index():
 
 def test_filter():
     red = node("[1, 2, 3]")
-    assert red.value.filter(lambda x: x.value == "2") == red.find_all("int", "2")
+    filtered_list = red.value.filter(lambda x: x.value == "2")
+    assert isinstance(filtered_list, NodeList)
+    assert filtered_list.dumps() == "2"
