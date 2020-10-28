@@ -13,7 +13,7 @@ redbaron.DEBUG = True
 def test_comma_proxy_list_len_empty():
     red = RedBaron("[]")
     comma_proxy_list = red[0].value
-    assert len(comma_proxy_list) == 0
+    assert not comma_proxy_list
 
 
 def test_comma_proxy_list_len_not_empty():
@@ -687,6 +687,7 @@ class A():
         pass
 """
 
+
 def test_line_proxy_dont_break_next_block_identation():
     red = RedBaron(forwarded_indented_code)
     red.while_.append("plop")
@@ -810,6 +811,7 @@ class A():
     while c:
         pass
 """
+
 
 def test_line_proxy_with_blank_line_dont_break_next_block_identation():
     red = RedBaron(forwarded_indented_code)
@@ -1091,7 +1093,7 @@ def test_decorator_line_proxy_list_set_slice():
     red = RedBaron("def a():\n    pass\n")
     red[0].decorators[1:2] = ["@caramba", "@compote"]
     assert red.dumps() == "@caramba\n@compote\ndef a():\n    pass\n"
-    assert isinstance(red[0].decorators, DecoratorsLineProxyList)
+    assert isinstance(red[0].decorators, LineProxyList)
 
 
 def test_decorator_line_proxy_list_delslice():
@@ -1103,7 +1105,7 @@ def test_decorator_line_proxy_list_delslice():
 def test_decorator_line_proxy_list_getslice():
     red = RedBaron("@a\n@b\n@c\ndef a():\n    pass\n")
     result = red[0].decorators[1:3]
-    expected_result = DecoratorsLineProxyList(NodeList([red[0].decorators[1], red[0].decorators[2]]))
+    expected_result = LineProxyList([red[0].decorators[1], red[0].decorators[2]])
     assert len(result) == len(expected_result)
     assert result[0] == expected_result[0]
 
@@ -1134,6 +1136,7 @@ class A():
     def c(self):
         pass
 """
+
 
 def test_decorator_line_proxy_dont_break_next_block_identation():
     red = RedBaron(forwarded_indented_code_decorators)

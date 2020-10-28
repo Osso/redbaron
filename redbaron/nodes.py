@@ -17,8 +17,11 @@ from .node_property import (NodeListProperty,
                             NodeProperty,
                             conditional_formatting_property,
                             nodelist_property)
-from .proxy_list import (CommaProxyList,
+from .proxy_list import (ArgsProxyList,
+                         CommaProxyList,
+                         DictProxyList,
                          DotProxyList,
+                         ImportsProxyList,
                          LineProxyList)
 from .utils import indent_str
 
@@ -134,7 +137,7 @@ class BreakNode(Node):
 
 
 class CallNode(ValueIterableMixin, Node):
-    @nodelist_property(CommaProxyList)
+    @nodelist_property(ArgsProxyList)
     def value(self, value):
         return baron.parse("a(%s)" % value)[0]["value"][1]["value"]
 
@@ -249,7 +252,7 @@ class DefNode(IndentedCodeBlockMixin, DecoratorsMixin,
     def async_formatting(self):
         return self.async_
 
-    @nodelist_property(CommaProxyList)
+    @nodelist_property(ArgsProxyList)
     def arguments(self, value):
         return baron.parse("def a(%s): pass" % value)[0]["arguments"]
 
@@ -292,7 +295,7 @@ class DictitemNode(Node):
 
 
 class DictNode(ValueIterableMixin, LiteralyEvaluableMixin, Node):
-    @nodelist_property(CommaProxyList)
+    @nodelist_property(DictProxyList)
     def value(self, value):
         code = "{%s}" % value
         return baron.parse(code)[0]["value"]
@@ -603,7 +606,7 @@ class FromImportNode(Node):
                 for x in self.targets   # pylint: disable=not-an-iterable
                 if not isinstance(x, (LeftParenthesisNode, RightParenthesisNode))]
 
-    @nodelist_property(CommaProxyList)
+    @nodelist_property(ImportsProxyList)
     def targets(self, value):
         return baron.parse("from a import %s" % value)[0]["targets"]
 
@@ -658,7 +661,7 @@ class ImportNode(Node):
         return [x.target.dumps() if x.target else x.value.dumps()
                 for x in self.find_all('dotted_as_name')]
 
-    @nodelist_property(CommaProxyList)
+    @nodelist_property(ImportsProxyList)
     def value(self, value):
         return baron.parse("import %s" % value)[0]["value"]
 

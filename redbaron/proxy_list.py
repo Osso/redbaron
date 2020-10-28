@@ -306,10 +306,6 @@ class CommaProxyList(ProxyList):
             "formatting": [],
             "value": "\n"}])
 
-    def el_to_node(self, el):
-        fst = baron.parse("a(%s)" % el)[0]['value'][1]['value'][0]['value']
-        return Node.generic_from_fst(fst, parent=self)
-
 
 class DotProxyList(ProxyList):
     strict_separator = False
@@ -384,3 +380,21 @@ class CodeProxyList(LineProxyList):
             self._data.insert(index, [self.make_empty_el(), item])
         else:
             self._data.insert(index, [item, None])
+
+
+class DictProxyList(CommaProxyList):
+    def el_to_node(self, el):
+        fst = baron.parse("{%s}" % el)[0]['value'][0]
+        return Node.generic_from_fst(fst, parent=self)
+
+
+class ImportsProxyList(CommaProxyList):
+    def el_to_node(self, el):
+        fst = baron.parse("from m import %s" % el)[0]['targets'][0]
+        return Node.generic_from_fst(fst, parent=self)
+
+
+class ArgsProxyList(CommaProxyList):
+    def el_to_node(self, el):
+        fst = baron.parse("a(%s)" % el)[0]['value'][1]['value'][0]
+        return Node.generic_from_fst(fst, parent=self)
