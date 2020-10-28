@@ -6,9 +6,14 @@ import pytest
 from redbaron import RedBaron
 
 
-def test_regression_find_all_recursive():
+def test_regression_find_all_in_children():
     red = RedBaron("a.b()")
-    assert red[0].value("name", recursive=False) == [red.name, red.find("name")[1]]
+    assert red[0].value.find_all("name") == red.find_all("name")
+
+
+def test_regression_find_all_not_recursive():
+    red = RedBaron("a.b()")
+    assert red[0].value.find_all("name", recursive=False) == red.find_all("name")
 
 
 SOME_DATA_FOR_TEST = """\
