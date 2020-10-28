@@ -12,7 +12,7 @@ class Path:
     """
 
     def __init__(self, node):
-        assert node
+        assert node is not None
 
         self.node = node
         self.path = Path.baron_path_from_node(node)
