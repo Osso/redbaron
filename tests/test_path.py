@@ -23,9 +23,14 @@ def test_path_root(red):
     check_path(red, red, [])
 
 
-def test_path_none(red):
+def test_path_invalid_type(red):
     with pytest.raises(ValueError):
         assert red.find_by_path([7])
+
+
+def test_path_none(red):
+    with pytest.raises(ValueError):
+        assert red.find_by_path(["value", 7])
 
 
 def test_path_first_statement(red):

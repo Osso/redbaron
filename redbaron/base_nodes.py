@@ -915,4 +915,7 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
         self.indent = value
 
     def get_from_baron_index(self, index):
+        if not isinstance(index, str):
+            raise ValueError(f"{index} must be string")
+
         return getattr(self, index)
