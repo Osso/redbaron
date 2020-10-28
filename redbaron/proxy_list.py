@@ -197,17 +197,21 @@ class ProxyList(NodeList):
     def count(self, item):
         return list(self).count(item)
 
-    def __setitem__(self, index, value):
-        if isinstance(index, slice):
-            self.__setslice__(index.start, index.stop, value)
-        else:
-            self._data[index][0] = Node.generic_to_node(value, parent=self)
-        self._synchronise()
+    def __setitem__(self, key, value):
+        # Single element, make a one element slice
+        if not isinstance(key, slice):
+            key = slice(key, key + 1)
+            value = [value]
 
-    def __setslice__(self, i, j, value):
-        _nodes = Node.generic_from_str(value, parent=self)
-        self._check_for_separator(i)
-        self._data[i:j] = ([node, self.make_separator()] for node in _nodes)
+        values_iter = iter(value)
+        index = key.start
+        # First replace values in slice
+        for index, el in zip(range(key.stop)[key], values_iter):
+            self._data[index][0] = Node.generic_to_node(el, parent=self)
+        # Second, append the remaining values
+        for el in values_iter:
+            index += 1
+            self._insert(index, el)
         self._synchronise()
 
     def _check_for_separator(self, index):
