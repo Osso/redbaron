@@ -202,7 +202,7 @@ def test_comma_proxy_list_on_attribute_default_on_value():
     red = RedBaron("[]")
     comma_proxy_list = red[0].value
     comma_proxy_list.append("1")
-    assert comma_proxy_list[0].on_attribute == "value"
+    assert comma_proxy_list[0].on_attribute is None
 
 
 def test_comma_proxy_list_on_attribute():
@@ -211,9 +211,9 @@ def test_comma_proxy_list_on_attribute():
     comma_proxy_list = CommaProxyList(red[0].value.node_list, on_attribute="plop")
     comma_proxy_list.append("1")
     comma_proxy_list.append("1")
-    assert comma_proxy_list[0].on_attribute == "plop"
-    assert comma_proxy_list[1].on_attribute == "plop"
-    assert comma_proxy_list.node_list[1].on_attribute == "plop"
+    assert comma_proxy_list[0].on_attribute is None
+    assert comma_proxy_list[1].on_attribute is None
+    assert comma_proxy_list.node_list[1].on_attribute is None
 
 
 def test_comma_proxy_list_extend():
