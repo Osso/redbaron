@@ -28,14 +28,6 @@ class Test():
         str(red[0].value.first.parent)
 
 
-class TestClassical(Test):
-    def setup_method(self, method):
-        pass
-
-    def teardown_method(self, method):
-        pass
-
-
 def test_highlight(capsys, monkeypatch):
     monkeypatch.setattr(redbaron, 'force_ipython_behavior', True)
 
