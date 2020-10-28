@@ -20,7 +20,7 @@ class Path:
     @staticmethod
     def baron_path_from_node(node):
         "Path coming from the node's root"
-        assert node
+        assert node is not None
 
         path = []
         while node.parent:
