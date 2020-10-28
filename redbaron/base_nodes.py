@@ -696,7 +696,6 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
     def generate_identifiers(cls):
         ids = [
             cls.baron_type,
-            cls.baron_type + "_",
             cls.__name__,
             cls.__name__.replace("Node", ""),
         ]
@@ -734,6 +733,10 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
             'to_node',
             'generic_to_node',
             'get_from_baron_index',
+            'append',
+            'extend',
+            'index',
+            'insert',
         ])
         for attr_name in dir(self):
             if attr_name.startswith("_"):  # private method

@@ -19,7 +19,7 @@ def test_dumps():
 
 def test_generate_identifiers():
     red = RedBaron("def a(): pass")
-    assert set(red[0].generate_identifiers()) == set(["defnode", "def", "def_"])
+    assert set(red[0].generate_identifiers()) == set(["defnode", "def"])
 
 
 def test_index():
