@@ -3,9 +3,9 @@ from redbaron import RedBaron
 
 def test_get_helpers():
     red = RedBaron("a")
-    assert red[0]._get_helpers() == []
+    assert list(red[0]._get_helpers()) == []
     red = RedBaron("import a")
-    assert red[0]._get_helpers() == ['modules', 'names']
+    assert list(red[0]._get_helpers()) == ['modules', 'names']
 
 
 def test_help_is_not_crashing1():

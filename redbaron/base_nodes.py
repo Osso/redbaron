@@ -709,40 +709,22 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
             'copy',
             'decrease_indentation',
             'dumps',
-            'edit',
             'find',
             'find_all',
-            'findAll',
             'find_by_path',
             'find_by_position',
             'find_iter',
-            'from_fst',
-            'fst',
             'fst',
             'generate_identifiers',
             'box_of_attribute',
-            'get_indentation_node',
-            'get_indentation_node',
             'has_render_key',
             'help',
-            'help',
             'increase_indentation',
-            'indentation_node_is_direct',
-            'indentation_node_is_direct',
             'index_on_parent',
-            'index_on_parent_raw',
             'insert_after',
             'insert_before',
-            'next_neighbors',
-            'next_neighbors',
             'parent_find',
-            'parent_find',
-            'parse_code_block',
-            'parse_decorators',
             'path',
-            'path',
-            'previous_neighbors',
-            'previous_neighbors',
             'replace',
             'to_python',
             'consume_leftover_endl',
@@ -751,9 +733,15 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
             'set_on_attribute_node',
             'to_node',
             'generic_to_node',
+            'get_from_baron_index',
         ])
-        return [x for x in dir(self) if not x.startswith("_") and
-                x not in not_helpers and inspect.ismethod(getattr(self, x))]
+        for attr_name in dir(self):
+            if attr_name.startswith("_"):  # private method
+                continue
+            if attr_name in not_helpers:
+                continue
+            if inspect.ismethod(getattr(self, attr_name)):
+                yield attr_name
 
     def fst(self):
         to_return = {}
@@ -788,8 +776,9 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
             to_join[-1] += " ..."
         else:
             to_join.append("# identifiers: %s" % ", ".join(self.generate_identifiers()))
-            if self._get_helpers():
-                to_join.append("# helpers: %s" % ", ".join(self._get_helpers()))
+            helpers = list(self._get_helpers())
+            if helpers:
+                to_join.append("# helpers: %s" % ", ".join(helpers))
             if self._default_test_value != "value":
                 to_join.append("# default test value: %s" % self._default_test_value)
             to_join += ["%s=%s" % (key, repr(getattr(self, key))) for key in self._raw_keys if
