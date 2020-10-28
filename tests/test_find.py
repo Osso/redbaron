@@ -31,20 +31,20 @@ def test_parent_find_empty():
 
 def test_parent_find_direct():
     red = RedBaron(SOME_DATA_FOR_TEST)
-    target = red.assignment.target
-    assert target.parent_find('with') is red.with_
+    target = red.find("assignment").target
+    assert target.parent_find('with') is red.find("with")
 
 
 def test_parent_find_two_levels():
     red = RedBaron(SOME_DATA_FOR_TEST)
-    target = red.assignment.target
+    target = red.find("assignment").target
     assert target.parent_find('def') is red.find('def', name='a')
 
 
 def test_parent_find_two_levels_options():
     red = RedBaron(SOME_DATA_FOR_TEST)
-    target = red.assignment.target
-    assert target.parent_find('def', name='plop') is red.def_
+    target = red.find("assignment").target
+    assert target.parent_find('def', name='plop') is red.find("def")
     assert target.parent_find('def', name='dont_exist') is None
 
 
@@ -61,12 +61,12 @@ def test_find():
     red = RedBaron("def a(): b = c")
     assert red.find("name") is red[0].value[0].target
     assert red.find("name", value="c") is red[0].value[0].value
-    assert red.name is red[0].value[0].target
+    assert red.find("name") is red[0].value[0].target
 
 
 def test_find_other_properties():
     red = RedBaron("b = c")
-    assert red.find("assignement") == red[0]
+    assert red.find("assignment") == red[0]
     assert red.find("assign") == red[0]
 
 
@@ -79,14 +79,14 @@ def test_find_case_insensitive():
 
 def test_find_kwarg_lambda():
     red = RedBaron("[1, 2, 3, 4]")
-    assert red.find("int", value=lambda x: int(x) % 2 == 0) == red.find("int")[1]
-    assert red.find("int", value=lambda x: int(x) % 2 == 0) == red.find("int")[1::2]
+    assert red.find("int", value=lambda x: int(x) % 2 == 0) == red.find_all("int")[1]
+    assert red.find_all("int", value=lambda x: int(x) % 2 == 0) == red.find_all("int")[1::2]
 
 
 def test_find_lambda():
     red = RedBaron("[1, 2, 3, 4]")
-    assert red.find("int", lambda x: int(x.value) % 2 == 0) == red.find("int")[1]
-    assert red.find("int", lambda x: int(x.value) % 2 == 0) == red.find("int")[1::2]
+    assert red.find("int", lambda x: int(x.value) % 2 == 0) == red.find_all("int")[1]
+    assert red.find_all("int", lambda x: int(x.value) % 2 == 0) == red.find_all("int")[1::2]
 
 
 def test_find_kwarg_regex_instance():
@@ -125,7 +125,7 @@ def test_find_all_kwarg_glob_syntaxe():
 def test_identifier_find_kwarg_lambda():
     red = RedBaron("stuff\n1\n'string'")
     assert red.find(lambda x: x in ["name", "int"]) == red[0]
-    assert red.find(lambda x: x in ["name", "int"]) == red[:2].node_list
+    assert red.find_all(lambda x: x in ["name", "int"]) == list(red[:2])
 
 
 def test_identifier_find_kwarg_regex_instance():
@@ -135,7 +135,7 @@ def test_identifier_find_kwarg_regex_instance():
 
 def test_identifier_find_all_kwarg_regex_instance():
     red = RedBaron("stuff\n1\n'string'")
-    assert red.find(re.compile("^[ni]")) == red[:2].node_list
+    assert red.find_all(re.compile("^[ni]")) == list(red[:2])
 
 
 def test_identifier_find_kwarg_regex_syntaxe():
@@ -145,7 +145,7 @@ def test_identifier_find_kwarg_regex_syntaxe():
 
 def test_identifier_find_all_kwarg_regex_syntaxe():
     red = RedBaron("stuff\n1\n'string'")
-    assert red.find("re:^[ni]") == red[:2].node_list
+    assert red.find_all("re:^[ni]") == list(red[:2])
 
 
 def test_identifier_find_kwarg_glob_syntaxe():
@@ -155,7 +155,7 @@ def test_identifier_find_kwarg_glob_syntaxe():
 
 def test_identifier_find_all_kwarg_glob_syntaxe():
     red = RedBaron("stuff\n1\n'string'")
-    assert red.find("g:s*") == red[2:].node_list
+    assert red.find_all("g:s*") == list(red[2:])
 
 
 def test_find_kwarg_list_tuple_instance():
@@ -166,8 +166,8 @@ def test_find_kwarg_list_tuple_instance():
 
 def test_find_all_kwarg_list_tuple_instance():
     red = RedBaron("pouet\nstuff\n1")
-    assert red.find("name", value=["pouet", "stuff"]) == red[:2].node_list
-    assert red.find("name", value=("pouet", "stuff")) == red[:2].node_list
+    assert red.find_all("name", value=["pouet", "stuff"]) == list(red[:2])
+    assert red.find_all("name", value=("pouet", "stuff")) == list(red[:2])
 
 
 def test_identifier_find_kwarg_list_tuple_instance():
@@ -178,8 +178,8 @@ def test_identifier_find_kwarg_list_tuple_instance():
 
 def test_identifier_find_all_kwarg_list_tuple_instance():
     red = RedBaron("pouet\n'string'\n1")
-    assert red.find(["name", "string"]) == red[:2].node_list
-    assert red.find(("name", "string")) == red[:2].node_list
+    assert red.find_all(["name", "string"]) == list(red[:2])
+    assert red.find_all(("name", "string")) == list(red[:2])
 
 
 def test_default_test_value_find():
