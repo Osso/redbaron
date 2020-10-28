@@ -10,8 +10,8 @@ if HAS_PYGMENTS:
     from pygments.token import Comment, Text, String, Keyword, Name, Operator, Generic
     from pygments.lexer import RegexLexer, bygroups
     from pygments import highlight
-    from pygments.lexers import PythonLexer
-    from pygments.formatters import Terminal256Formatter
+    from pygments.lexers import PythonLexer  # pylint: disable=no-name-in-module
+    from pygments.formatters import TerminalTrueColorFormatter  # pylint: disable=no-name-in-module
 
     class HelpLexer(RegexLexer):
         name = 'Lexer for RedBaron .help() method output'
@@ -31,16 +31,16 @@ if HAS_PYGMENTS:
         }
 
     def help_highlight(string):
-        return highlight(string, HelpLexer(), Terminal256Formatter(style='monokai'))
+        return highlight(string, HelpLexer(),
+                         TerminalTrueColorFormatter(style='monokai'))[:-1]
 
     def python_highlight(string):
-        return highlight(string, PythonLexer(encoding="utf-8"),
-                         Terminal256Formatter(style='monokai',
-                                              encoding="utf-8"))
+        return highlight(string, PythonLexer(),
+                         TerminalTrueColorFormatter(style='monokai'))[:-1]
 
 else:
     def help_highlight(string):
-        return string.encode("utf-8")
+        return string
 
     def python_highlight(string):
-        return string.encode("utf-8")
+        return string

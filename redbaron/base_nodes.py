@@ -836,7 +836,7 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
 
     def __str__(self):
         if in_ipython():
-            return python_highlight(self.dumps()).decode("utf-8")
+            return python_highlight(self.dumps())
         return self.dumps()
 
     def copy(self):
