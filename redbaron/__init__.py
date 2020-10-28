@@ -4,9 +4,7 @@ from .base_nodes import (Node,
 from .redbaron import RedBaron
 
 DEBUG = False
-
-ipython_behavior = True
-force_ipython_behavior = False
+FORCE_IPYTHON_BEHAVIOR = False
 
 
 def node(source_code: str):

@@ -1,44 +1,41 @@
-import pytest
+from contextlib import redirect_stdout
+import io
+
 import redbaron
 from redbaron import RedBaron
 
 
-class Test():
-    def setup_method(self, method):
-        redbaron.force_ipython_behavior = True
-        redbaron.DEBUG = True
+def test_repr(monkeypatch):
+    monkeypatch.setattr(redbaron, 'FORCE_IPYTHON_BEHAVIOR', True)
 
-    def teardown_method(self, method):
-        redbaron.force_ipython_behavior = False
-        redbaron.DEBUG = False
-
-    def test_repr(self):
-        RedBaron("a = 1").__str__()
-        RedBaron("a = 1")[0].__str__()
-        RedBaron("a = 1").__repr__()
-        RedBaron("a = 1")[0].__repr__()
-
-    def test_help(self):
-        RedBaron("a = 1").help()
-        RedBaron("a = 1")[0].help()
-
-    def test_regression_repr(self):
-        value = "1 + caramba"
-        red = RedBaron(f"a = {value}")
-        assert str(red[0].value.first.parent) == value
+    RedBaron("a = 1").__str__()
+    RedBaron("a = 1")[0].__str__()
+    RedBaron("a = 1").__repr__()
+    RedBaron("a = 1")[0].__repr__()
 
 
-def test_highlight(capsys, monkeypatch):
-    monkeypatch.setattr(redbaron, 'force_ipython_behavior', True)
+def test_help(monkeypatch):
+    monkeypatch.setattr(redbaron, 'FORCE_IPYTHON_BEHAVIOR', True)
 
-    RedBaron("a = []").help()
-    captured = capsys.readouterr()
+    RedBaron("a = 1").help()
+    RedBaron("a = 1")[0].help()
 
-    if tuple(map(int, pytest.__version__.split('.'))) <= (3, 3):
-        out = captured[0]
-    else:
-        out = captured.out
-    assert out == """\
+
+def test_regression_repr(monkeypatch):
+    monkeypatch.setattr(redbaron, 'FORCE_IPYTHON_BEHAVIOR', True)
+
+    value = "1 + caramba"
+    red = RedBaron(f"a = {value}")
+    assert str(red[0].value.first.parent) == value
+
+
+def test_highlight(monkeypatch):
+    monkeypatch.setattr(redbaron, 'FORCE_IPYTHON_BEHAVIOR', True)
+
+    out = io.StringIO()
+    with redirect_stdout(out):
+        RedBaron("a = []").help()
+    assert out.getvalue() == """\
 0 -----------------------------------------------------
 \x1b[38;5;148mAssignmentNode\x1b[39m\x1b[38;5;197m(\x1b[39m\x1b[38;5;197m)\x1b[39m
 \x1b[38;5;15m  \x1b[39m\x1b[38;5;242m# identifiers: assign, assignment, assignment_, assignmentnode\x1b[39m

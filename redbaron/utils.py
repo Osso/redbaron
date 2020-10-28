@@ -29,7 +29,7 @@ def in_a_shell():
 def in_ipython():
     import redbaron
 
-    if redbaron.force_ipython_behavior:
+    if redbaron.FORCE_IPYTHON_BEHAVIOR:
         return True
 
     try:
