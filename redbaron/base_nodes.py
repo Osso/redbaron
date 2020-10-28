@@ -414,6 +414,10 @@ class NodeList(UserList, BaseNode, IndentationMixin):
         if self.on_attribute:
             raise ValueError("Unhandled indentation on a node list attribute")
 
+    @classmethod
+    def generate_identifiers(cls):
+        return [cls.__name__.lower()]
+
 
 class NodeRegistration(type):
     node_type_mapping = {}
