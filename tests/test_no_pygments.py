@@ -23,9 +23,9 @@ class Test():
         RedBaron("a = 1")[0].help()
 
     def test_regression_repr(self):
-        red = RedBaron("a = 1 + caramba")
-        red[0].value.first.parent
-        str(red[0].value.first.parent)
+        value = "1 + caramba"
+        red = RedBaron(f"a = {value}")
+        assert str(red[0].value.first.parent) == value
 
 
 def test_highlight(capsys, monkeypatch):
