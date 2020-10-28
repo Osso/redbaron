@@ -32,4 +32,4 @@ def test_index():
 
 def test_filter():
     red = node("[1, 2, 3]")
-    assert red.value.filter(lambda x: x.value == 2) == red.find_all("int", "2")
+    assert red.value.filter(lambda x: x.value == "2") == red.find_all("int", "2")

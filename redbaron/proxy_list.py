@@ -251,8 +251,8 @@ class ProxyList(NodeList):
 
     def filter(self, function):
         new_list = type(self)()
-        new_list.replace_data([node for node, sep in self._data
-                               if function(node)])
+        new_list.extend(filter(function, self))
+        return new_list
 
     def replace_data(self, new_data):
         self._data = list(new_data)
