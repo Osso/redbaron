@@ -334,7 +334,7 @@ class NodeList(UserList, BaseNode, IndentationMixin):
         return to_return
 
     def help(self, deep=2, with_formatting=False):
-        for index, node in enumerate(self.data):
+        for index, node in enumerate(self):
             print(f"{index} -------------------------------------------------")
             node.help(deep=deep, with_formatting=with_formatting)
 
@@ -742,6 +742,7 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
             'pop',
             'count',
             'remove',
+            'neighbors',
         ])
         for attr_name in dir(self):
             if attr_name.startswith("_"):  # private method
