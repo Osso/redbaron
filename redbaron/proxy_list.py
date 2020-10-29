@@ -1,5 +1,4 @@
 from redbaron.utils import (in_a_shell,
-                            indent_str,
                             truncate)
 
 import baron
@@ -257,11 +256,6 @@ class ProxyList(NodeList):
             to_return += "\n"
         return to_return
 
-    def _get_separator_indentation(self):
-        if self._data:
-            return self._data[0].indentation
-        return self.parent.indentation + "    "
-
     def filter(self, function):
         new_list = type(self)()
         new_list.extend([node.copy() for node in filter(function, self)])
@@ -301,17 +295,29 @@ class SpaceProxyList(ProxyList):
 class CommaProxyList(ProxyList):
     def __init__(self, node_list=None, parent=None, on_attribute=None):
         from .nodes import CommaNode
-        self.style = "flat"
+
         self.middle_separator = CommaNode()
         super().__init__(node_list, parent=parent, on_attribute=on_attribute)
 
-    def make_indented(self):
-        self.style = "indented"
-        self.middle_separator.second_formatting = NodeList([{
-            "type": "endl",
-            "indent": self._get_separator_indentation(),
-            "formatting": [],
-            "value": "\n"}])
+    def replace_node_list(self, new_node_list):
+        super().replace_node_list(new_node_list)
+        self.style = "indented" if self._find_el_indentation() else "flat"
+
+    def _find_el_indentation(self):
+        if len(self._data) > 1:
+            return self._data[1][0].indentation
+        elif self._data:
+            return self._data[0][0].indentation
+
+        return None
+
+    def el_indentation(self):
+        indent = self._find_el_indentation()
+        if indent is not None:
+            return indent
+
+        header_len = len(self.header[0].dumps()) if self.header else 0
+        return self.parent.indentation + header_len
 
 
 class DotProxyList(ProxyList):
