@@ -571,7 +571,7 @@ class FloatExponantComplexNode(Node, LiteralyEvaluableMixin):
     pass
 
 
-class FromImportNode(Node):
+class FromImportNode(ValueIterableMixin, Node):
     def names(self):
         """Return the list of new names imported
 
