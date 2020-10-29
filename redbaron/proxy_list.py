@@ -405,7 +405,10 @@ class CodeProxyList(LineProxyList):
                 self._data.insert(index, el)
                 index += 1
         elif isinstance(item, self.separator_type):
-            self._data.insert(index, [self.make_empty_el(), item])
+            if index and self._data[index-1][1] is None:
+                self._data[index-1][1] = item
+            else:
+                self._data.insert(index, [self.make_empty_el(), item])
         else:
             self._data.insert(index, [item, None])
 
