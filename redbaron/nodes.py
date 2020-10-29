@@ -574,7 +574,7 @@ class FromImportNode(Node):
         For example:
             RedBaron("from qsd import a, c, e as f").names() == ['a', 'c', 'f']
         """
-        return [x.target.dumps() if x.target else x.value.dumps()
+        return [x.target if x.target else x.value
                 for x in self.targets   # pylint: disable=not-an-iterable
                 if not isinstance(x, (LeftParenthesisNode, RightParenthesisNode))]
 
@@ -584,7 +584,7 @@ class FromImportNode(Node):
         For example (notice 'e' instead of 'f'):
             RedBaron("from qsd import a, c, e as f").names() == ['a', 'c', 'e']
         """
-        return [x.value.dumps() for x in self.targets]   # pylint: disable=not-an-iterable
+        return [x.value for x in self.targets]   # pylint: disable=not-an-iterable
 
     def full_path_names(self):
         """Return the list of new names imported with the full module path
@@ -592,7 +592,8 @@ class FromImportNode(Node):
         For example (notice 'e' instead of 'f'):
             RedBaron("from qsd import a, c, e as f").names() == ['qsd.a', 'qsd.c', 'qsd.f']
         """
-        return [self.value.dumps() + "." + (x.target.dumps() if x.target else x.value.dumps())  # pylint: disable=no-member
+        base = self.value.dumps()
+        return [base + "." + (x.target if x.target else x.value)  # pylint: disable=no-member
                 for x in self.targets   # pylint: disable=not-an-iterable
                 if not isinstance(x, (LeftParenthesisNode, RightParenthesisNode))]
 
@@ -602,7 +603,8 @@ class FromImportNode(Node):
         For example (notice 'e' instead of 'f'):
             RedBaron("from qsd import a, c, e as f").names() == ['qsd.a', 'qsd.c', 'qsd.e']
         """
-        return [self.value.dumps() + "." + x.value.dumps()  # pylint: disable=no-member
+        base = self.value.dumps()
+        return [base + "." + x.value  # pylint: disable=no-member
                 for x in self.targets   # pylint: disable=not-an-iterable
                 if not isinstance(x, (LeftParenthesisNode, RightParenthesisNode))]
 
@@ -753,26 +755,34 @@ class TypedNameNode(Node):
 
 
 class NameAsNameNode(Node):
-    @NodeProperty
-    def target(self, value):
-        if value in ("", None):
-            return None
+    _target = None
+    _value = None
 
-        if not re.match(r'^[a-zA-Z_]\w*$', value):
+    @property
+    def target(self):
+        return self._target
+
+    @target.setter
+    def target(self, value):
+        if not (re.match(r'^[a-zA-Z_]\w*$', value) or value in ("", None)):
             raise Exception("The target of a name as name node can only "
                             "be a 'name' or an empty string or None")
-        return baron.parse("lambda *%s: x" % value)[0]["arguments"][0]["value"]
+        self._target = value
 
     @conditional_formatting_property(NodeList, [" "], [])
     def second_formatting(self):
         return self.target
 
-    @NodeProperty
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
     def value(self, value):
         if not (re.match(r'^[a-zA-Z_]\w*$', value) or value in ("", None)):
             raise Exception("The value of a name as name node can only "
                             "be a 'name' or an empty string or None")
-        return baron.parse(value)[0]
+        self._value = value
 
 
 class NonlocalNode(Node):
