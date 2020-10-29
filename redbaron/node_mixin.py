@@ -117,6 +117,15 @@ class ValueIterableMixin:
     def extend(self, other):
         self.value.extend(other)
 
+    def pop(self, index=-1):
+        return self.value.pop(index)
+
+    def remove(self, item):
+        return self.value.remove(item)
+
+    def count(self, item):
+        return self.value.count(item)
+
 
 class CodeBlockMixin(ValueIterableMixin):
     value = NodeListProperty(CodeProxyList)
