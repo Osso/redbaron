@@ -396,15 +396,18 @@ class CodeProxyList(LineProxyList):
 
         return self.parent.el_indentation
 
+    def _insert_list(self, index, code_list):
+        for endl in code_list.header:
+            self._data.insert(index, [self.make_empty_el(), endl])
+            index += 1
+        for el in code_list._data:
+            self._data.insert(index, el)
+            index += 1
+
     def _insert(self, index, item):
-        if isinstance(item, str):
+        if isinstance(item, (str, list)):
             code_list = self.to_node(item)
-            for endl in code_list.header:
-                self._data.insert(index, [self.make_empty_el(), endl])
-                index += 1
-            for el in code_list._data:
-                self._data.insert(index, el)
-                index += 1
+            self._insert_list(index, code_list)
         elif isinstance(item, self.separator_type):
             if index and self._data[index-1][1] is None:
                 self._data[index-1][1] = item
