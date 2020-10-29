@@ -9,6 +9,7 @@ from .base_nodes import (Node,
 
 class ProxyList(NodeList):
     strict_separator = True
+    auto_separator = True
     middle_separator = None
 
     def __init__(self, node_list=None, parent=None, on_attribute=None,
@@ -118,6 +119,9 @@ class ProxyList(NodeList):
         separator.parent = self
         return separator
 
+    def make_separator_if_strict(self):
+        return self.make_separator() if self.auto_separator else None
+
     def make_empty_el(self, value=""):
         from .nodes import SpaceNode, EmptyLineNode
 
@@ -139,7 +143,7 @@ class ProxyList(NodeList):
     def _insert(self, index, item):
         value = self.el_to_node(item)
         self._check_for_separator(index)
-        sep = self.make_separator() if self.strict_separator else None
+        sep = self.make_separator_if_strict()
         self._data.insert(index, [value, sep])
 
     def insert(self, i, item):
@@ -205,19 +209,32 @@ class ProxyList(NodeList):
             key = slice(key, key + 1)
             value = [value]
 
-        values_iter = iter(value)
-        index = key.start
-        # First replace values in slice
-        for index, el in zip(range(key.stop)[key], values_iter):
-            self._data[index][0] = self.el_to_node(el)
-        # Second, append the remaining values
-        for el in values_iter:
-            index += 1
-            self._insert(index, el)
+        self._check_for_separator(min(key.start, len(self._data)))
+
+        nodes = ([self.el_to_node(el), self.make_separator_if_strict()]
+                 for el in value)
+        self._data[key] = nodes
+
+        # delta = key.start - len(self._data)
+        # if delta > 0:
+        #     key = slice(key.start - delta, key.stop - delta, key.step)
+
+        # values_iter = iter(value)
+        # index = key.start
+        # # First replace values in slice
+        # for index, el in zip(range(key.stop)[key], values_iter):
+        #     self._data[index][0] = self.el_to_node(el)
+        # # Second, append the remaining values
+        # for el in values_iter:
+        #     index += 1
+        #     self._insert(index, el)
         self._synchronise()
 
     def _check_for_separator(self, index):
-        if index and self._data[index-1][1] is None and self.strict_separator:
+        if not self._data:
+            return
+
+        if index and self._data[index-1][1] is None and self.auto_separator:
             self._data[index-1][1] = self.make_separator()
 
     def __delslice__(self, i, j):
@@ -309,15 +326,26 @@ class CommaProxyList(ProxyList):
 
 class DotProxyList(ProxyList):
     strict_separator = False
+    auto_separator = True
 
     def __init__(self, node_list=None, parent=None, on_attribute=None):
         from .nodes import DotNode
         self.middle_separator = DotNode()
         super().__init__(node_list, parent=parent, on_attribute=on_attribute)
 
+    def _synchronise(self):
+        from .nodes import CallNode, TupleNode
+
+        for index, (el, _) in enumerate(self._data):
+            if index and isinstance(el, (CallNode, TupleNode)):
+                self._data[index - 1][1] = None
+
+        super()._synchronise()
+
 
 class LineProxyList(ProxyList):
     strict_separator = False
+    auto_separator = False
 
     def __init__(self, node_list=None, parent=None, on_attribute=None):
         from .nodes import EndlNode
