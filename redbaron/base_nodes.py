@@ -739,6 +739,9 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
             'extend',
             'index',
             'insert',
+            'pop',
+            'count',
+            'remove',
         ])
         for attr_name in dir(self):
             if attr_name.startswith("_"):  # private method
