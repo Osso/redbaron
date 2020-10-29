@@ -189,7 +189,11 @@ class ProxyList(NodeList):
         return self.node_list[index]
 
     def __contains__(self, item):
-        return self.index(item) is not None
+        try:
+            self.index(item)
+        except ValueError:
+            return False
+        return True
 
     def __iter__(self):
         for el in self._data:

@@ -816,7 +816,7 @@ class A():
 
 def test_line_proxy_with_blank_line_dont_break_next_block_identation():
     red = RedBaron(forwarded_indented_code)
-    red.while_.append("plop")
+    red.find("while").append("plop")
     assert red.dumps() == forwarded_indented_code_result
 
 
