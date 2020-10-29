@@ -690,7 +690,7 @@ class KwargsOnlyMarkerNode(Node):
 
 
 class LambdaNode(Node):
-    @nodelist_property(CommaProxyList)
+    @nodelist_property(ArgsProxyList)
     def arguments(self, value):
         return baron.parse("lambda %s: x" % value)[0]["arguments"]
 
