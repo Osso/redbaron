@@ -654,7 +654,7 @@ class IfelseblockNode(CodeBlockMixin, Node):
     pass
 
 
-class ImportNode(Node):
+class ImportNode(ValueIterableMixin, Node):
     def modules(self):
         "return a list of string of modules imported"
         return [x.value.dumps() for x in self.find_all('dotted_as_name')]
