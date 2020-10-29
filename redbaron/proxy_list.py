@@ -155,9 +155,7 @@ class ProxyList(NodeList):
         self.insert(len(self), item)
 
     def extend(self, other):
-        for value in other:
-            self._insert(len(self), value)
-        self._synchronise()
+        self[len(self):] = other
 
     def pop(self, i=-1):
         self._data.pop(i)
@@ -216,19 +214,6 @@ class ProxyList(NodeList):
                  for el in value)
         self._data[key] = nodes
 
-        # delta = key.start - len(self._data)
-        # if delta > 0:
-        #     key = slice(key.start - delta, key.stop - delta, key.step)
-
-        # values_iter = iter(value)
-        # index = key.start
-        # # First replace values in slice
-        # for index, el in zip(range(key.stop)[key], values_iter):
-        #     self._data[index][0] = self.el_to_node(el)
-        # # Second, append the remaining values
-        # for el in values_iter:
-        #     index += 1
-        #     self._insert(index, el)
         self._synchronise()
 
     def _check_for_separator(self, index):
@@ -396,30 +381,40 @@ class CodeProxyList(LineProxyList):
 
         return self.parent.el_indentation
 
-    def _insert_list(self, index, code_list):
-        for endl in code_list.header:
-            self._data.insert(index, [self.make_empty_el(), endl])
-            index += 1
-        for el in code_list._data:
-            self._data.insert(index, el)
-            index += 1
-
     def _insert(self, index, item):
-        if isinstance(item, (str, list)):
-            code_list = self.to_node(item)
-            self._insert_list(index, code_list)
-        elif isinstance(item, self.separator_type):
-            if index and self._data[index-1][1] is None:
-                self._data[index-1][1] = item
-            else:
-                self._data.insert(index, [self.make_empty_el(), item])
+        from .nodes import EmptyLineNode
+
+        index = min(len(self._data), index)
+
+        nodes = self.el_to_data(item)
+        if len(nodes) == 1 and index and self._data[index-1][1] is None and \
+                isinstance(nodes[0][0], EmptyLineNode) and \
+                isinstance(nodes[0][1], self.separator_type):
+            self._data[index-1][1] = nodes[0][1]
         else:
-            self._data.insert(index, [item, None])
+            self[index:index] = [item]
 
     def el_to_node(self, el):
-        node = super().el_to_node(el)
-        node.indentation += self.el_indentation
-        return node
+        raise Exception("should not be used")
+
+    def el_to_data(self, el):
+        code_list = self.to_node(el)
+        data = [[self.make_empty_el(), endl] for endl in code_list.header]
+        data.extend(code_list._data)
+        return data
+
+    def __setitem__(self, key, value):
+        # Single element, make a one element slice
+        if not isinstance(key, slice):
+            key = slice(key, key + 1)
+            value = [value]
+
+        nodes = []
+        for node_list_to_convert in value:
+            nodes += self.el_to_data(node_list_to_convert)
+
+        self._data[key] = nodes
+        self._synchronise()
 
 
 class DictProxyList(CommaProxyList):
