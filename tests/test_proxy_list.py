@@ -714,7 +714,7 @@ def test_line_proxy_with_blank_line_list_insert_2_at_middle():
 def test_line_proxy_with_blank_line_list_append():
     red = RedBaron("while a:\n    pass\n\n")
     red[0].value.append("c")
-    assert red.dumps() == "while a:\n    pass\n\n    c\n"
+    assert red.dumps() == "while a:\n    pass\n    c\n\n"
 
 
 def test_line_proxy_with_blank_line_list_pop_blank_line():
