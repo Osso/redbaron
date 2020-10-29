@@ -318,20 +318,23 @@ class DotNode(Node):
 
 
 class DottedAsNameNode(ValueIterableMixin, Node):
+    _target = None
+
     @nodelist_property(DotProxyList)
     def value(self, value):
         code = "import %s" % value
         return baron.parse(code)[0]["value"][0]["value"]
 
-    @NodeProperty
-    def target(self, value):
-        if value in ("", None):
-            return None
+    @property
+    def target(self):
+        return self._target
 
-        if not re.match(r'^[a-zA-Z_]\w*$', value):
+    @target.setter
+    def target(self, value):
+        if not (re.match(r'^[a-zA-Z_]\w*$', value) or value in ("", None)):
             raise Exception("The target of a dotted as name node can only "
                             "be a 'name' or an empty string or None")
-        return baron.parse(value)[0]
+        self._target = value
 
     @conditional_formatting_property(NodeList, [" "], [])
     def first_formatting(self):
@@ -661,7 +664,7 @@ class ImportNode(ValueIterableMixin, Node):
 
     def names(self):
         "return a list of string of new names inserted in the python context"
-        return [x.target.dumps() if x.target else x.value.dumps()
+        return [x.target if x.target else x.value.dumps()
                 for x in self.find_all('dotted_as_name')]
 
     @nodelist_property(ImportsProxyList)
