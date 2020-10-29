@@ -19,6 +19,7 @@ from .node_property import (NodeListProperty,
                             nodelist_property)
 from .proxy_list import (ArgsProxyList,
                          CommaProxyList,
+                         ContextsProxyList,
                          DictProxyList,
                          DotProxyList,
                          ImportsProxyList,
@@ -1081,7 +1082,7 @@ class WithContextItemNode(Node):
 
 
 class WithNode(IndentedCodeBlockMixin, Node):
-    @nodelist_property(CommaProxyList)
+    @nodelist_property(ContextsProxyList)
     def contexts(self, value):
         return baron.parse("with %s: pass" % value)[0]["contexts"]
 

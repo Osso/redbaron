@@ -398,3 +398,9 @@ class ArgsProxyList(CommaProxyList):
     def el_to_node(self, el):
         fst = baron.parse("a(%s)" % el)[0]['value'][1]['value'][0]
         return Node.generic_from_fst(fst, parent=self)
+
+
+class ContextsProxyList(CommaProxyList):
+    def el_to_node(self, el):
+        fst = baron.parse("with %s:\n pass" % el)[0]['contexts'][0]
+        return Node.generic_from_fst(fst, parent=self)
