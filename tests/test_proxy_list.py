@@ -323,7 +323,7 @@ def test_comma_proxy_list_delegation_from_parent_node_on_value():
 def test_comma_proxy_list_delegation_from_parent_node_on_value_getitem():
     red = RedBaron("{1: 2}")
     # you don't need to do a .value here!
-    red[0][0]
+    assert red[0][0].dumps() == "1: 2"
 
 
 def test_comma_proxy_list_delegation_from_parent_node_on_value_setitem():
@@ -690,7 +690,7 @@ class A():
 
 def test_line_proxy_dont_break_next_block_identation():
     red = RedBaron(forwarded_indented_code)
-    red.while_.append("plop")
+    red.find("while").append("plop")
     assert red.dumps() == forwarded_indented_code_result
 
 
@@ -762,7 +762,8 @@ def test_line_proxy_with_blank_line_list_remove_2():
 def test_line_proxy_with_blank_line_list_set_slice():
     red = RedBaron("while a:\n    pass\n\n    plop\n    a\n    plop\n    z\n")
     red[0].value[1:2] = ["caramba", "compote"]
-    assert red.dumps() == "while a:\n    pass\n    caramba\n    compote\n    plop\n    a\n    plop\n    z\n"
+    assert red.dumps() == "while a:\n    pass\n    caramba\n    compote\n" \
+                          "    plop\n    a\n    plop\n    z\n"
 
 
 def test_line_proxy_with_blank_line_list_delslice():
@@ -856,7 +857,7 @@ def test_regression_tuple_proxy_list_append():
 
 def test_regression_help_proxy_list():
     red = RedBaron("(1, 2)")
-    red[0].value.node_list.help()
+    red[0].value.help()
 
 
 def test_comma_proxy_list_indented_len_not_empty():
@@ -877,14 +878,12 @@ def test_comma_proxy_list_indented_detect_style():
     assert comma_proxy_list.style == "indented"
 
 
-# XXX I have to reconsider this behavior with the new algo
-# XXX this isn't making that much sens anymore
-# def test_comma_proxy_list_indented_insert():
-#     red = RedBaron("[]")
-#     comma_proxy_list = red[0].value
-#     comma_proxy_list.style = "indented"
-#     comma_proxy_list.insert(0, "1")
-#     assert red.dumps() == "[\n    1,\n]"
+def test_comma_proxy_list_indented_insert_one_element():
+    red = RedBaron("[]")
+    comma_proxy_list = red[0].value
+    comma_proxy_list.style = "indented"
+    comma_proxy_list.insert(0, "1")
+    assert red.dumps() == "[1]"
 
 
 def test_comma_proxy_list_indented_insert_2_at_top():
@@ -907,15 +906,6 @@ def test_comma_proxy_list_indented_insert_2_middle():
     comma_proxy_list = red[0].value
     comma_proxy_list.insert(1, "2")
     assert red.dumps() == "[\n    1,\n    2,\n    3,\n]"
-
-
-# XXX need to rethink this behavior
-# def test_comma_proxy_list_indented_append():
-#     red = RedBaron("[]")
-#     comma_proxy_list = red[0].value
-#     comma_proxy_list.style = "indented"
-#     comma_proxy_list.append("1")
-#     assert red.dumps() == "[\n    1,\n]"
 
 
 def test_comma_proxy_list_indented_append_2():
@@ -1039,7 +1029,7 @@ def test_comma_proxy_list_indented_in_indentation_case():
 
 def test_decorator_line_proxy_with_blank_line_list_len_empty():
     red = RedBaron("def a():\n    pass\n")
-    assert len(red[0].decorators) == 0
+    assert not red[0].decorators
 
 
 def test_decorator_line_proxy_list_len():
@@ -1114,8 +1104,6 @@ def test_decorator_line_proxy_list_extend():
     red = RedBaron("def a():\n    pass\n")
     red[0].decorators.extend(["@zob"])
     assert red.dumps() == "@zob\ndef a():\n    pass\n"
-
-
 
 
 forwarded_indented_code_decorators = """
