@@ -334,10 +334,10 @@ class DotProxyList(ProxyList):
         super().__init__(node_list, parent=parent, on_attribute=on_attribute)
 
     def _synchronise(self):
-        from .nodes import CallNode, TupleNode
+        from .nodes import CallNode, TupleNode, ListNode
 
         for index, (el, _) in enumerate(self._data):
-            if index and isinstance(el, (CallNode, TupleNode)):
+            if index and isinstance(el, (CallNode, TupleNode, ListNode)):
                 self._data[index - 1][1] = None
 
         super()._synchronise()
