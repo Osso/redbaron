@@ -3,7 +3,8 @@ import ast
 import baron
 import baron.path
 
-from .base_nodes import NodeList
+from .base_nodes import (BaseNode,
+                         NodeList)
 from .node_property import (NodeListProperty,
                             NodeProperty,
                             nodelist_property)
@@ -128,7 +129,17 @@ class ValueIterableMixin:
 
 
 class CodeBlockMixin(ValueIterableMixin):
-    value = NodeListProperty(CodeProxyList)
+    default_indent = ""
+
+    @nodelist_property(CodeProxyList)
+    def value(self, value):
+        if self.el_indentation:
+            value = indent_str(value, self.el_indentation)
+            fst = baron.parse("while a:\n%s" % value)[0]['value']
+            fst[0] = {"type": "space", "value": fst[0]['indent']}
+        else:
+            fst = baron.parse(value)
+        return fst
 
     @property
     def leftover_indentation(self):
@@ -162,22 +173,19 @@ class CodeBlockMixin(ValueIterableMixin):
         super().decrease_indentation(indent)
         self.value.decrease_indentation(indent)
 
+    def _find_first_el_indentation(self):
+        return self.value[0].indentation
+
     @property
     def el_indentation(self):
-        return self.indentation
+        if not self.value:
+            return self.indentation + self.default_indent
+
+        return self._find_first_el_indentation()
 
 
 class IndentedCodeBlockMixin(CodeBlockMixin):
-    @nodelist_property(CodeProxyList)
-    def value(self, value):
-        value = indent_str(value, self.el_indentation)
-        fst = baron.parse("while a:\n%s" % value)[0]['value']
-        fst[0] = {"type": "space", "value": fst[0]['indent']}
-        return fst
-
-    @property
-    def el_indentation(self):
-        return self.indentation + self.indent_unit
+    default_indent = BaseNode.indent_unit
 
 
 class IfElseBlockSiblingMixin:
