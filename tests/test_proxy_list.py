@@ -626,7 +626,7 @@ def test_line_proxy_list_remove_2():
 
 def test_line_proxy_list_set_item():
     red = RedBaron("while a:\n    pass\n")
-    red[0].value[0] = "plop"
+    red[0].value[0] = "plop\n"
     assert red[0].value[0].baron_type == "name"
     assert red[0].value[0].value == "plop"
     assert red.dumps() == "while a:\n    plop\n"

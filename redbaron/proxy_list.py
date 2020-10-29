@@ -1,4 +1,5 @@
 from redbaron.utils import (in_a_shell,
+                            indent_str,
                             truncate)
 
 import baron
@@ -411,6 +412,11 @@ class CodeProxyList(LineProxyList):
                 self._data.insert(index, [self.make_empty_el(), item])
         else:
             self._data.insert(index, [item, None])
+
+    def el_to_node(self, el):
+        node = super().el_to_node(el)
+        node.indentation += self.el_indentation
+        return node
 
 
 class DictProxyList(CommaProxyList):
