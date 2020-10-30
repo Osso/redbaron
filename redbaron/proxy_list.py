@@ -132,7 +132,7 @@ class ProxyList(NodeList):
         return el
 
     def _synchronise(self):
-        if not self.trailing_separator and self._data:
+        if not self.trailing_separator and self._data and self.auto_separator:
             self._data[-1][1] = None
         self._data_to_node_list()
 
@@ -422,12 +422,14 @@ class CodeProxyList(LineProxyList):
         index = min(len(self._data), index)
 
         nodes = self.el_to_data(item)
-        if len(nodes) == 1 and index and self._data[index-1][1] is None and \
+
+        if nodes and index and self._data[index-1][1] is None and \
                 isinstance(nodes[0][0], EmptyLineNode) and \
                 isinstance(nodes[0][1], self.separator_type):
-            self._data[index-1][1] = nodes[0][1]
-        else:
-            self[index:index] = [item]
+            self._data[index-1][1] = nodes.pop(0)[1]
+
+        self._data[index:index] = nodes
+        self._synchronise()
 
     def el_to_node(self, el):
         raise Exception("should not be used")
