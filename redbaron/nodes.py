@@ -751,9 +751,12 @@ class ListNode(ValueIterableMixin, LiteralyEvaluableMixin, Node):
 
     def fix_second_formatting(self):
         if self.value and self.second_formatting:
-            indent = self.second_formatting[0].indent
-            self.second_formatting[0].indent = ""
-            self.value[0].indentation = indent
+            if isinstance(self.second_formatting[-1], EndlNode):
+                indent = self.second_formatting[-1].indent
+                self.second_formatting[-1].indent = ""
+                self.value[0].indentation = indent
+            else:
+                self.value[0].indentation = self.second_formatting.pop().value
             self.value.detect_indentation()
 
 

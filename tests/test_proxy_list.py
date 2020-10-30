@@ -916,7 +916,7 @@ def test_comma_proxy_list_indented_append_2():
 
 
 def test_comma_proxy_list_indented_pop():
-    red = RedBaron("[\n    1,\n]")
+    red = RedBaron("[    1,\n]")
     comma_proxy_list = red[0].value
     comma_proxy_list.pop(0)
     assert red.dumps() == "[]"
