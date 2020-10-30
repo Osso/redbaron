@@ -9,8 +9,7 @@ from .node_property import (NodeListProperty,
                             NodeProperty,
                             nodelist_property)
 from .proxy_list import (CodeProxyList,
-                         DecoratorsProxyList,
-                         LineProxyList)
+                         DecoratorsProxyList)
 from .utils import indent_str
 
 
