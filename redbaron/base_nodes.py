@@ -213,7 +213,7 @@ class BaseNode(NeighborsMixin):
         assert self.parent
         assert self.on_attribute
         node_property = getattr(type(self.parent), self.on_attribute)
-        return node_property.to_value(self, source_code)
+        return node_property.to_value(self.parent, source_code)
 
     @classmethod
     def generic_to_node(cls, value, parent=None, on_attribute=None):
