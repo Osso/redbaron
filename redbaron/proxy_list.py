@@ -488,3 +488,9 @@ class DecoratorsProxyList(LineProxyList):
     def el_to_node(self, el):
         fst = baron.parse("%s\ndef a():\n pass" % el)[0]['decorators'][0]
         return Node.generic_from_fst(fst, parent=self)
+
+    def _synchronise(self):
+        super()._synchronise()
+        if self.parent:
+            for _, sep in self._data:
+                sep.indent = self.parent.indentation
