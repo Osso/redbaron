@@ -9,6 +9,7 @@ from .node_property import (NodeListProperty,
                             NodeProperty,
                             nodelist_property)
 from .proxy_list import (CodeProxyList,
+                         DecoratorsProxyList,
                          LineProxyList)
 from .utils import indent_str
 
@@ -29,7 +30,7 @@ class LiteralyEvaluableMixin:
 
 
 class DecoratorsMixin:
-    @nodelist_property(LineProxyList)
+    @nodelist_property(DecoratorsProxyList)
     def decorators(self, value):
         assert value.lstrip()[0] == '@'
 

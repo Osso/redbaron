@@ -480,3 +480,11 @@ class ContextsProxyList(CommaProxyList):
     def el_to_node(self, el):
         fst = baron.parse("with %s:\n pass" % el)[0]['contexts'][0]
         return Node.generic_from_fst(fst, parent=self)
+
+
+class DecoratorsProxyList(LineProxyList):
+    auto_separator = True
+
+    def el_to_node(self, el):
+        fst = baron.parse("%s\ndef a():\n pass" % el)[0]['decorators'][0]
+        return Node.generic_from_fst(fst, parent=self)
