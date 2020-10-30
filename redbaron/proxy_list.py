@@ -11,14 +11,13 @@ class ProxyList(NodeList):
     strict_separator = True
     auto_separator = True
     middle_separator = None
+    trailing_separator = False
 
-    def __init__(self, node_list=None, parent=None, on_attribute=None,
-                 trailing_separator=False):
+    def __init__(self, node_list=None, parent=None, on_attribute=None):
         super().__init__(parent=parent, on_attribute=on_attribute)
         self.header = []
         self.footer = []
         self._data = []
-        self.trailing_separator = trailing_separator
         self.separator_type = type(self.middle_separator)
         self.replace_node_list(node_list or [])
 
@@ -269,7 +268,16 @@ class ProxyList(NodeList):
     def replace_node_list(self, new_node_list):
         self.data = list(new_node_list)
         self._node_list_to_data()
+        self.detect_trailing_sep()
         self._synchronise()
+
+    def detect_trailing_sep(self):
+        if not self.data:
+            return
+        last_el = list(self)[-1]
+        for el in last_el.next_neighbors_nodelist:
+            if isinstance(el, type(self.middle_separator)):
+                self.trailing_separator = True
 
     def copy(self):
         new_list = type(self)()
@@ -363,12 +371,12 @@ class DotProxyList(ProxyList):
 class LineProxyList(ProxyList):
     strict_separator = False
     auto_separator = False
+    trailing_separator = True
 
     def __init__(self, node_list=None, parent=None, on_attribute=None):
         from .nodes import EndlNode
         self.middle_separator = EndlNode()
-        super().__init__(node_list, parent=parent, on_attribute=on_attribute,
-                         trailing_separator=True)
+        super().__init__(node_list, parent=parent, on_attribute=on_attribute)
 
 
 class CodeProxyList(LineProxyList):
