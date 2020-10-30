@@ -4,14 +4,16 @@
 import pytest
 from redbaron import RedBaron
 
+from baron.parser import ParsingError
+
 
 def test_setitem_nodelist():
     red = RedBaron("[1, 2, 3]")
-    red[0].value.node_list[2] = "2 + 'pouet'"
-    red.dumps()
-    assert red[0].value.node_list[2].type == "binary_operator"
-    assert red[0].value.node_list[2].parent is red[0]
-    assert red[0].value.node_list[2].on_attribute == "value"
+    red[0].value[1] = "2 + 'pouet'"
+    assert red.dumps() == "[1, 2 + 'pouet', 3]"
+    assert red[0].value[1].baron_type == "binary_operator"
+    assert red[0].value[1].parent is red[0].value
+    assert red[0].value[1].on_attribute is None
 
 
 def test_set_attr_on_import():
@@ -77,64 +79,46 @@ def test_set_attr_def_name():
 def test_set_attr_def_arguments():
     red = RedBaron("def a(): pass")
     red[0].arguments = "x, y=z, *args, **kwargs"
-    assert len(red[0].arguments.filtered()) == 4
+    assert len(red[0].arguments) == 4
 
 
 def test_set_attr_def_value_simple():
     red = RedBaron("def a(): pass")
     red[0].value = "plop"
-    assert red[0].value.dumps() == "\n    plop\n"
+    assert red[0].dumps() == "def a(): plop"
 
 
 def test_set_attr_def_value_simple_indented():
     red = RedBaron("def a(): pass")
-    red[0].value = "    plop"
-    assert red[0].value.dumps() == "\n    plop\n"
+    red[0].value = "    plop\n"
+    assert red[0].value.dumps() == "    plop\n"
+
+
+def test_set_root_value_indented():
+    red = RedBaron("def a(): pass")
+    red.value = "    plop\n"
+    assert red.dumps() == "    plop\n"
 
 
 def test_set_attr_def_value_simple_endl():
     red = RedBaron("def a(): pass")
-    red[0].value = "\nplop"
-    assert red[0].value.dumps() == "\n    plop\n"
+    with pytest.raises(ParsingError):
+        red[0].value = "\nplop\n"
 
 
 def test_set_attr_def_value_simple_space_endl():
     red = RedBaron("def a(): pass")
-    red[0].value = "  \nplop"
-    assert red[0].value.dumps() == "\n    plop\n"
+    with pytest.raises(ParsingError):
+        red[0].value = "  \nplop"
 
 
 def test_set_attr_def_value_simple_space_endl_space():
     red = RedBaron("def a(): pass")
     red[0].value = "  \n   plop"
-    assert red[0].value.dumps() == "\n    plop\n"
-
-
-def test_set_attr_def_value_simple_too_much_space():
-    red = RedBaron("def a(): pass")
-    red[0].value = "                          plop"
-    assert red[0].value.dumps() == "\n    plop\n"
-
-
-def test_set_attr_def_value_simple_endl_too_much_space():
-    red = RedBaron("def a(): pass")
-    red[0].value = "\n                          plop"
-    assert red[0].value.dumps() == "\n    plop\n"
-
-
-def test_set_attr_def_value_simple_space_endl_too_much_space():
-    red = RedBaron("def a(): pass")
-    red[0].value = "  \n                        plop"
-    assert red[0].value.dumps() == "\n    plop\n"
+    assert red[0].value.dumps() == "  \n   plop\n"
 
 
 def test_set_attr_def_value_complex():
-    red = RedBaron("def a(): pass")
-    red[0].value = "plop\nplouf"
-    assert red[0].value.dumps() == "\n    plop\n    plouf\n"
-
-
-def test_set_attr_def_value_endl_complex():
     red = RedBaron("def a(): pass")
     red[0].value = "\nplop\nplouf"
     assert red[0].value.dumps() == "\n    plop\n    plouf\n"

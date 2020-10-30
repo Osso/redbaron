@@ -82,5 +82,6 @@ def test_truncate():
     assert truncate("123456", 5) == "1...6"
     assert truncate("12345678901234567890", 10) == "123456...0"
 
+
 def test_squash_successive_duplicates():
     assert list(squash_successive_duplicates([1, 2, 3, 3, 4])) == [1, 2, 3, 4]
