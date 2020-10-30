@@ -34,7 +34,7 @@ class NodeProperty(BaseProperty):
 
     def __set__(self, obj, value):
         setattr(obj, self.attr_name, self.to_value(obj, value))
-        self._after_set(self, value)
+        self._after_set(obj, value)
 
     def to_value(self, obj, value):
         if isinstance(value, str):

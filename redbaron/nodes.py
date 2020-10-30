@@ -745,6 +745,17 @@ class ListNode(ValueIterableMixin, LiteralyEvaluableMixin, Node):
     def value(self, value):
         return baron.parse("[%s]" % value)[0]["value"]
 
+    @value.after_set
+    def value(self, value):
+        self.fix_second_formatting()
+
+    def fix_second_formatting(self):
+        if self.value:
+            indent = self.second_formatting[0].indent
+            self.second_formatting[0].indent = ""
+            self.value[0].indentation = indent
+            self.value.detect_indentation()
+
 
 class LongNode(Node):
     pass

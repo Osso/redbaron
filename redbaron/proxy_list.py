@@ -282,7 +282,9 @@ class ProxyList(NodeList):
         return new_list
 
     def el_to_node(self, el):
-        return Node.generic_to_node(el, parent=self)
+        node = Node.generic_to_node(el, parent=self)
+        node.indentation = self.el_indentation
+        return node
 
 
 class SpaceProxyList(ProxyList):
@@ -293,6 +295,8 @@ class SpaceProxyList(ProxyList):
 
 
 class CommaProxyList(ProxyList):
+    style = None
+
     def __init__(self, node_list=None, parent=None, on_attribute=None):
         from .nodes import CommaNode
 
@@ -301,7 +305,23 @@ class CommaProxyList(ProxyList):
 
     def replace_node_list(self, new_node_list):
         super().replace_node_list(new_node_list)
-        self.style = "indented" if self._find_el_indentation() else "flat"
+        self.detect_indentation()
+
+    def detect_indentation(self):
+        if self._find_el_indentation():
+            self.make_indented()
+        else:
+            self.make_flat()
+
+    def make_indented(self):
+        from .nodes import EndlNode
+
+        self.style = "indented"
+        self.middle_separator.second_formatting = NodeList([EndlNode()],
+            parent=self.middle_separator, on_attribute="second_formatting")
+
+    def make_flat(self):
+        self.style = "flat"
 
     def _find_el_indentation(self):
         if len(self._data) > 1:
@@ -311,6 +331,7 @@ class CommaProxyList(ProxyList):
 
         return None
 
+    @property
     def el_indentation(self):
         indent = self._find_el_indentation()
         if indent is not None:
@@ -351,11 +372,6 @@ class LineProxyList(ProxyList):
 
 
 class CodeProxyList(LineProxyList):
-    def __init__(self, node_list=None, parent=None, on_attribute=None,
-                 trailing_separator=False):
-        super().__init__(node_list, parent=parent, on_attribute=on_attribute)
-        self._synchronise()
-
     def move_indentation_to_leftover(self):
         if not self._data or not self.parent:
             return
