@@ -439,7 +439,9 @@ class CodeProxyList(LineProxyList):
         raise Exception("should not be used")
 
     def el_to_data(self, el):
-        code_list = self.to_node(el)
+        fst = self.parent._parse_value(el)
+        code_list = type(self).generic_from_fst(fst, parent=self)
+
         data = [[self.make_empty_el(), endl] for endl in code_list.header]
         data.extend(code_list._data)
         return data

@@ -133,13 +133,23 @@ class CodeBlockMixin(ValueIterableMixin):
 
     @nodelist_property(CodeProxyList)
     def value(self, value):
-        if self.el_indentation:
-            value = indent_str(value, self.el_indentation)
-            fst = baron.parse("while a:\n%s" % value)[0]['value']
-            fst[0] = {"type": "space", "value": fst[0]['indent']}
+        return self._parse_value(value, replace=True)
+
+    def _parse_value(self, value, replace=False):
+        if self.el_indentation or value.startswith(" "):
+            fst = self._parse_indented(value)
         else:
-            fst = baron.parse(value)
+            fst = self._parse_not_indented(value)
         return fst
+
+    def _parse_indented(self, value):
+        value = indent_str(value, self.el_indentation)
+        fst = baron.parse("while a:\n%s" % value)[0]['value']
+        fst[0] = {"type": "space", "value": fst[0]['indent']}
+        return fst
+
+    def _parse_not_indented(self, value):
+        return baron.parse(value)
 
     @property
     def leftover_indentation(self):
@@ -181,11 +191,31 @@ class CodeBlockMixin(ValueIterableMixin):
         if not self.value:
             return self.indentation + self.default_indent
 
-        return self._find_first_el_indentation()
+        return self._find_first_el_indentation() or self.default_indent
 
 
 class IndentedCodeBlockMixin(CodeBlockMixin):
     default_indent = BaseNode.indent_unit
+
+    @nodelist_property(CodeProxyList)
+    def value(self, value):
+        return self._parse_value(value, replace=True)
+
+    def _parse_value(self, value, replace=False):
+        if replace:
+            if value.lstrip().startswith("\n"):
+                fst = self._parse_indented(value)
+            else:
+                fst = self._parse_not_indented(value)
+        else:
+            if self.value.header:
+                fst = self._parse_indented(value)
+            else:
+                fst = self._parse_not_indented(value)
+        return fst
+
+    def _parse_not_indented(self, value):
+        return baron.parse("while a: %s" % value)[0]['value']
 
 
 class IfElseBlockSiblingMixin:
