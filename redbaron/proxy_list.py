@@ -291,9 +291,7 @@ class ProxyList(NodeList):
         return new_list
 
     def el_to_node(self, el):
-        node = Node.generic_to_node(el, parent=self)
-        node.indentation = self.el_indentation
-        return node
+        return Node.generic_to_node(el, parent=self)
 
 
 class SpaceProxyList(ProxyList):
@@ -349,6 +347,11 @@ class CommaProxyList(ProxyList):
         header_len = len(self.header[0].dumps()) if self.header else 0
         parent_indent = self.parent.indentation if self.parent else ""
         return parent_indent + header_len * " "
+
+    def el_to_node(self, el):
+        node = super().el_to_node(el)
+        node.indentation = self.el_indentation
+        return node
 
 
 class DotProxyList(ProxyList):
