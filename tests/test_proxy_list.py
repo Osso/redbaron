@@ -951,7 +951,7 @@ def test_comma_proxy_list_indented_pop_no_index():
 
 
 def test_comma_proxy_list_indented_del():
-    red = RedBaron("[\n    1,\n]")
+    red = RedBaron("[    1,\n]")
     comma_proxy_list = red[0].value
     del comma_proxy_list[0]
     assert red.dumps() == "[]"
@@ -965,7 +965,7 @@ def test_comma_proxy_list_indented_del_2_at_top():
 
 
 def test_comma_proxy_list_indented_remove():
-    red = RedBaron("[\n    1,\n]")
+    red = RedBaron("[    1,\n]")
     comma_proxy_list = red[0].value
     comma_proxy_list.remove(comma_proxy_list[0])
     assert red.dumps() == "[]"
@@ -1023,7 +1023,7 @@ with stuff:
 
 def test_comma_proxy_list_indented_in_indentation_case():
     red = RedBaron(comma_proxy_list_indented_code_to_test)
-    red.list_.append("2")
+    red.find("list").append("2")
     assert red.dumps() == comma_proxy_list_indented_code_to_test_expected_result
 
 
