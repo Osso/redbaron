@@ -70,7 +70,7 @@ class ProxyList(NodeList):
             leftover_indent = node.consume_leftover_indentation()
             self.append_leftover_endl_to_data(node, data)
 
-        self.append_leftover_indent_to_data(leftover_indent, data)
+        self.append_leftover_indent_to_footer(leftover_indent, self.footer)
         self._data = data
 
     def append_leftover_endl_to_data(self, node, data):
@@ -87,9 +87,9 @@ class ProxyList(NodeList):
         if leftover_indent:
             header.append(self.make_empty_el(leftover_indent))
 
-    def append_leftover_indent_to_data(self, leftover_indent, data):
+    def append_leftover_indent_to_footer(self, leftover_indent, footer):
         if leftover_indent:
-            data.append([self.make_empty_el(leftover_indent), None])
+            footer.append(self.make_empty_el(leftover_indent))
 
     def _data_to_node_list(self):
         expected_list = []
@@ -272,12 +272,13 @@ class ProxyList(NodeList):
         self._synchronise()
 
     def detect_trailing_sep(self):
-        if not self.data:
+        if not self._data:
             return
-        last_el = list(self)[-1]
-        for el in last_el.next_neighbors_nodelist:
-            if isinstance(el, type(self.middle_separator)):
-                self.trailing_separator = True
+        self.trailing_separator = bool(self._data[-1][1])
+        # last_el = list(self)[-1]
+        # for el in last_el.next_neighbors_nodelist:
+        #     if isinstance(el, type(self.middle_separator)):
+        #         self.trailing_separator = True
 
     def copy(self):
         new_list = type(self)()
@@ -381,11 +382,11 @@ class LineProxyList(ProxyList):
 
 class CodeProxyList(LineProxyList):
     def move_indentation_to_leftover(self):
-        if not self._data or not self.parent:
+        if not self.footer or not self.parent:
             return
 
-        if self._data[-1][0].type == 'space' and self._data[-1][1] is None:
-            self.leftover_indentation = self._data.pop()[0].value
+        if self.footer[-1].baron_type == 'space':
+            self.leftover_indentation = self.footer.pop().value
 
         self._synchronise()
 
