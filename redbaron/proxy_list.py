@@ -347,7 +347,8 @@ class CommaProxyList(ProxyList):
             return indent
 
         header_len = len(self.header[0].dumps()) if self.header else 0
-        return self.parent.indentation + header_len
+        parent_indent = self.parent.indentation if self.parent else ""
+        return parent_indent + header_len * " "
 
 
 class DotProxyList(ProxyList):
