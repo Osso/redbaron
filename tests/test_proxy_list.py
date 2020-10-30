@@ -1128,7 +1128,7 @@ class A():
 
 def test_decorator_line_proxy_dont_break_next_block_identation():
     red = RedBaron(forwarded_indented_code_decorators)
-    red.def_.decorators.append("@plop")
+    red.find("def").decorators.append("@plop")
     assert red.dumps() == forwarded_indented_code_result_decorators
 
 
@@ -1145,13 +1145,13 @@ def test_root_as_line_proxy_list_len():
 
 def test_root_as_line_proxy_list_insert():
     red = RedBaron("a\nb\nc\n")
-    red.insert(1, "c")
+    red.insert(1, "c\n")
     assert red.dumps() == "a\nc\nb\nc\n"
 
 
 def test_root_as_line_proxy_list_append():
     red = RedBaron("a\nb\nc\n")
-    red.append("c")
+    red.append("c\n")
     assert red.dumps() == "a\nb\nc\nc\n"
 
 
@@ -1176,30 +1176,30 @@ def test_root_as_line_proxy_list_del():
 def test_root_as_line_proxy_list_del_blank_line():
     red = RedBaron("\na\nb\nc\n")
     del red[1]
-    assert red.dumps() == "\nb\nc\n"
+    assert red.dumps() == "\na\nc\n"
 
 
 def test_root_as_line_proxy_list_remove():
-    red = RedBaron("\n\na\nb\nc\n")
+    red = RedBaron("\na\nb\nc\n")
     red.remove(red[0])
-    assert red.dumps() == "\na\nb\nc\n"
+    assert red.dumps() == "\nb\nc\n"
 
 
 def test_root_as_line_proxy_list_remove_2():
-    red = RedBaron("\n\na\nb\nc\n")
+    red = RedBaron("\na\nb\nc\n")
     red.remove(red[2])
-    assert red.dumps() == "\n\nb\nc\n"
+    assert red.dumps() == "\na\nb\n"
 
 
 def test_root_as_line_proxy_list_set_slice():
-    red = RedBaron("\n\na\nb\nc\n")
-    red[1:2] = ["caramba", "compote"]
+    red = RedBaron("\na\nb\nc\n")
+    red[0:0] = ["caramba\n", "compote\n"]
     assert red.dumps() == "\ncaramba\ncompote\na\nb\nc\n"
 
 
 def test_root_as_line_proxy_list_delslice():
-    red = RedBaron("\n\na\nb\nc\n")
-    del red[1:4]
+    red = RedBaron("\na\nb\nc\n")
+    del red[0:2]
     assert red.dumps() == "\nc\n"
 
 
@@ -1213,11 +1213,11 @@ def test_root_as_line_proxy_list_getslice():
 
 def test_root_as_line_proxy_list_extend():
     red = RedBaron("\n\na\nb\nc\n")
-    red.extend(["zob"])
+    red.extend(["zob\n"])
     assert red.dumps() == "\n\na\nb\nc\nzob\n"
 
 
 def test_regression_first_method_of_a_class_decorators_append():
     red = RedBaron("class A:\n    def foo():\n        pass")
-    red.def_.decorators.append("@staticmethod")
+    red.find("def").decorators.append("@staticmethod")
     assert red.dumps() == "class A:\n    @staticmethod\n    def foo():\n        pass\n"
