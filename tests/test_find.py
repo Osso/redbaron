@@ -215,3 +215,8 @@ def test_default_test_value_find_class():
 def test_find_other_name_assignment():
     red = RedBaron("a = b")
     assert red.find("assign") is red[0]
+
+
+def test_find_empty_call():
+    red = RedBaron("a()")
+    assert red.find("call") is red[0][1]

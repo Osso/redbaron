@@ -491,6 +491,7 @@ class DecoratorsProxyList(LineProxyList):
 
     def _synchronise(self):
         super()._synchronise()
+        # Handle indentation
         if self.parent:
             for _, sep in self._data:
                 sep.indent = self.parent.indentation

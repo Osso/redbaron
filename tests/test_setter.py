@@ -2049,3 +2049,9 @@ def test_ifelseblock_setattr_indented_followed():
     red = RedBaron("def a():\n    if a:\n        pass\n\n\n    pouet\n")
     red[0].value.node_list[1].value = "if 1 + 1:\n    qsd\n"
     assert red.dumps() == "def a():\n    if 1 + 1:\n        qsd\n\n    pouet\n"
+
+
+def test_can_modify_formatting_attributes_on_codeblock():
+    red = RedBaron("class Foo:\n    def bar(): pass")
+    red.find("class").first_formatting = "    "  # shouldn't raise
+    red.find("def").second_formatting = "      "  # same

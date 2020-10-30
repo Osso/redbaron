@@ -580,3 +580,9 @@ def test_parent_copy():
 def test_copy_correct_instance():
     red = RedBaron("a()")
     assert isinstance(red[0].value[1].copy(), CallNode)
+
+
+def test_on_copied_blocknode_set_body():
+    red = RedBaron("def foobar(): pass")
+    z = red.find("def").copy()
+    z.value = "pouet"
