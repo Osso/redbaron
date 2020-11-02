@@ -742,23 +742,10 @@ class LeftParenthesisNode(Node):
     pass
 
 
-class ListArgumentNode(Node):
-    @conditional_formatting_property(NodeList, [" "], [])
-    def annotation_first_formatting(self):
-        return self.annotation
-
-    @conditional_formatting_property(NodeList, [" "], [])
-    def annotation_second_formatting(self):
-        return self.annotation
-
+class ListArgumentNode(AnnotationMixin, Node):
     @NodeProperty
     def value(self, value):
         return baron.parse("lambda *%s: x" % value)[0]["arguments"][0]["value"]
-
-    @NodeProperty
-    def annotation(self, value):
-        code = "def a(a:%s=b): pass" % value
-        return baron.parse(code)[0]["arguments"][0]["annotation"]
 
 
 class ListComprehensionNode(Node):
