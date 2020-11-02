@@ -942,7 +942,14 @@ class SetComprehensionNode(Node):
 
 
 class SliceNode(Node):
-    has_two_colons = False
+    @property
+    def has_two_colons(self):
+        return bool(self.step)
+
+    @has_two_colons.setter
+    def has_two_colons(self, value):
+        if value not in (True, False):
+            raise ValueError(f"invalid value {value} for has_two_colons")
 
     @NodeProperty
     def lower(self, value):
