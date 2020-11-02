@@ -275,7 +275,7 @@ class DecoratorNode(Node):
 
     @NodeProperty
     def call(self, value):
-        return baron.parse("@a%s\ndef a(): pass" % value)
+        return baron.parse("@a%s\ndef a(): pass" % value)[0]["decorators"][0]["call"]
 
 
 class DefNode(IndentedCodeBlockMixin, DecoratorsMixin,
