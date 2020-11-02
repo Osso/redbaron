@@ -857,27 +857,36 @@ class PrintNode(Node):
 
 
 class RaiseNode(Node):
-    comma_or_from = ""
+    @property
+    def comma_or_from(self):
+        return "from" if self.instance else ""
+
+    @comma_or_from.setter
+    def comma_or_from(self, value):
+        if value not in (None, "from"):
+            raise ValueError(f"invalid value {value} for comma_or_from")
 
     @NodeProperty
     def value(self, value):
         return baron.parse("raise %s" % value)[0]["value"]
 
-    @conditional_formatting_property(NodeList, [" "], [])
-    def formatting(self):
+    @conditional_formatting_property(NodeList, [" "], [], allow_set=False)
+    def first_formatting(self):
         return self.value
 
     @NodeProperty
     def instance(self, value):
         if not self.value:
-            raise Exception("Can't set instance if there is not value")
+            raise ValueError("Can't set instance if there is no value")
+        if not value:
+            return None
         return baron.parse("raise a from %s" % value)[0]["instance"]
 
-    @conditional_formatting_property(NodeList, [" "], [])
+    @conditional_formatting_property(NodeList, [" "], [], allow_set=False)
     def second_formatting(self):
         return self.instance
 
-    @conditional_formatting_property(NodeList, [" "], [])
+    @conditional_formatting_property(NodeList, [" "], [], allow_set=False)
     def third_formatting(self):
         return self.instance and self.comma_or_from != ","
 
