@@ -525,9 +525,18 @@ class ExecNode(Node):
 
     @NodeProperty
     def locals(self, value):
+        if not value:
+            return None
+
         if not self.globals:
             raise Exception("I can't set locals when globals aren't set.")
         return baron.parse("exec a in b, %s" % value)[0]["locals"]
+
+    @NodeProperty
+    def globals(self, value):
+        if not value:
+            return None
+        return baron.parse("exec a in %s" % value)[0]["globals"]
 
     @conditional_formatting_property(NodeList, [" "], [])
     def second_formatting(self):
