@@ -788,26 +788,6 @@ def test_except_setattr_target_none():
     assert red[0].excepts[0].dumps() == "except Pouet: pass\n"
 
 
-def test_except_setattr_delimiter_comma():
-    red = RedBaron("try: pass\nexcept Pouet as plop: pass\n")
-    red[0].excepts[0].delimiter = ","
-    assert red[0].excepts[0].delimiter == ","
-    assert red[0].excepts[0].dumps() == "except Pouet, plop: pass\n"
-
-
-def test_except_setattr_delimiter_as():
-    red = RedBaron("try: pass\nexcept Pouet, plop: pass\n")
-    red[0].excepts[0].delimiter = "as"
-    assert red[0].excepts[0].delimiter == "as"
-    assert red[0].excepts[0].dumps() == "except Pouet as plop: pass\n"
-
-
-def test_except_setattr_delimiter_bad():
-    red = RedBaron("try: pass\nexcept Pouet, plop: pass\n")
-    with pytest.raises(Exception):
-        red[0].excepts[0].delimiter = "pouet"
-
-
 def test_call_setattr_value():
     red = RedBaron("a()")
     red[0].value[1].value = "b=2, *pouet"
@@ -854,7 +834,7 @@ def test_binary_setattr_value():
     red = RedBaron("0b101001")
     red[0].value = "0b1100"
     assert red.dumps() == "0b1100"
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         red[0].value = "not_binary"
 
 

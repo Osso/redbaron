@@ -44,6 +44,8 @@ class AssertNode(Node):
 
     @NodeProperty
     def message(self, value):
+        if not value:
+            return None
         return baron.parse("assert plop, %s" % value)[0]["message"]
 
     @conditional_formatting_property(NodeList, [" "], [])
@@ -102,7 +104,15 @@ class AwaitNode(Node):
 
 
 class BinaryNode(Node, LiteralyEvaluableMixin):
-    pass
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        if not re.match(r'^0b[01]+$', value):
+            raise ValueError(f"invalid value {value} for binary node")
+        self._value = value  # pylint: disable=attribute-defined-outside-init
 
 
 class BinaryOperatorNode(Node):
@@ -424,6 +434,9 @@ class ExceptNode(IndentedCodeBlockMixin, Node):
             raise Exception("Can't set a target to an exception node "
                             "that doesn't have an exception set")
 
+        if value == "":
+            return None
+
         code = "try: pass\nexcept a as %s: pass" % value
         return baron.parse(code)[0]["excepts"][0]["target"]
 
@@ -441,14 +454,11 @@ class ExceptNode(IndentedCodeBlockMixin, Node):
 
     @property
     def delimiter(self):
-        try:
-            return self._delimiter
-        except AttributeError:
-            return "as" if self.target else ""
+        return "as" if self.target and self.exception else ""
 
     @delimiter.setter
     def delimiter(self, value):
-        self._delimiter = value  # pylint: disable=attribute-defined-outside-init
+        pass
 
     @NodeProperty
     def exception(self, value):
