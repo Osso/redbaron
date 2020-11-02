@@ -814,7 +814,11 @@ class NameAsNameNode(Node):
                             "be a 'name' or an empty string or None")
         self._target = value
 
-    @conditional_formatting_property(NodeList, [" "], [])
+    @conditional_formatting_property(NodeList, [" "], [], allow_set=False)
+    def first_formatting(self):
+        return self.target
+
+    @conditional_formatting_property(NodeList, [" "], [], allow_set=False)
     def second_formatting(self):
         return self.target
 
