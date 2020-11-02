@@ -38,7 +38,7 @@ class DecoratorsMixin:
             return s.index("@")
         indentation = _detect_indentation(value)
 
-        code = "%s\n%sdef a(): pass" % (value, indentation)
+        code = "%s\n%sdef a(): pass" % (value, indentation*" ")
         return baron.parse(code)[0]["decorators"]
 
 
