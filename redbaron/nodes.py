@@ -916,7 +916,7 @@ class ReturnNode(Node):
     def value(self, value):
         return baron.parse("return %s" % value)[0]["value"]
 
-    @conditional_formatting_property(NodeList, [" "], [])
+    @conditional_formatting_property(NodeList, [" "], [], allow_set=False)
     def formatting(self):
         return self.value
 
