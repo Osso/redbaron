@@ -1161,67 +1161,23 @@ def test_list_argument_setattr_value():
 
 
 def test_print_setattr_value():
-    red = RedBaron("print a")
-    red[0].value = "hop, plop"
-    assert red.dumps() == "print hop, plop"
+    red = RedBaron("print(a)")
+    red[0].value = "(hop, plop)"
+    assert red.dumps() == "print(hop, plop)"
     with pytest.raises(Exception):
         red[0].value = "def a(): pass\n"
 
 
 def test_print_setattr_value_none():
-    red = RedBaron("print a")
-    red[0].value = ""
-    assert red.dumps() == "print"
+    red = RedBaron("print(a)")
+    with pytest.raises(ValueError):
+        red[0].value = ""
 
 
-def test_print_setattr_value_none_to_not_none():
-    red = RedBaron("print")
-    red[0].value = "a"
-    assert red.dumps() == "print a"
-
-
-def test_print_setattr_destination():
-    red = RedBaron("print >>zop")
-    red[0].destination = "hop"
-    assert red.dumps() == "print >>hop"
-    with pytest.raises(Exception):
-        red[0].destination = "def a(): pass\n"
-
-
-def test_print_setattr_destination_none():
-    red = RedBaron("print >>zop")
-    red[0].destination = ""
-    assert red.dumps() == "print"
-
-
-def test_print_setattr_destination_none_to_not_none():
-    red = RedBaron("print")
-    red[0].destination = "hop"
-    assert red.dumps() == "print >>hop"
-
-
-def test_print_setattr_value_was_none_and_had_destination():
-    red = RedBaron("print >>zop")
-    red[0].value = "plop"
-    assert red.dumps() == "print >>zop, plop"
-
-
-def test_print_setattr_value_none_had_destination():
-    red = RedBaron("print >>zop, plop")
-    red[0].value = ""
-    assert red.dumps() == "print >>zop"
-
-
-def test_print_setattr_dest_none_had_value():
-    red = RedBaron("print >>zop, plop")
-    red[0].destination = ""
-    assert red.dumps() == "print plop"
-
-
-def test_print_setattr_dest_was_none_had_value():
-    red = RedBaron("print zop")
-    red[0].destination = "plop"
-    assert red.dumps() == "print >>plop, zop"
+def test_print_setattr_value_invalid():
+    red = RedBaron("print(a)")
+    with pytest.raises(ValueError):
+        red[0].value = "foo"
 
 
 def test_raise_setattr_value():

@@ -845,22 +845,15 @@ class PassNode(Node):
 
 
 class PrintNode(Node):
-    @NodeProperty
-    def destination(self, value):
-        return baron.parse("print >>%s" % value)[0]["destination"]
-
     @nodelist_property(CommaProxyList)
     def value(self, value):
-        code = "print %s" if not self.destination else "print >>a, %s"
-        return baron.parse(code % value)[0]["value"]
-
-    @conditional_formatting_property(NodeList, [" "], [])
-    def formatting(self):
-        return self.destination
-
-    @conditional_formatting_property(NodeList, [" "], [])
-    def second_formatting(self):
-        return self.destination
+        if not value:
+            raise ValueError("print call cannot be empty")
+        if value.lstrip(" ")[0] != "(":
+            raise ValueError("print call must start with (")
+        if value.rstrip(" ")[-1] != ")":
+            raise ValueError("print call must end with )")
+        return baron.parse("print%s" % value)[0]["value"]
 
 
 class RaiseNode(Node):
