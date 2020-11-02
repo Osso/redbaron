@@ -657,13 +657,19 @@ def test_with_context_item_as():
 def test_with_context_item_as_empty_string():
     red = RedBaron("with a as b: pass")
     red[0].contexts[0].as_ = ""
-    assert red[0].contexts[0].as_ == ""
+    assert red[0].contexts[0].as_ == None
     assert red[0].dumps() == "with a: pass\n"
+
+
+def test_if_setattr_value_inline():
+    red = RedBaron("if a: pass")
+    red[0].value[0].value = "continue\n"
+    assert red[0].value[0].value.dumps() == "continue\n"
 
 
 def test_if_setattr_value():
     red = RedBaron("if a: pass")
-    red[0].value[0].value = "continue"
+    red[0].value[0].value = "\ncontinue\n"
     assert red[0].value[0].value.dumps() == "\n    continue\n"
 
 
@@ -676,9 +682,15 @@ def test_setattr_if_test():
         red[0].value[0].test = "raise"
 
 
+def test_elif_setattr_value_inline():
+    red = RedBaron("if a: pass\nelif b: pass")
+    red[0].value[1].value = "continue\n"
+    assert red[0].value[1].value.dumps() == "continue\n"
+
+
 def test_elif_setattr_value():
     red = RedBaron("if a: pass\nelif b: pass")
-    red[0].value[1].value = "continue"
+    red[0].value[1].value = "\ncontinue\n"
     assert red[0].value[1].value.dumps() == "\n    continue\n"
 
 
@@ -691,27 +703,40 @@ def test_setattr_elif_test():
         red[0].value[1].test = "raise"
 
 
+def test_else_setattr_value_inline():
+    red = RedBaron("if a: pass\nelse: pass")
+    red[0].value[1].value = "continue\n"
+    assert red[0].value[1].value.dumps() == "continue\n"
+
+
 def test_else_setattr_value():
     red = RedBaron("if a: pass\nelse: pass")
-    red[0].value[1].value = "continue"
+    red[0].value[1].value = "\ncontinue\n"
     assert red[0].value[1].value.dumps() == "\n    continue\n"
+
+
+def test_try_setattr_value_inline():
+    red = RedBaron("try: pass\nexcept: pass\n")
+    red[0].value = "continue\n"
+    assert red[0].value.dumps() == "continue\n"
 
 
 def test_try_setattr_value():
     red = RedBaron("try: pass\nexcept: pass\n")
-    red[0].value = "continue"
+    red[0].value = "\ncontinue\n"
     assert red[0].value.dumps() == "\n    continue\n"
+
+
+def test_finally_setattr_value_inline():
+    red = RedBaron("try: pass\nfinally: pass\n")
+    red[0].finally_.value = "continue\n"
+    assert red[0].finally_.value.dumps() == "continue\n"
 
 
 def test_finally_setattr_value():
     red = RedBaron("try: pass\nfinally: pass\n")
-    red[0].finally_.value = "continue"
+    red[0].finally_.value = "\ncontinue\n"
     assert red[0].finally_.value.dumps() == "\n    continue\n"
-
-
-def test_finally_getattr_on_try():
-    red = RedBaron("try: pass\nfinally: pass\n")
-    assert red[0].finally_ is getattr(red[0], "finally")
 
 
 def test_except_setattr_value():

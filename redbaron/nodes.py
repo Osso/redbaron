@@ -510,8 +510,6 @@ class ExecNode(Node):
 
 
 class FinallyNode(IndentedCodeBlockMixin, Node):
-    value = NodeListProperty(LineProxyList)
-
     @property
     def next_intuitive(self):
         return self.parent.next
@@ -1083,10 +1081,14 @@ class WhileNode(IndentedCodeBlockMixin, Node):
 class WithContextItemNode(Node):
     @NodeProperty
     def value(self, value):
+        if not value:
+            return None
         return baron.parse("with %s: pass" % value)[0]["contexts"][0]["value"]
 
     @NodeProperty
     def as_(self, value):
+        if not value:
+            return None
         return baron.parse("with %s: pass" % value)[0]["contexts"][0]["value"]
 
     @conditional_formatting_property(NodeList, [" "], [])
