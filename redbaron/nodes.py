@@ -427,7 +427,7 @@ class ExceptNode(IndentedCodeBlockMixin, Node):
         code = "try: pass\nexcept a as %s: pass" % value
         return baron.parse(code)[0]["excepts"][0]["target"]
 
-    @conditional_formatting_property(NodeList, [" "], [])
+    @conditional_formatting_property(NodeList, [" "], [], allow_set=False)
     def first_formatting(self):
         return self.exception
 

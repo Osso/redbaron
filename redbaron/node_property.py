@@ -27,13 +27,16 @@ class NodeProperty(BaseProperty):
 
         return getattr(obj, self.attr_name, None)
 
-    def getter(self, fun):
+    def setter(self, fun):
         new_property = self.copy()
-        new_property.__get__ = fun
-        return self
+        new_property._set = fun
+        return new_property
+
+    def _set(self, obj, value):
+        setattr(obj, self.attr_name, self.to_value(obj, value))
 
     def __set__(self, obj, value):
-        setattr(obj, self.attr_name, self.to_value(obj, value))
+        self._set(obj, value)
         self._after_set(obj, value)
 
     def to_value(self, obj, value):
@@ -116,11 +119,13 @@ class NodeListProperty(NodeProperty):
 class ConditionalFormattingProperty(NodeListProperty):
     _default = None
 
-    def __init__(self, condition, list_type, default_true, default_false):
+    def __init__(self, condition, list_type, default_true, default_false,
+                 allow_set=True):
         super().__init__(list_type=list_type, str_to_fst=None)
         self.condition = condition
         self._default_true = default_true
         self._default_false = default_false
+        self._allow_set = allow_set
 
     def __get__(self, obj, objtype=None):
         if not obj:
@@ -130,7 +135,7 @@ class ConditionalFormattingProperty(NodeListProperty):
         if user_defined_value:
             return user_defined_value
 
-        attr_name_for_default = self.attr_name + "default"
+        attr_name_for_default = self.attr_name + "_default"
         default = getattr(obj, attr_name_for_default, None)
         if default is None:
             default = {
@@ -141,6 +146,18 @@ class ConditionalFormattingProperty(NodeListProperty):
 
         return default[bool(self.condition(obj))]
 
+    def __set__(self, obj, value):
+        if self._allow_set:
+            super().__set__(obj, value)
+
+    def copy(self):
+        new_property = type(self)(condition=self.condition,
+                                  list_type=self.list_type,
+                                  default_true=self._default_true,
+                                  default_false=self._default_false)
+        new_property.__dict__ = self.__dict__.copy()
+        return new_property
+
 
 def node_property():
     return NodeProperty
@@ -150,10 +167,11 @@ def nodelist_property(list_type):
     return partial(NodeListProperty, list_type)
 
 
-def conditional_formatting_property(list_type, default_true, default_false):
+def conditional_formatting_property(list_type, default_true, default_false,
+                                    allow_set=True):
     return partial(ConditionalFormattingProperty,
                    list_type=list_type, default_true=default_true,
-                   default_false=default_false)
+                   default_false=default_false, allow_set=allow_set)
 
 
 def set_name_for_node_properties(cls):

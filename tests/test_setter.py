@@ -739,9 +739,15 @@ def test_finally_setattr_value():
     assert red[0].finally_.value.dumps() == "\n    continue\n"
 
 
+def test_except_setattr_value_inline():
+    red = RedBaron("try: pass\nexcept: pass\n")
+    red[0].excepts[0].value = "continue\n"
+    assert red[0].excepts[0].value.dumps() == "continue\n"
+
+
 def test_except_setattr_value():
     red = RedBaron("try: pass\nexcept: pass\n")
-    red[0].excepts[0].value = "continue"
+    red[0].excepts[0].value = "\ncontinue\n"
     assert red[0].excepts[0].value.dumps() == "\n    continue\n"
 
 
