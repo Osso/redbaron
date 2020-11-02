@@ -1,6 +1,7 @@
 """ Tests the setter methods """
 
 # pylint: disable=redefined-outer-name
+from baron.parser import ParsingError
 import pytest
 from redbaron import RedBaron
 
@@ -943,10 +944,8 @@ def test_decorator_setattr_call():
     red = RedBaron("@pouet\ndef a(): pass\n")
     red[0].decorators[0].call = "(*a)"
     assert red.dumps() == "@pouet(*a)\ndef a(): pass\n"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].decorators[0].call = "def a(): pass"
-    with pytest.raises(Exception):
-        red[0].decorators[0].call = ".stuff"
 
 
 def test_decorator_setattr_call_none():
