@@ -7,6 +7,7 @@ from .base_nodes import (Node,
 from .node_mixin import (AnnotationMixin,
                          CodeBlockMixin,
                          DecoratorsMixin,
+                         ElseMixin,
                          IfElseBlockSiblingMixin,
                          IndentedCodeBlockMixin,
                          LiteralyEvaluableMixin,
@@ -393,7 +394,7 @@ class EllipsisNode(Node):
     pass
 
 
-class ElseNode(IfElseBlockSiblingMixin, IndentedCodeBlockMixin, Node):
+class ElseNode(IndentedCodeBlockMixin, IfElseBlockSiblingMixin, Node):
     @property
     def next_intuitive(self):
         parent = self.parent
@@ -578,7 +579,7 @@ class ElseAttributeNode(IndentedCodeBlockMixin, Node):
         return baron.parse(code)[0]["else"]
 
 
-class ForNode(IndentedCodeBlockMixin, Node):
+class ForNode(ElseMixin, IndentedCodeBlockMixin, Node):
     @conditional_formatting_property(NodeList, [" "], [])
     def async_formatting(self):
         return self.async_
@@ -1022,7 +1023,7 @@ class TernaryOperatorNode(Node):
         return baron.parse("a if %s else s" % value)[0]["value"]
 
 
-class TryNode(IndentedCodeBlockMixin, Node):
+class TryNode(ElseMixin, IndentedCodeBlockMixin, Node):
     @property
     def next_intuitive(self):
         if self.excepts:
@@ -1107,7 +1108,7 @@ class YieldAtomNode(Node):
         return self.value
 
 
-class WhileNode(IndentedCodeBlockMixin, Node):
+class WhileNode(ElseMixin, IndentedCodeBlockMixin, Node):
     @NodeProperty
     def test(self, value):
         return baron.parse("while %s: pass" % value)[0]["test"]

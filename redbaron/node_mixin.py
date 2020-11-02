@@ -4,6 +4,7 @@ import baron
 import baron.path
 
 from .base_nodes import (BaseNode,
+                         Node,
                          NodeList)
 from .node_property import (NodeProperty,
                             conditional_formatting_property,
@@ -271,3 +272,26 @@ class SeparatorMixin:
             return indent
 
         return ""
+
+
+class ElseMixin:
+    def make_empty_else_node_inline(self):
+        else_node = self.make_empty_else_node()
+        else_node.second_formatting = " "
+        return else_node
+
+    def make_empty_else_node(self):
+        code = "try: pass\nexcept: pass\nelse:\n    pass"
+        try_node = Node.generic_from_str(code)
+        empty_else_node = try_node.else_
+        empty_else_node.parent = self
+        return empty_else_node
+
+    @NodeProperty
+    def else_(self, value):
+        if not value.lstrip(" ").startswith("\n"):
+            else_node = self.make_empty_else_node_inline()
+        else:
+            else_node = self.make_empty_else_node()
+        else_node.value = value
+        return else_node

@@ -40,9 +40,11 @@ class NodeProperty(BaseProperty):
         self._after_set(obj, value)
 
     def to_value(self, obj, value):
+        from .base_nodes import BaseNode
+
         if isinstance(value, str):
             value = self.str_to_fst(obj, value)
-            assert value is None or isinstance(value, (dict, list))
+            assert value is None or isinstance(value, (dict, list, BaseNode))
 
         if isinstance(value, (dict, list)):
             value = self.fst_to_node(obj, value)
