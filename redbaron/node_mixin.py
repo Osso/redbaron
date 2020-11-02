@@ -7,6 +7,7 @@ from .base_nodes import (BaseNode,
                          NodeList)
 from .node_property import (NodeListProperty,
                             NodeProperty,
+                            conditional_formatting_property,
                             nodelist_property)
 from .proxy_list import (CodeProxyList,
                          DecoratorsProxyList)
@@ -42,46 +43,35 @@ class DecoratorsMixin:
 
 
 class AnnotationMixin:
-    annotation_first_formatting = NodeListProperty(NodeList)
-    annotation_second_formatting = NodeListProperty(NodeList)
-
     @NodeProperty
     def annotation(self, value):
         return baron.parse("a: %s = a" % value)[0]["annotation"]
 
-    @annotation.after_set
-    def annotation_after_set(self, value):
-        if not value:
-            self.annotation_first_formatting = []
-            self.annotation_second_formatting = []
-        else:
-            if not self.annotation_first_formatting:
-                self.annotation_first_formatting = [" "]
+    @conditional_formatting_property(NodeList, [" "], [])
+    def annotation_first_formatting(self):
+        return self.annotation
 
-            if not self.annotation_second_formatting:
-                self.annotation_second_formatting = [" "]
+    @conditional_formatting_property(NodeList, [" "], [])
+    def annotation_second_formatting(self):
+        return self.annotation
 
 
 class ReturnAnnotationMixin:
-    return_annotation_first_formatting = NodeListProperty(NodeList)
-    return_annotation_second_formatting = NodeListProperty(NodeList)
-
     @NodeProperty
     def return_annotation(self, value):
+        if not value:
+            return None
+
         code = "def a() -> %s: pass" % value
         return baron.parse(code)[0]["return_annotation"]
 
-    @return_annotation.after_set
-    def return_annotation_after_set(self, value):
-        if not value:
-            self.return_annotation_first_formatting = []
-            self.return_annotation_second_formatting = []
-        else:
-            if not self.return_annotation_first_formatting:
-                self.return_annotation_first_formatting = [" "]
+    @conditional_formatting_property(NodeList, [" "], [])
+    def return_annotation_first_formatting(self):
+        return self.return_annotation
 
-            if not self.return_annotation_second_formatting:
-                self.return_annotation_second_formatting = [" "]
+    @conditional_formatting_property(NodeList, [" "], [])
+    def return_annotation_second_formatting(self):
+        return self.return_annotation
 
 
 class ValueIterableMixin:
