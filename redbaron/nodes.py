@@ -167,7 +167,7 @@ class ClassNode(IndentedCodeBlockMixin, Node, DecoratorsMixin):
         return baron.parse("class a(%s): pass" % value)[0]["inherit_from"]
 
     @inherit_from.after_set
-    def inherit_from_after_set(self, value):
+    def inherit_from(self, value):
         self.parenthesis = bool(value)
 
 

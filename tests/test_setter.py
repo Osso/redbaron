@@ -494,7 +494,7 @@ def test_await_setattr_value_expr():
 
 def test_for_setattr_value_inline():
     red = RedBaron("for i in a: pass")
-    red[0].value = "continue"
+    red[0].value = "continue\n"
     assert red[0].value.dumps() == "continue\n"
 
 
@@ -546,19 +546,25 @@ def test_set_attr_for_async_dont_break_initial_formatting_indent():
 
 def test_set_attr_for_set_async_indent():
     red = RedBaron("class A:\n    for a in b: pass")
-    red.for_.async_ = True
+    red.find("for").async_ = True
     assert red.dumps() == "class A:\n    async for a in b: pass\n"
 
 
 def test_set_attr_for_unset_async_indent():
     red = RedBaron("class A:\n    async for a in b: pass")
-    red.for_.async_ = False
+    red.find("for").async_ = False
     assert red.dumps() == "class A:\n    for a in b: pass\n"
+
+
+def test_while_setattr_value_inline():
+    red = RedBaron("while a: pass")
+    red[0].value = "continue\n"
+    assert red[0].value.dumps() == "continue\n"
 
 
 def test_while_setattr_value():
     red = RedBaron("while a: pass")
-    red[0].value = "continue"
+    red[0].value = "\ncontinue\n"
     assert red[0].value.dumps() == "\n    continue\n"
 
 
@@ -573,13 +579,13 @@ def test_while_setattr_test():
 
 def test_class_setattr_value():
     red = RedBaron("class a: pass")
-    red[0].value = "def z(): pass"
+    red[0].value = "\ndef z(): pass"
     assert red[0].value.dumps() == "\n    def z(): pass\n"
 
 
 def test_class_setattr_decorators():
     red = RedBaron("class a: pass")
-    red[0].decorators = "@plop\n@plouf"
+    red[0].decorators = "@plop\n@plouf\n"
     assert red[0].decorators.dumps() == "@plop\n@plouf\n"
 
 
@@ -591,7 +597,7 @@ def test_class_setattr_inherit_from():
 
 def test_with_setattr_value():
     red = RedBaron("with a: pass")
-    red[0].value = "def z(): pass"
+    red[0].value = "\ndef z(): pass"
     assert red[0].value.dumps() == "\n    def z(): pass\n"
 
 
@@ -625,13 +631,13 @@ def test_set_attr_with_async_dont_break_initial_withmatting_indent():
 
 def test_set_attr_with_set_async_indent():
     red = RedBaron("class A:\n    with a as b: pass")
-    red.with_.async_ = True
+    red.find("with").async_ = True
     assert red.dumps() == "class A:\n    async with a as b: pass\n"
 
 
 def test_set_attr_with_unset_async_indent():
     red = RedBaron("class A:\n    async with a as b: pass")
-    red.with_.async_ = False
+    red.find("with").async_ = False
     assert red.dumps() == "class A:\n    with a as b: pass\n"
 
 
