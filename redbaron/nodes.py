@@ -738,7 +738,7 @@ class LambdaNode(Node):
     def arguments(self, value):
         return baron.parse("lambda %s: x" % value)[0]["arguments"]
 
-    @conditional_formatting_property(NodeList, [" "], [])
+    @conditional_formatting_property(NodeList, [" "], [], allow_set=False)
     def first_formatting(self):
         return self.arguments
 
