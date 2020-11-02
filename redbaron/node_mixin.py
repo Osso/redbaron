@@ -144,6 +144,11 @@ class CodeBlockMixin(ValueIterableMixin):
 
     def _parse_indented(self, value):
         value = indent_str(value, self.el_indentation)
+        # First line is on the same line with def/class element
+        # we do not want to the el_indentation there
+        # e.g def f(): {value}
+        if value.startswith(" ") and value.lstrip(" ").startswith("\n"):
+            value = value[len(self.el_indentation):]
         fst = baron.parse("while a:\n%s" % value)[0]['value']
         fst[0] = {"type": "space", "value": fst[0]['indent']}
         return fst
@@ -203,7 +208,7 @@ class IndentedCodeBlockMixin(CodeBlockMixin):
 
     def _parse_value(self, value, replace=False):
         if replace:
-            if value.lstrip().startswith("\n"):
+            if value.lstrip(" ").startswith("\n"):
                 fst = self._parse_indented(value)
             else:
                 fst = self._parse_not_indented(value)
@@ -215,7 +220,13 @@ class IndentedCodeBlockMixin(CodeBlockMixin):
         return fst
 
     def _parse_not_indented(self, value):
-        return baron.parse("while a: %s" % value)[0]['value']
+        fst = baron.parse("while a: %s" % value)
+        if len(fst) > 1:
+            raise ValueError("inline code can't have multiple lines")
+        fst = fst[0]
+        indent = fst['third_formatting'][0]['value'][1:]
+        fst['value'].insert(0, {"type": "space", "value": indent})
+        return fst['value']
 
 
 class IfElseBlockSiblingMixin:
