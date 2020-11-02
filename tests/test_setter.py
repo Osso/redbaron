@@ -240,26 +240,6 @@ def c():
 """
 
 
-code_for_block_setattr = """
-class A():
-    def a():
-        pass
-
-    def b():
-        pass
-
-
-def c():
-    def zomg():
-        pass
-    plop
-
-
-def d():
-    pass
-"""
-
-
 def test_set_attr_def_advanced_in_class_at_the_end_dont_break_next_block_indent_two_endl():
     red = RedBaron("""
 class A():
@@ -351,145 +331,91 @@ def test_set_attr_def_unset_return_annotation():
     assert red.dumps() == "def a(): pass\n"
 
 
-def test_set_decorator_def():
+def test_set_decorator_def_no_endl():
     red = RedBaron("def a(): pass")
-    red[0].decorators = "@decorator"
-    assert len(red[0].decorators.node_list) == 2
-    assert red[0].decorators.dumps() == "@decorator\n"
+    with pytest.raises(ValueError):
+        red[0].decorators = "@decorator"
 
 
 def test_set_decorator_def_endl():
     red = RedBaron("def a(): pass")
     red[0].decorators = "@decorator\n"
-    assert len(red[0].decorators.node_list) == 2
+    assert len(red[0].decorators) == 1
     assert red[0].decorators.dumps() == "@decorator\n"
 
 
-def test_set_decorator_def_indent():
+def test_set_decorator_def_indented():
     red = RedBaron("def a(): pass")
-    red[0].decorators = "    @decorator"
-    assert len(red[0].decorators.node_list) == 2
-    assert red[0].decorators.dumps() == "@decorator\n"
+    with pytest.raises(ValueError):
+        red[0].decorators = "    @decorator\n"
 
 
-def test_set_decorator_def_indent_endl():
+def test_set_decorator_def_2_decorators():
     red = RedBaron("def a(): pass")
-    red[0].decorators = "    @decorator\n"
-    assert len(red[0].decorators.node_list) == 2
-    assert red[0].decorators.dumps() == "@decorator\n"
-
-
-def test_set_decorator_def_too_small_indent():
-    red = RedBaron("def a(): pass")
-    red[0].decorators = " @decorator"
-    assert len(red[0].decorators.node_list) == 2
-    assert red[0].decorators.dumps() == "@decorator\n"
-
-
-def test_set_decorator_def_too_small_indent_endl():
-    red = RedBaron("def a(): pass")
-    red[0].decorators = " @decorator\n"
-    assert len(red[0].decorators.node_list) == 2
-    assert red[0].decorators.dumps() == "@decorator\n"
-
-
-def test_set_decorator_def_too_big_indent():
-    red = RedBaron("def a(): pass")
-    red[0].decorators = "       @decorator"
-    assert len(red[0].decorators.node_list) == 2
-    assert red[0].decorators.dumps() == "@decorator\n"
-
-
-def test_set_decorator_def_too_big_indent_endl():
-    red = RedBaron("def a(): pass")
-    red[0].decorators = "       @decorator\n"
-    assert len(red[0].decorators.node_list) == 2
-    assert red[0].decorators.dumps() == "@decorator\n"
-
-
-def test_set_decorator_def_complex():
-    red = RedBaron("def a(): pass")
-    red[0].decorators = "@plop\n@plouf"
-    assert len(red[0].decorators.node_list) == 4
+    red[0].decorators = "@plop\n@plouf\n"
+    assert len(red[0].decorators) == 2
     assert red[0].decorators.dumps() == "@plop\n@plouf\n"
 
 
-def test_set_decorator_def_complex_indent():
-    red = RedBaron("def a(): pass")
-    red[0].decorators = "    @plop\n    @plouf"
-    assert len(red[0].decorators.node_list) == 4
-    assert red[0].decorators.dumps() == "@plop\n@plouf\n"
+code_for_block_setattr = """
+class A():
+    def a():
+        pass
+
+    def b():
+        pass
 
 
-def test_set_decorator_def_complex_endl_indent():
-    red = RedBaron("def a(): pass")
-    red[0].decorators = "\n    @plop\n    @plouf"
-    assert len(red[0].decorators.node_list) == 4
-    assert red[0].decorators.dumps() == "@plop\n@plouf\n"
+def c():
+    def zomg():
+        pass
+    plop
 
 
-def test_set_decorator_def_complex_space_endl_indent():
-    red = RedBaron("def a(): pass")
-    red[0].decorators = "      \n    @plop\n    @plouf"
-    assert len(red[0].decorators.node_list) == 4
-    assert red[0].decorators.dumps() == "@plop\n@plouf\n"
-
-
-def test_set_decorator_def_complex_too_small_indent():
-    red = RedBaron("def a(): pass")
-    red[0].decorators = " @plop\n @plouf"
-    assert len(red[0].decorators.node_list) == 4
-    assert red[0].decorators.dumps() == "@plop\n@plouf\n"
-
-
-def test_set_decorator_def_complex_endl_too_small_indent():
-    red = RedBaron("def a(): pass")
-    red[0].decorators = "\n @plop\n @plouf"
-    assert len(red[0].decorators.node_list) == 4
-    assert red[0].decorators.dumps() == "@plop\n@plouf\n"
-
-
-def test_set_decorator_def_complex_space_endl_too_small_indent():
-    red = RedBaron("def a(): pass")
-    red[0].decorators = " \n @plop\n @plouf"
-    assert len(red[0].decorators.node_list) == 4
-    assert red[0].decorators.dumps() == "@plop\n@plouf\n"
-
-
-def test_set_decorator_def_complex_too_big_indent():
-    red = RedBaron("def a(): pass")
-    red[0].decorators = "     @plop\n     @plouf"
-    assert len(red[0].decorators.node_list) == 4
-    assert red[0].decorators.dumps() == "@plop\n@plouf\n"
-
-
-def test_set_decorator_def_complex_endl_too_big_indent():
-    red = RedBaron("def a(): pass")
-    red[0].decorators = "\n     @plop\n     @plouf"
-    assert len(red[0].decorators.node_list) == 4
-    assert red[0].decorators.dumps() == "@plop\n@plouf\n"
-
-
-def test_set_decorator_def_complex_space_endl_too_big_indent():
-    red = RedBaron("def a(): pass")
-    red[0].decorators = " \n     @plop\n     @plouf"
-    assert len(red[0].decorators.node_list) == 4
-    assert red[0].decorators.dumps() == "@plop\n@plouf\n"
+def d():
+    pass
+"""
 
 
 def test_set_decorator_indented_def():
-    red = RedBaron(code_for_block_setattr)
-    red.find("def", "b").decorators = "@pouet"
-    assert len(red.find("def", "b").decorators.node_list) == 2
-    assert red.find("def", "b").decorators.node_list[-1].indent == "    "
+    red = RedBaron("""class A():
+    def a():
+        pass
+
+    def b():
+        pass
+""")
+    red.find("def", "b").decorators = "@pouet\n"
+    assert len(red.find("def", "b").decorators) == 1
+    assert red.dumps() == """class A():
+    def a():
+        pass
+
+    @pouet
+    def b():
+        pass
+"""
 
 
 def test_set_decorators_indented_def():
-    red = RedBaron(code_for_block_setattr)
-    red.find("def", "b").decorators = "@pouet\n@plop"
-    assert len(red.find("def", "b").decorators.node_list) == 4
-    assert red.find("def", "b").decorators.node_list[-1].indent == "    "
-    assert red.find("def", "b").decorators.node_list[-3].indent == "    "
+    red = RedBaron("""class A():
+    def a():
+        pass
+
+    def b():
+        pass
+""")
+    red.find("def", "b").decorators = "@pouet\n@plop\n"
+    assert len(red.find("def", "b").decorators) == 2
+    assert red.dumps() == """class A():
+    def a():
+        pass
+
+    @pouet
+    @plop
+    def b():
+        pass
+"""
 
 
 def test_assign_node_setattr_target():
@@ -566,9 +492,15 @@ def test_await_setattr_value_expr():
         red[0].value = "def a(): pass"
 
 
-def test_for_setattr_value():
+def test_for_setattr_value_inline():
     red = RedBaron("for i in a: pass")
     red[0].value = "continue"
+    assert red[0].value.dumps() == "continue\n"
+
+
+def test_for_setattr_value():
+    red = RedBaron("for i in a: pass")
+    red[0].value = "\ncontinue"
     assert red[0].value.dumps() == "\n    continue\n"
 
 

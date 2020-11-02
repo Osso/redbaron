@@ -31,19 +31,28 @@ class LiteralyEvaluableMixin:
 class DecoratorsMixin:
     @nodelist_property(DecoratorsProxyList)
     def decorators(self, value):
-        assert value.lstrip()[0] == '@'
+        if not value:
+            return []
+
+        if value[0] != "@":
+            raise ValueError("decorators need to start with @")
+        if value[-1] != "\n":
+            raise ValueError("endl required for decorators")
 
         def _detect_indentation(s):
             return s.index("@")
         indentation = _detect_indentation(value)
 
-        code = "%s\n%sdef a(): pass" % (value, indentation*" ")
+        code = "%s%sdef a(): pass" % (value, indentation*" ")
         return baron.parse(code)[0]["decorators"]
 
 
 class AnnotationMixin:
     @NodeProperty
     def annotation(self, value):
+        if not value:
+            return None
+
         return baron.parse("a: %s = a" % value)[0]["annotation"]
 
     @conditional_formatting_property(NodeList, [" "], [])
