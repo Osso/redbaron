@@ -116,6 +116,16 @@ class BinaryNode(Node, LiteralyEvaluableMixin):
 
 
 class BinaryOperatorNode(Node):
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        if value not in ("+", "-", "*", "/", "//", "%", "@", "**", "&", "^"):
+            raise ValueError(f"invalid value {value} for binary node")
+        self._value = value  # pylint: disable=attribute-defined-outside-init
+
     @NodeProperty
     def first(self, value):
         return baron.parse("%s + b" % value)[0]["first"]
@@ -134,6 +144,16 @@ class BinaryRawStringNode(Node, LiteralyEvaluableMixin):
 
 
 class BooleanOperatorNode(Node):
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        if value not in ("and", "or"):
+            raise ValueError(f"invalid value {value} for boolean node")
+        self._value = value  # pylint: disable=attribute-defined-outside-init
+
     @NodeProperty
     def first(self, value):
         return baron.parse("%s and b" % value)[0]["first"]
@@ -160,6 +180,9 @@ class CallArgumentNode(Node):
 
     @NodeProperty
     def target(self, value):
+        if not value:
+            return None
+
         code = "a(%s=b)" % value
         return baron.parse(code)[0]["value"][1]["value"][0]["target"]
 
