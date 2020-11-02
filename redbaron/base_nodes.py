@@ -27,7 +27,7 @@ from .utils import (baron_type_from_class,
 NODES_RENDERING_ORDER = nodes_rendering_order
 NODES_RENDERING_ORDER["root"] = [('list', 'value', True)]
 NODES_RENDERING_ORDER["empty_line"] = []
-RESERVED_KEYWORDS = ("async", "class", "finally", "except", "else",
+RESERVED_KEYWORDS = ("async", "class", "finally", "except", "else", "as",
                      "if", "elif", "while", "for", "is", "and", "or")
 
 
