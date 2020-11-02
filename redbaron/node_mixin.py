@@ -5,8 +5,7 @@ import baron.path
 
 from .base_nodes import (BaseNode,
                          NodeList)
-from .node_property import (NodeListProperty,
-                            NodeProperty,
+from .node_property import (NodeProperty,
                             conditional_formatting_property,
                             nodelist_property)
 from .proxy_list import (CodeProxyList,
