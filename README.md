@@ -36,10 +36,10 @@ There might be the only exception that if you directly call specific nodes
 constructors with FST that this API change, but this is not documented and
 simply horribly unpracticable, so I'm expecting no one to do that.
 
-Support
-=======
+Pyhton Syntax Support
+=====================
 
-RedBaron is support python python 2 and up to python 3.7 grammar.
+RedBaron supports up to python 3.7 grammar.
 
 Roadmap
 =======
