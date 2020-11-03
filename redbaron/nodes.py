@@ -1033,6 +1033,8 @@ class TryNode(ElseMixin, FinallyMixin, IndentedCodeBlockMixin, Node):
 
     @nodelist_property(NodeList)
     def excepts(self, value):
+        if value.startswith(" "):
+            raise ValueError("except cannot be indented")
         code = "try:\n pass\n%sfinally:\n pass" % value
         return baron.parse(code)[0]["excepts"]
 
