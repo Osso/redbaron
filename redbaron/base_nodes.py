@@ -24,6 +24,7 @@ from .utils import (baron_type_from_class,
                     squash_successive_duplicates,
                     truncate)
 
+INDENT_UNIT = "    "
 NODES_RENDERING_ORDER = nodes_rendering_order
 NODES_RENDERING_ORDER["root"] = [('list', 'value', True)]
 NODES_RENDERING_ORDER["empty_line"] = []
@@ -388,14 +389,20 @@ class NodeList(UserList, BaseNode, IndentationMixin):
             node.on_attribute = None
         super().extend(other)
 
-    def increase_indentation(self, indent):
+    def increase_indentation(self, indent=None):
+        if indent is None:
+            indent = self.indent_unit
+
         indented_str = indent_str(self.dumps(), indent)
         if not self.parent:
             raise ValueError("Cannot indent detached node")
 
         self.replace(indented_str)
 
-    def decrease_indentation(self, indent):
+    def decrease_indentation(self, indent=INDENT_UNIT):
+        if indent is None:
+            indent = self.indent_unit
+
         indented_str = deindent_str(self.dumps(), indent)
         if not self.parent:
             raise ValueError("Cannot indent detached node")
@@ -904,10 +911,16 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
         assert self.parent[self.index_on_parent] is self
         self.parent[self.index_on_parent] = node
 
-    def increase_indentation(self, indent):
+    def increase_indentation(self, indent=None):
+        if indent is None:
+            indent = self.indent_unit
+
         self.indentation += indent
 
-    def decrease_indentation(self, indent):
+    def decrease_indentation(self, indent=None):
+        if indent is None:
+            indent = self.indent_unit
+
         self.indentation = self.indentation[len(indent):]
 
     def dumps(self):
