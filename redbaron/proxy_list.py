@@ -300,6 +300,9 @@ class ProxyList(NodeList):
         self._data = sorted(self._data, key=wrapped_key, reverse=reverse)
         self._synchronise()
 
+    def clear_data(self):
+        self._data.clear()
+
 
 class SpaceProxyList(ProxyList):
     def __init__(self, node_list=None, parent=None, on_attribute=None):
