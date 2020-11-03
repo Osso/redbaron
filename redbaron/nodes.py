@@ -19,6 +19,7 @@ from .node_property import (NodeProperty,
                             conditional_formatting_property,
                             nodelist_property)
 from .proxy_list import (ArgsProxyList,
+                         CodeProxyList,
                          CommaProxyList,
                          ContextsProxyList,
                          DictProxyList,
@@ -691,7 +692,11 @@ class IfNode(IfElseBlockSiblingMixin, IndentedCodeBlockMixin, Node):
 
 
 class IfelseblockNode(CodeBlockMixin, Node):
-    pass
+    @nodelist_property(CodeProxyList)
+    def value(self, value):
+        if value.startswith(" "):
+            raise ValueError("except cannot be indented")
+        return super()._parse_value(value, replace=True)
 
 
 class ImportNode(ValueIterableMixin, Node):

@@ -1689,38 +1689,38 @@ def test_ifelseblock_setattr():
 
 def test_ifelseblock_setattr_input_indented():
     red = RedBaron("if a:\n    pass\n")
-    red[0].value = "    if 1 + 1:\n        qsd\n"
-    assert red.dumps() == "if 1 + 1:\n    qsd\n"
+    with pytest.raises(ValueError):
+        red[0].value = "    if 1 + 1:\n        qsd\n"
 
 
 def test_ifelseblock_setattr_trailing():
     red = RedBaron("if a:\n    pass\n")
-    red[0].value = "if 1 + 1:\n    qsd\n\n\n\n\n"
-    assert red.dumps() == "if 1 + 1:\n    qsd\n"
+    red[0].value = "if 1 + 1:\n    qsd\n\n\n"
+    assert red.dumps() == "if 1 + 1:\n    qsd\n\n\n"
 
 
 def test_ifelseblock_setattr_followed():
     red = RedBaron("if a:\n    pass\n\n\npouet\n")
-    red[0].value = "if 1 + 1:\n    qsd\n\n\n\n\n"
-    assert red.dumps() == "if 1 + 1:\n    qsd\n\n\npouet\n"
+    red[0].value = "if 1 + 1:\n    qsd\n\n"
+    assert red.dumps() == "if 1 + 1:\n    qsd\n\n\n\npouet\n"
 
 
 def test_ifelseblock_setattr_indented():
     red = RedBaron("def a():\n    if a:\n        pass\n")
-    red[0].value.node_list[1].value = "if 1 + 1:\n    qsd\n"
-    assert red.dumps() == "def a():\n    if 1 + 1:\n        qsd\n"
+    red[0][0].value = "if 1 + 1:\n    qsd\n"
+    assert red.dumps() == "def a():\n    if 1 + 1:\n    qsd\n"
 
 
 def test_ifelseblock_setattr_indented_trailing():
     red = RedBaron("def a():\n    if a:\n        pass\n")
-    red[0].value.node_list[1].value = "if 1 + 1:\n    qsd\n\n\n\n"
-    assert red.dumps() == "def a():\n    if 1 + 1:\n        qsd\n"
+    red[0][0].value = "if 1 + 1:\n    qsd\n\n"
+    assert red.dumps() == "def a():\n    if 1 + 1:\n    qsd\n\n"
 
 
 def test_ifelseblock_setattr_indented_followed():
     red = RedBaron("def a():\n    if a:\n        pass\n\n\n    pouet\n")
-    red[0].value.node_list[1].value = "if 1 + 1:\n    qsd\n"
-    assert red.dumps() == "def a():\n    if 1 + 1:\n        qsd\n\n    pouet\n"
+    red[0][0].value = "if 1 + 1:\n    qsd\n"
+    assert red.dumps() == "def a():\n    if 1 + 1:\n    qsd\n\n\n    pouet\n"
 
 
 def test_can_modify_formatting_attributes_on_codeblock():
