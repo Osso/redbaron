@@ -31,6 +31,12 @@ NODES_RENDERING_ORDER["empty_line"] = []
 RESERVED_KEYWORDS = ("async", "class", "finally", "except", "else", "as",
                      "if", "elif", "while", "for", "is", "and", "or")
 
+# Python 3.6 compatibility
+try:
+    re.Pattern
+except AttributeError:
+    re.Pattern = re._pattern_type
+
 
 class NeighborsMixin:
     @property
@@ -651,7 +657,7 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
 
         all_my_keys = node._raw_keys + node._list_keys + node._dict_keys
 
-        if args and isinstance(args[0], (str, re._pattern_type, list, tuple)):
+        if args and isinstance(args[0], (str, re.Pattern, list, tuple)):
             if not self._attribute_match_query([getattr(node, node._default_test_value)], args[0]):
                 return False
             args = args[1:]
@@ -688,7 +694,7 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
                 if fnmatch(attribute, query[2:]):
                     return True
 
-            elif isinstance(query, re._pattern_type):
+            elif isinstance(query, re.Pattern):
                 if query.match(attribute):
                     return True
 
