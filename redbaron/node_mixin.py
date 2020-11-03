@@ -180,7 +180,7 @@ class CodeBlockMixin(ValueIterableMixin):
 
     def consume_leftover_endl(self):
         yield from super().consume_leftover_endl()
-        yield from self.value.consume_leftover_endl()
+        yield from self.get_last_member().consume_leftover_endl()
 
     def increase_indentation(self, indent):
         super().increase_indentation(indent)

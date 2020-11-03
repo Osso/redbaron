@@ -1671,32 +1671,14 @@ def test_try_setattr_excepts_replace_followed():
 
 def test_try_setattr_excepts_replace_followed_strip():
     red = RedBaron("try:\n    pass\nexcept:\n    pouet\n\n\nplop\n")
-    red[0].excepts = "except:\n    pass\n\n\n\n"
-    assert red.dumps() == "try:\n    pass\nexcept:\n    pass\n\n\nplop\n"
+    red[0].excepts = "except:\n    pass\n\n"
+    assert red.dumps() == "try:\n    pass\nexcept:\n    pass\n\n\n\nplop\n"
 
 
 def test_try_setattr_excepts_replace_strip():
     red = RedBaron("try:\n    pass\nexcept:\n    pouet\n")
-    red[0].excepts = "except:\n    pass\n\n\n\n"
-    assert red.dumps() == "try:\n    pass\nexcept:\n    pass\n"
-
-
-def test_try_setattr_excepts_indented():
-    red = RedBaron("def a():\n    try:\n        pass\n    finally:\n        pass")
-    red.try_.excepts = "    except:\n        pass\n"
-    assert red.dumps() == "def a():\n    try:\n        pass\n    except:\n        pass\n    finally:\n        pass\n"
-
-
-def test_try_setattr_excepts_indented_replace():
-    red = RedBaron("def a():\n    try:\n        pass\n    except:\n        pouet")
-    red.try_.excepts = "    except:\n        pass\n"
-    assert red.dumps() == "def a():\n    try:\n        pass\n    except:\n        pass\n"
-
-
-def test_try_setattr_excepts_indented_replace_followed():
-    red = RedBaron("def a():\n    try:\n        pass\n    except:\n        pouet\n\n    plop\n")
-    red.try_.excepts = "    except:\n        pass\n"
-    assert red.dumps() == "def a():\n    try:\n        pass\n    except:\n        pass\n\n    plop\n"
+    red[0].excepts = "except:\n    pass\n\n\n"
+    assert red.dumps() == "try:\n    pass\nexcept:\n    pass\n\n\n"
 
 
 def test_ifelseblock_setattr():
