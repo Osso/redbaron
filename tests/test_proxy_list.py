@@ -1,7 +1,8 @@
 """ Tests the rendering feature """
 
 import redbaron
-from redbaron import RedBaron
+from redbaron import (RedBaron,
+                      node)
 from redbaron.base_nodes import NodeList
 from redbaron.proxy_list import (CommaProxyList,
                                  DotProxyList,
@@ -1221,3 +1222,9 @@ def test_regression_first_method_of_a_class_decorators_append():
     red = RedBaron("class A:\n    def foo():\n        pass")
     red.find("def").decorators.append("@staticmethod")
     assert red.dumps() == "class A:\n    @staticmethod\n    def foo():\n        pass\n"
+
+
+def test_sort():
+    import_node = node("from m import b, a, c")
+    import_node.targets.sort(key=lambda el: el.value)
+    assert import_node.dumps() == "from m import a, b, c"

@@ -293,6 +293,13 @@ class ProxyList(NodeList):
     def el_to_node(self, el):
         return Node.generic_to_node(el, parent=self)
 
+    def sort(self, key=None, reverse=False):  # pylint: disable=arguments-differ
+        def wrapped_key(el):
+            return key(el[0])
+
+        self._data = sorted(self._data, key=wrapped_key, reverse=reverse)
+        self._synchronise()
+
 
 class SpaceProxyList(ProxyList):
     def __init__(self, node_list=None, parent=None, on_attribute=None):
