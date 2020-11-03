@@ -1,9 +1,9 @@
 Introduction
 ============
 
-[![Build Status](https://travis-ci.org/PyCQA/redbaron.svg?branch=master)](https://travis-ci.org/PyCQA/redbaron) [![Latest Version](https://img.shields.io/pypi/v/redbaron.svg)](https://pypi.python.org/pypi/redbaron/) [![Supported Python versions](https://img.shields.io/pypi/pyversions/redbaron.svg)](https://pypi.python.org/pypi/redbaron/) [![Development Status](https://img.shields.io/pypi/status/redbaron.svg)](https://pypi.python.org/pypi/redbaron/) [![Wheel Status](https://img.shields.io/pypi/wheel/redbaron.svg)](https://pypi.python.org/pypi/redbaron/) [![Download format](https://img.shields.io/pypi/format/redbaron.svg)](https://pypi.python.org/pypi/redbaron/) [![License](https://img.shields.io/pypi/l/redbaron.svg)](https://pypi.python.org/pypi/redbaron/)
-[![Backers on Open Collective](https://opencollective.com/redbaron/backers/badge.svg)](#backers) 
-[![Sponsors on Open Collective](https://opencollective.com/redbaron/sponsors/badge.svg)](#sponsors) 
+[![Build Status](https://travis-ci.org/Osso/redbaron.svg?branch=master)](https://travis-ci.org/Osso/redbaron) [![Latest Version](https://img.shields.io/pypi/v/redbaron.svg)](https://pypi.python.org/pypi/redbaron/) [![Supported Python versions](https://img.shields.io/pypi/pyversions/redbaron.svg)](https://pypi.python.org/pypi/redbaron/) [![Development Status](https://img.shields.io/pypi/status/redbaron.svg)](https://pypi.python.org/pypi/redbaron/) [![Wheel Status](https://img.shields.io/pypi/wheel/redbaron.svg)](https://pypi.python.org/pypi/redbaron/) [![Download format](https://img.shields.io/pypi/format/redbaron.svg)](https://pypi.python.org/pypi/redbaron/) [![License](https://img.shields.io/pypi/l/redbaron.svg)](https://pypi.python.org/pypi/redbaron/)
+[![Backers on Open Collective](https://opencollective.com/redbaron/backers/badge.svg)](#backers)
+[![Sponsors on Open Collective](https://opencollective.com/redbaron/sponsors/badge.svg)](#sponsors)
 
 RedBaron is a python library and tool powerful enough to be used into IPython
 solely that intent to make the process of **writing code that modify source
@@ -106,7 +106,7 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 
 ## Contributors
 
-This project exists thanks to all the people who contribute. 
+This project exists thanks to all the people who contribute.
 <a href="https://github.com/PyCQA/redbaron/contributors"><img src="https://opencollective.com/redbaron/contributors.svg?width=890&button=false" /></a>
 
 Code of Conduct
