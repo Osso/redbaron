@@ -1,7 +1,9 @@
 Introduction
 ============
 
-[![Build Status](https://travis-ci.org/Osso/redbaron.svg?branch=master)](https://travis-ci.org/Osso/redbaron) [![Supported Python versions](https://img.shields.io/badge/python-3.6+-blue)](https://pypi.python.org/pypi/redbaron/) [![Wheel Status](https://img.shields.io/pypi/wheel/redbaron.svg)](https://pypi.python.org/pypi/redbaron/) [![License](https://img.shields.io/pypi/l/redbaron.svg)](https://pypi.python.org/pypi/redbaron/)
+[![Build Status](https://travis-ci.org/Osso/redbaron.svg?branch=master)](https://travis-ci.org/Osso/redbaron)
+[![Supported Python versions](https://img.shields.io/badge/python-3.6+-blue)](https://pypi.python.org/pypi/redbaron/)
+[![License](https://img.shields.io/pypi/l/redbaron.svg)](https://pypi.python.org/pypi/redbaron/)
 [![Backers on Open Collective](https://opencollective.com/redbaron/backers/badge.svg)](#backers)
 [![Sponsors on Open Collective](https://opencollective.com/redbaron/sponsors/badge.svg)](#sponsors)
 
