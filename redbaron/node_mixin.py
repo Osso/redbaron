@@ -171,9 +171,12 @@ class CodeBlockMixin(ValueIterableMixin):
     def leftover_endl(self, value):
         self.value._leftover_endl = value
 
+    def get_last_member(self):
+        return self.value
+
     def consume_leftover_indentation(self):
         return super().consume_leftover_indentation() + \
-               self.value.consume_leftover_indentation()
+               self.get_last_member().consume_leftover_indentation()
 
     def consume_leftover_endl(self):
         yield from super().consume_leftover_endl()
@@ -289,9 +292,65 @@ class ElseMixin:
 
     @NodeProperty
     def else_(self, value):
+        if not value:
+            return None
+
         if not value.lstrip(" ").startswith("\n"):
             else_node = self.make_empty_else_node_inline()
         else:
             else_node = self.make_empty_else_node()
+
         else_node.value = value
         return else_node
+
+    @else_.after_set
+    def else_(self, value):
+        if not self.else_:
+            return
+
+        self.else_.indentation += self.value.consume_leftover_indentation()
+
+    def get_last_member(self):
+        if self.else_:
+            return self.else_
+        return self.value
+
+
+class FinallyMixin:
+    def make_empty_finally_node_inline(self):
+        finally_node = self.make_empty_finally_node()
+        finally_node.second_formatting = " "
+        return finally_node
+
+    def make_empty_finally_node(self):
+        code = "try: pass\nexcept: pass\nfinally:\n    pass"
+        try_node = Node.generic_from_str(code)
+        empty_finally_node = try_node.finally_
+        empty_finally_node.parent = self
+        return empty_finally_node
+
+    @NodeProperty
+    def finally_(self, value):
+        if not value:
+            return None
+
+        if not value.lstrip(" ").startswith("\n"):
+            finally_node = self.make_empty_finally_node_inline()
+        else:
+            finally_node = self.make_empty_finally_node()
+
+        finally_node.value = value
+        return finally_node
+
+    @finally_.after_set
+    def finally_(self, value):
+        if not self.finally_:
+            return
+
+        if self.else_:
+            self.finally_.indentation += self.else_.consume_leftover_indentation()
+
+        if self.excepts:
+            self.finally_.indentation += self.excepts[-1].consume_leftover_indentation()
+
+        self.finally_.indentation += self.value.consume_leftover_indentation()

@@ -1567,6 +1567,53 @@ def test_else_while():
     assert red.dumps() == "while True:\n    pass\nelse:\n    pass\n"
 
 
+def test_else_for_inline():
+    red = RedBaron("for a in b:\n    pass\n")
+    red[0].else_ = "pass\n"
+    assert red.dumps() == "for a in b:\n    pass\nelse: pass\n"
+
+
+def test_else_for():
+    red = RedBaron("for a in b:\n    pass\n")
+    red[0].else_ = "\npass\n"
+    assert red.dumps() == "for a in b:\n    pass\nelse:\n    pass\n"
+
+
+def test_else_try_inline():
+    red = RedBaron("try: pass\nexcept: pass\n")
+    red[0].else_ = "pass\n"
+    assert red.dumps() == "try: pass\nexcept: pass\nelse: pass\n"
+
+
+def test_else_try():
+    red = RedBaron("try:\n    pass\nexcept:\n    pass\n")
+    red[0].else_ = "\npass\n"
+    assert red.dumps() == "try:\n    pass\nexcept:\n    pass\nelse:\n    pass\n"
+
+
+def test_finally_try_inline():
+    red = RedBaron("try: pass\nexcept: pass\n")
+    red[0].finally_ = "pass\n"
+    assert red.dumps() == "try: pass\nexcept: pass\nfinally: pass\n"
+
+
+def test_finally_try():
+    red = RedBaron("try: pass\nexcept:\n    pass\n")
+    red[0].finally_ = "\npass\n"
+    assert red.dumps() == "try: pass\nexcept:\n    pass\nfinally:\n    pass\n"
+
+
+def test_else_finally_try_inline():
+    red = RedBaron("try: pass\nexcept: pass\nelse:\n    pass\n")
+    red[0].finally_ = "pass\n"
+    assert red.dumps() == "try: pass\nexcept: pass\nelse:\n    pass\nfinally: pass\n"
+
+
+def test_else_finally_try():
+    red = RedBaron("try: pass\nexcept:\n    pass\nelse:\n    pass\n")
+    red[0].finally_ = "\npass\n"
+    assert red.dumps() == "try: pass\nexcept:\n    pass\nelse:\n    pass\nfinally:\n    pass\n"
+
 # def test_while_else_simple_root_level(else_simple_body, has_else_member):
 #     red = RedBaron("%s\n\ndef other_stuff(): pass\n" % has_else_member[0])
 #     setattr(red[0], has_else_member[1] + "_", else_simple_body)
@@ -1690,46 +1737,6 @@ def test_else_while():
 #     assert red.dumps() == code_else_block_setattr_one_level_followed_result % (has_else_member, result_keyword)
 
 
-def test_get_last_member_to_clean_while():
-    red = RedBaron("while True: pass")
-    assert red[0]._get_last_member_to_clean() is red[0]
-
-
-def test_get_last_member_to_clean_for():
-    red = RedBaron("for a in a: pass")
-    assert red[0]._get_last_member_to_clean() is red[0]
-
-
-def test_get_last_member_to_clean_try_except():
-    red = RedBaron("try: pass\nexcept: pass")
-    assert red[0]._get_last_member_to_clean() is red[0].excepts[-1]
-
-
-def test_get_last_member_to_clean_try_excepts():
-    red = RedBaron("try: pass\nexcept: pass\nexcept: pass")
-    assert red[0]._get_last_member_to_clean() is red[0].excepts[-1]
-
-
-def test_get_last_member_to_clean_try_else():
-    red = RedBaron("try: pass\nexcept: pass\nelse: pass")
-    assert red[0]._get_last_member_to_clean() is red[0].else_
-
-
-def test_get_last_member_to_clean_try_finally():
-    red = RedBaron("try: pass\nexcept: pass\nelse: pass\nfinally: pass")
-    assert red[0]._get_last_member_to_clean() is red[0].finally_
-
-
-def test_get_last_member_to_clean_try_else_finally():
-    red = RedBaron("try: pass\nexcept: pass\nfinally: pass")
-    assert red[0]._get_last_member_to_clean() is red[0].finally_
-
-
-def test_get_last_member_to_clean_try_finally_only():
-    red = RedBaron("try: pass\nfinally: pass")
-    assert red[0]._get_last_member_to_clean() is red[0].finally_
-
-
 def test_remove_else_setattr():
     red = RedBaron("while True: pass\nelse: pass\n")
     red[0].else_ = ""
@@ -1744,13 +1751,13 @@ def test_remove_else_setattr_followed():
 
 def test_remove_else_setattr_indented():
     red = RedBaron("def a():\n    while True: pass\n    else: pass\n")
-    red.while_.else_ = ""
+    red.find("while").else_ = ""
     assert red.dumps() == "def a():\n    while True: pass\n"
 
 
 def test_remove_else_setattr_indented_followed():
     red = RedBaron("def a():\n    while True: pass\n    else: pass\n\n\n    stuff\n")
-    red.while_.else_ = ""
+    red.find("while").else_ = ""
     assert red.dumps() == "def a():\n    while True: pass\n\n\n    stuff\n"
 
 

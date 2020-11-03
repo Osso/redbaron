@@ -8,14 +8,14 @@ from .node_mixin import (AnnotationMixin,
                          CodeBlockMixin,
                          DecoratorsMixin,
                          ElseMixin,
+                         FinallyMixin,
                          IfElseBlockSiblingMixin,
                          IndentedCodeBlockMixin,
                          LiteralyEvaluableMixin,
                          ReturnAnnotationMixin,
                          SeparatorMixin,
                          ValueIterableMixin)
-from .node_property import (NodeListProperty,
-                            NodeProperty,
+from .node_property import (NodeProperty,
                             conditional_formatting_property,
                             nodelist_property)
 from .proxy_list import (ArgsProxyList,
@@ -23,8 +23,7 @@ from .proxy_list import (ArgsProxyList,
                          ContextsProxyList,
                          DictProxyList,
                          DotProxyList,
-                         ImportsProxyList,
-                         LineProxyList)
+                         ImportsProxyList)
 from .utils import indent_str
 
 
@@ -383,7 +382,7 @@ class DottedNameNode(ValueIterableMixin, Node):
     pass
 
 
-class ElifNode(IfElseBlockSiblingMixin, IndentedCodeBlockMixin, Node):
+class ElifNode(IndentedCodeBlockMixin, IfElseBlockSiblingMixin, Node):
     @NodeProperty
     def test(self, value):
         code = "if %s: pass" % value
@@ -569,9 +568,6 @@ class FinallyNode(IndentedCodeBlockMixin, Node):
 
 
 class ElseAttributeNode(IndentedCodeBlockMixin, Node):
-    def _get_last_member_to_clean(self):
-        return self
-
     @NodeProperty
     def value(self, value):
         value = indent_str(value, self.el_indentation)
@@ -1023,7 +1019,7 @@ class TernaryOperatorNode(Node):
         return baron.parse("a if %s else s" % value)[0]["value"]
 
 
-class TryNode(ElseMixin, IndentedCodeBlockMixin, Node):
+class TryNode(ElseMixin, FinallyMixin, IndentedCodeBlockMixin, Node):
     @property
     def next_intuitive(self):
         if self.excepts:
@@ -1040,13 +1036,7 @@ class TryNode(ElseMixin, IndentedCodeBlockMixin, Node):
         code = "try:\n pass\n%sfinally:\n pass" % value
         return baron.parse(code)[0]["excepts"]
 
-    @NodeProperty
-    def finally_(self, value):
-        value = indent_str(value, self.el_indentation)
-        code = "try: pass\nexcept: pass\nfinally:\n%s" % value
-        return baron.parse(code)[0]["finally"]
-
-    def _get_last_member_to_clean(self):
+    def get_last_member(self):
         if self.finally_:
             return self.finally_
         if self.else_:
