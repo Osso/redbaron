@@ -174,14 +174,18 @@ class ProxyList(NodeList):
     def baron_index(self, value):
         return self.node_list.index(value)
 
-    def _item_from_data_tuple(self, el):
+    def _el_from_data_tuple(self, el):
         node, _ = el
         return node
+
+    def _sep_from_data_tuple(self, el):
+        _, sep = el
+        return sep
 
     def __getitem__(self, index):
         if isinstance(index, slice):
             return self.__getslice__(index.start, index.stop)
-        return self._item_from_data_tuple(self._data[index])
+        return self._el_from_data_tuple(self._data[index])
 
     def get_from_baron_index(self, index):
         return self.node_list[index]
@@ -195,7 +199,7 @@ class ProxyList(NodeList):
 
     def __iter__(self):
         for el in self._data:
-            yield self._item_from_data_tuple(el)
+            yield self._el_from_data_tuple(el)
 
     @property
     def node_list(self):
@@ -275,10 +279,6 @@ class ProxyList(NodeList):
         if not self._data:
             return
         self.trailing_separator = bool(self._data[-1][1])
-        # last_el = list(self)[-1]
-        # for el in last_el.next_neighbors_nodelist:
-        #     if isinstance(el, type(self.middle_separator)):
-        #         self.trailing_separator = True
 
     def copy(self):
         new_list = type(self)()
@@ -302,6 +302,15 @@ class ProxyList(NodeList):
 
     def clear_data(self):
         self._data.clear()
+
+    def associated_sep(self, item):
+        return self._sep_from_data_tuple(self.find_in_data(item))
+
+    def find_in_data(self, item):
+        for data_tuple in self._data:
+            if self._el_from_data_tuple(data_tuple) is item:
+                return data_tuple
+        return None
 
 
 class SpaceProxyList(ProxyList):

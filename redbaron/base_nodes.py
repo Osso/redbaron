@@ -433,6 +433,10 @@ class NodeList(UserList, BaseNode, IndentationMixin):
     def generate_identifiers(cls):
         return [cls.__name__.lower()]
 
+    @property
+    def on_new_line(self):
+        return self.on_attribute == 'value' and self.parent.value_on_new_line
+
 
 class NodeRegistration(type):
     node_type_mapping = {}
@@ -757,6 +761,9 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
             'remove',
             'neighbors',
             'sort',
+            'associated_sep',
+            'find_in_data',
+            'value_on_new_line',
         ])
         for attr_name in dir(self):
             if attr_name.startswith("_"):  # private method
@@ -945,3 +952,37 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
             raise ValueError(f"{index} must be string")
 
         return getattr(self, index)
+
+    @property
+    def on_new_line(self):
+        if not isinstance(self.parent, NodeList):
+            return False
+
+        if self.previous:
+            return bool(self.previous.endl)
+
+        if self.parent.header:
+            return self.parent.header[-1].baron_type == 'endl'
+
+        return self.parent.on_new_line
+
+    @property
+    def endl(self):
+        sep = self.associated_sep
+        if not sep:
+            return None
+        if sep.baron_type == "endl":
+            return sep
+        if sep.second_formatting:
+            return sep.second_formatting.find("endl")
+        return None
+
+    @property
+    def associated_sep(self):
+        if not isinstance(self.parent, NodeList):
+            return None
+        return self.parent.associated_sep(self)
+
+    @property
+    def value_on_new_line(self):
+        return False

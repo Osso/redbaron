@@ -1228,3 +1228,16 @@ def test_sort():
     import_node = node("from m import b, a, c")
     import_node.targets.sort(key=lambda el: el.value)
     assert import_node.dumps() == "from m import a, b, c"
+
+
+def test_find_in_data():
+    red = RedBaron("a\nb")
+    assert red.value.find_in_data(red[0])[0] is red[0]
+    assert red.value.find_in_data(red[1])[0] is red[1]
+    assert not red.value.find_in_data(node("a"))
+
+
+def test_associated_sep():
+    red = RedBaron("a\nb")
+    assert red[0].associated_sep.dumps() == "\n"
+    assert red[1].associated_sep is None

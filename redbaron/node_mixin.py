@@ -357,3 +357,9 @@ class FinallyMixin:
             self.finally_.indentation += self.excepts[-1].consume_leftover_indentation()
 
         self.finally_.indentation += self.value.consume_leftover_indentation()
+
+
+class ListTupleMixin:
+    @property
+    def value_on_new_line(self):
+        return bool(self.second_formatting.find("endl"))

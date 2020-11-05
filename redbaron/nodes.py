@@ -11,6 +11,7 @@ from .node_mixin import (AnnotationMixin,
                          FinallyMixin,
                          IfElseBlockSiblingMixin,
                          IndentedCodeBlockMixin,
+                         ListTupleMixin,
                          LiteralyEvaluableMixin,
                          ReturnAnnotationMixin,
                          SeparatorMixin,
@@ -769,7 +770,7 @@ class ListComprehensionNode(Node):
         return baron.parse("[%s for x in x]" % value)[0]["result"]
 
 
-class ListNode(ValueIterableMixin, LiteralyEvaluableMixin, Node):
+class ListNode(ListTupleMixin, ValueIterableMixin, LiteralyEvaluableMixin, Node):
     @nodelist_property(CommaProxyList)
     def value(self, value):
         return baron.parse("[%s]" % value)[0]["value"]
@@ -1051,7 +1052,7 @@ class TryNode(ElseMixin, FinallyMixin, IndentedCodeBlockMixin, Node):
         return self.excepts[-1]  # pylint: disable=unsubscriptable-object
 
 
-class TupleNode(ValueIterableMixin, LiteralyEvaluableMixin, Node):
+class TupleNode(ListTupleMixin, ValueIterableMixin, LiteralyEvaluableMixin, Node):
     @nodelist_property(CommaProxyList)
     def value(self, value):
         fst = baron.parse("(%s)" % value)[0]["value"]

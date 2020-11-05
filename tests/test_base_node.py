@@ -36,3 +36,39 @@ def test_filter():
     filtered_list = red.value.filter(lambda x: x.value == "2")
     assert isinstance(filtered_list, NodeList)
     assert filtered_list.dumps() == "2"
+
+
+def test_associated_sep():
+    red = node("[1, 2]")
+    assert red[0].associated_sep.baron_type == "comma"
+    assert red[1].associated_sep is None
+
+
+def test_endl():
+    red = RedBaron("# line1\n#line2")
+    assert red[0].endl.baron_type == "endl"
+    assert red[1].endl is None
+    red = node("[1, 2,\n]")
+    assert red[1].endl.baron_type == "endl"
+
+
+def test_value_on_new_line():
+    red = node("[1, 2, 3]")
+    assert not red.value_on_new_line
+    red = node("(1, 2, 3)")
+    assert not red.value_on_new_line
+    red = node("[\n1, 2, 3]")
+    assert red.value_on_new_line
+    red = node("(\n1, 2, 3)")
+    assert red.value_on_new_line
+
+
+def test_on_new_line():
+    red = node("[1, 2,\n3]")
+    assert not red[0].on_new_line
+    assert not red[1].on_new_line
+    assert red[2].on_new_line
+    red = node("[1, 2, 3]")
+    assert not red[0].on_new_line
+    red = node("[\n1, 2, 3]")
+    assert red[0].on_new_line
