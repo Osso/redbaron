@@ -235,7 +235,7 @@ class ProxyList(NodeList):
 
     def __getslice__(self, i, j):
         new_list = type(self)()
-        new_list.replace_data(self._data[i:j])
+        new_list.replace_data([el.copy() for el in self._data[i:j]])
         return new_list
 
     def __repr__(self):
@@ -261,7 +261,7 @@ class ProxyList(NodeList):
 
     def filter(self, function):
         new_list = type(self)()
-        new_list.extend([node.copy() for node in filter(function, self)])
+        new_list.extend([el.copy() for el in filter(function, self)])
         return new_list
 
     def replace_data(self, new_data):
@@ -282,12 +282,12 @@ class ProxyList(NodeList):
 
     def copy(self):
         new_list = type(self)()
-        new_list.replace_data(self)
+        new_list.replace_data([el.copy() for el in self])
         return new_list
 
     def deep_copy(self):
         new_list = type(self)()
-        new_list.replace_data([node.copy() for node in self])
+        new_list.replace_data([(node.copy(), sep.copy) for node, sep in self])
         return new_list
 
     def el_to_node(self, el):
