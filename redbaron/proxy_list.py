@@ -458,12 +458,16 @@ class CodeProxyList(LineProxyList):
         raise Exception("should not be used")
 
     def el_to_data(self, el):
-        fst = self.parent._parse_value(el)
-        code_list = type(self).generic_from_fst(fst, parent=self)
+        if isinstance(el, str):
+            el = self.parent._parse_value(el)
 
-        data = [[self.make_empty_el(), endl] for endl in code_list.header]
-        data.extend(code_list._data)
-        return data
+        if isinstance(el, (dict, list)):
+            code_list = type(self).generic_from_fst(el, parent=self)
+            data = [[self.make_empty_el(), endl] for endl in code_list.header]
+            data.extend(code_list._data)
+            return data
+
+        return [[el, None]]
 
     def __setitem__(self, key, value):
         # Single element, make a one element slice
