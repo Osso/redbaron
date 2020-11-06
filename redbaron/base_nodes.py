@@ -163,15 +163,6 @@ class BaseNode(NeighborsMixin):
             current = current.parent
         return current
 
-    def set_on_attribute_node(self, node):
-        if not self.parent:
-            raise ValueError("Can't set on_attribute_node on root")
-
-        assert self.on_attribute
-        assert getattr(self.parent, self.on_attribute) is self
-
-        setattr(self.parent, self.on_attribute, node)
-
     def find_by_path(self, path):
         return Path.from_baron_path(self, path).node
 
@@ -237,6 +228,18 @@ class BaseNode(NeighborsMixin):
         else:
             raise ValueError(f"Invalid value {value} for to_node()")
         return node
+
+    def set_on_attribute_node(self, node):
+        if not self.parent:
+            raise ValueError("Can't set on_attribute_node on root")
+
+        if isinstance(self.parent, NodeList):
+            assert self.parent[self.index_on_parent] is self
+            self.parent[self.index_on_parent] = node
+        else:
+            assert self.on_attribute
+            assert getattr(self.parent, self.on_attribute) is self
+            setattr(self.parent, self.on_attribute, node)
 
 
 class IndentationMixin:
@@ -916,13 +919,6 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
             elif kind in ("list", "formatting"):
                 for node in getattr(self, key):
                     yield from node._iter_in_rendering_order()
-
-    def set_on_attribute_node(self, node):
-        if not self.parent:
-            raise ValueError("Can't set on_attribute_node on root")
-
-        assert self.parent[self.index_on_parent] is self
-        self.parent[self.index_on_parent] = node
 
     def increase_indentation(self, indent=None):
         if indent is None:
