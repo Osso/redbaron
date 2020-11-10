@@ -140,7 +140,9 @@ class ProxyList(NodeList):
         return len(self._data)
 
     def _insert(self, index, item):
+
         value = self.el_to_node_with_indentation(item)
+
         self._check_for_separator(index)
         sep = self.make_separator_if_strict()
         self._data.insert(index, [value, sep])
@@ -387,21 +389,24 @@ class CommaProxyList(ProxyList):
                 parent=self.middle_separator, on_attribute="second_formatting")
 
     def _find_el_indentation(self):
-        if self.style in ("flat", "mixed"):
-            return ""
+        if len(self._data) > 1:
+            return self._data[1][0].indentation
 
-        if self._data:
-            return (self[0].box.top_left.column - 1) * " "
-
-        return None
+        return self._data[0][0].indentation
 
     @property
     def el_indentation(self):
-        indent = self._find_el_indentation()
-        if indent is not None:
-            return indent
+        from .nodes import ListNode, TupleNode
+
+        if self.style in ("flat", "mixed"):
+            return ""
+
+        if self and self[0].on_new_line:
+            return self._find_el_indentation()
 
         header_len = len(self.header[0].dumps()) if self.header else 0
+        if isinstance(self.parent, (ListNode, TupleNode)):
+            header_len += 1
         parent_indent = self.parent.indentation if self.parent else ""
         return parent_indent + header_len * " "
 
@@ -409,6 +414,21 @@ class CommaProxyList(ProxyList):
         node = self.el_to_node(el)
         node.indentation = self.el_indentation
         return node
+
+    def _synchronise(self):
+        if self.style == "one_per_line":
+            for el in self:
+                el.indentation = self.el_indentation
+
+        if self and not self[0].on_new_line:
+            self[0].indentation = ""
+            if not self._data[0][1]:
+                self._data[0][1] = self.make_separator()
+
+        if not self.trailing_separator and self._data and self._data[-1][1]:
+            self._data[-1][1] = None
+
+        super()._synchronise()
 
 
 class DotProxyList(ProxyList):

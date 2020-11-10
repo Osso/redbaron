@@ -951,13 +951,14 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
 
     @property
     def on_new_line(self):
+        from .proxy_list import ProxyList
         if not isinstance(self.parent, NodeList):
             return False
 
         if self.previous:
             return bool(self.previous.endl)
 
-        if self.parent.header:
+        if isinstance(self.parent, ProxyList) and self.parent.header:
             return self.parent.header[-1].baron_type == 'endl'
 
         return self.parent.on_new_line
