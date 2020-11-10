@@ -630,16 +630,19 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
     def previous_recursive(self):
         return self._next_recursive(lambda node: node.previous)
 
-    def _find_iter(self, identifier, *args, recursive=True, **kwargs):
+    def _find_iter(self, identifier, *args, recursive=True, include_sub=True,
+                   **kwargs):
         if self._node_match_query(self, identifier, *args, **kwargs):
             yield self
 
-        if recursive:
+        if include_sub:
             for kind, key, _ in self._baron_attributes():
                 if kind in ("key", "list", "formatting"):
                     node = getattr(self, key)
                     if node:
-                        yield from node._find_iter(identifier, *args, **kwargs)
+                        yield from node._find_iter(identifier, *args, **kwargs,
+                                                   recursive=recursive,
+                                                   include_sub=recursive)
 
     def find_iter(self, identifier, *args, recursive=True, **kwargs):
         return dropwhile(lambda node: node is self,

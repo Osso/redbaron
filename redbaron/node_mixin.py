@@ -1,4 +1,5 @@
 import ast
+from itertools import chain
 
 import baron
 import baron.path
@@ -128,6 +129,16 @@ class ValueIterableMixin:
 
     def sort(self, key=None, reverse=False):
         return self.value.sort(key=key, reverse=reverse)
+
+    # def find_iter(self, identifier, *args, recursive=True, **kwargs):
+    #     super_iter = super().find_iter(indetifier=identifier, *args,
+    #                                    recursive=recursive, **kwargs)
+    #     # e.g. we expect RedBaron("a").find_iter("name") to return results
+    #     if not recursive:
+    #         value_iter = self.value.find_iter(identifier=identifier, *args,
+    #                                           recursive=False, **kwargs)
+    #         return chain(super_iter, value_iter)
+    #     return super_iter
 
 
 class CodeBlockMixin(ValueIterableMixin):

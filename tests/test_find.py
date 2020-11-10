@@ -13,7 +13,10 @@ def test_regression_find_all_in_children():
 
 def test_regression_find_all_not_recursive():
     red = RedBaron("a.b()")
-    assert red[0].value.find_all("name", recursive=False) == red.find_all("name")
+    assert red[0].find_all("name", recursive=False) == red.find_all("name")
+    red = RedBaron("fun(arg=sub(arg1))")
+    assert red[0].find_all("call", recursive=False)
+    assert red[0].find_all("call", recursive=False) == red.find_all("call")[:1]
 
 
 SOME_DATA_FOR_TEST = """\
