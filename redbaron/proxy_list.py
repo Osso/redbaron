@@ -312,6 +312,23 @@ class ProxyList(NodeList):
                 return data_tuple
         return None
 
+    def has_brackets(self):
+        from .nodes import LeftParenthesisNode, RightParenthesisNode
+        if self.header and isinstance(self.header[0], LeftParenthesisNode):
+            assert isinstance(self.footer[-1], RightParenthesisNode)
+            return True
+        return False
+
+    def add_brackets(self):
+        if self.has_brackets():
+            return
+
+        from .nodes import LeftParenthesisNode, RightParenthesisNode
+        self.data = [LeftParenthesisNode()] + \
+                    self.data + \
+                    [RightParenthesisNode()]
+        self._node_list_to_data()
+
 
 class SpaceProxyList(ProxyList):
     def __init__(self, node_list=None, parent=None, on_attribute=None):

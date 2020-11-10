@@ -751,7 +751,8 @@ class LambdaNode(Node):
 
 
 class LeftParenthesisNode(Node):
-    pass
+    def _default_fst(self):
+        return {'type': 'left_parenthesis', 'value': '('}
 
 
 class ListArgumentNode(AnnotationMixin, Node):
@@ -909,7 +910,8 @@ class RawStringNode(LiteralyEvaluableMixin, Node):
 
 
 class RightParenthesisNode(Node):
-    pass
+    def _default_fst(self):
+        return {'type': 'right_parenthesis', 'value': ')'}
 
 
 class ReprNode(Node):
