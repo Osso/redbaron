@@ -1274,3 +1274,21 @@ def test_associated_sep():
     red = RedBaron("a\nb")
     assert red[0].associated_sep.dumps() == "\n"
     assert red[1].associated_sep is None
+
+
+def test_copy():
+    red = RedBaron("[1, 2, 3]")
+    comma_proxy_list = red[0].value.copy()
+    assert comma_proxy_list.dumps() == "1, 2, 3"
+    del red[0].value[0]
+    assert red.dumps() == "[2, 3]"
+    assert comma_proxy_list.dumps() == "1, 2, 3"
+
+
+def test_deep_copy():
+    red = RedBaron("[1, 2, 3]")
+    comma_proxy_list = red[0].value.deep_copy()
+    assert comma_proxy_list.dumps() == "1, 2, 3"
+    red[0].value[1].value = "4"
+    assert red.dumps() == "[1, 4, 3]"
+    assert comma_proxy_list.dumps() == "1, 2, 3"

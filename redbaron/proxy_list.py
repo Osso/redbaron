@@ -285,12 +285,13 @@ class ProxyList(NodeList):
 
     def copy(self):
         new_list = type(self)()
-        new_list.replace_data([el.copy() for el in self])
+        new_list.replace_data([el.copy() for el in self._data])
         return new_list
 
     def deep_copy(self):
         new_list = type(self)()
-        new_list.replace_data([(node.copy(), sep.copy) for node, sep in self])
+        new_list.replace_data([[node.copy(), sep.copy() if sep else None]
+                               for node, sep in self._data])
         return new_list
 
     def el_to_node(self, el):
