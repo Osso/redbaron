@@ -383,10 +383,11 @@ class CommaProxyList(ProxyList):
                 parent=self.middle_separator, on_attribute="second_formatting")
 
     def _find_el_indentation(self):
-        if len(self._data) > 1:
-            return self._data[1][0].indentation
-        elif self._data:
-            return self._data[0][0].indentation
+        if self.style in ("flat", "mixed"):
+            return ""
+
+        if self._data:
+            return (self[0].box.top_left.column - 1) * " "
 
         return None
 

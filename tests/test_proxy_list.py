@@ -942,6 +942,13 @@ def test_comma_proxy_list_indented_append():
     assert red.dumps() == "[\n    1,\n    2,\n]"
 
 
+def test_comma_proxy_list_indented_append_2():
+    red = RedBaron("[1,\n]")
+    comma_proxy_list = red[0].value
+    comma_proxy_list.append("2")
+    assert red.dumps() == "[1,\n 2,\n]"
+
+
 def test_comma_proxy_list_indented_pop():
     red = RedBaron("[    1,\n]")
     comma_proxy_list = red[0].value
