@@ -140,7 +140,7 @@ class ProxyList(NodeList):
         return len(self._data)
 
     def _insert(self, index, item):
-        value = self.el_to_node(item)
+        value = self.el_to_node_with_indentation(item)
         self._check_for_separator(index)
         sep = self.make_separator_if_strict()
         self._data.insert(index, [value, sep])
@@ -216,7 +216,8 @@ class ProxyList(NodeList):
 
         self._check_for_separator(min(key.start, len(self._data)))
 
-        nodes = ([self.el_to_node(el), self.make_separator_if_strict()]
+        nodes = ([self.el_to_node_with_indentation(el),
+                  self.make_separator_if_strict()]
                  for el in value)
         self._data[key] = nodes
 
@@ -292,6 +293,9 @@ class ProxyList(NodeList):
 
     def el_to_node(self, el):
         return Node.generic_to_node(el, parent=self)
+
+    def el_to_node_with_indentation(self, el):
+        return self.el_to_node(el)
 
     def sort(self, key=None, reverse=False):  # pylint: disable=arguments-differ
         def wrapped_key(el):
@@ -401,8 +405,8 @@ class CommaProxyList(ProxyList):
         parent_indent = self.parent.indentation if self.parent else ""
         return parent_indent + header_len * " "
 
-    def el_to_node(self, el):
-        node = super().el_to_node(el)
+    def el_to_node_with_indentation(self, el):
+        node = self.el_to_node(el)
         node.indentation = self.el_indentation
         return node
 
