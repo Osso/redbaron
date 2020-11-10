@@ -396,19 +396,22 @@ class CommaProxyList(ProxyList):
 
     @property
     def el_indentation(self):
-        from .nodes import ListNode, TupleNode
+        from .nodes import LeftParenthesisNode
 
         if self.style in ("flat", "mixed"):
             return ""
 
-        if self and self[0].on_new_line:
-            return self._find_el_indentation()
+        if self:
+            if self[0].on_new_line:
+                return self._data[0][0].indentation
 
-        header_len = len(self.header[0].dumps()) if self.header else 0
-        if isinstance(self.parent, (ListNode, TupleNode)):
-            header_len += 1
-        parent_indent = self.parent.indentation if self.parent else ""
-        return parent_indent + header_len * " "
+            header_len = 0
+            if self.header and isinstance(self.header[-1], LeftParenthesisNode):
+                header_len = 1
+
+            return (header_len + self.box.top_left.column - 1) * " "
+
+        return ""
 
     def el_to_node_with_indentation(self, el):
         node = self.el_to_node(el)
