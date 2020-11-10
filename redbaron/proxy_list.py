@@ -338,7 +338,7 @@ class SpaceProxyList(ProxyList):
 
 
 class CommaProxyList(ProxyList):
-    style = None
+    _style = "flat"
 
     def __init__(self, node_list=None, parent=None, on_attribute=None):
         from .nodes import CommaNode
@@ -348,23 +348,39 @@ class CommaProxyList(ProxyList):
 
     def replace_node_list(self, new_node_list):
         super().replace_node_list(new_node_list)
-        self.detect_indentation()
+        self.detect_style()
 
-    def detect_indentation(self):
-        if self._find_el_indentation():
-            self.make_indented()
+    def detect_one_per_line(self):
+        for _, sep in self._data:
+            if sep and not sep.second_formatting.find("endl"):
+                return False
+        return True
+
+    def is_multiline(self):
+        return bool(self.find("endl"))
+
+    def detect_style(self):
+        if self.is_multiline():
+            if self.detect_one_per_line():
+                self.style = "one_per_line"
+            else:
+                self.style = "mixed"
         else:
-            self.make_flat()
+            self.style = "flat"
 
-    def make_indented(self):
+    @property
+    def style(self):
+        return self._style
+
+    @style.setter
+    def style(self, new_style):
         from .nodes import EndlNode
 
-        self.style = "indented"
-        self.middle_separator.second_formatting = NodeList([EndlNode()],
-            parent=self.middle_separator, on_attribute="second_formatting")
-
-    def make_flat(self):
-        self.style = "flat"
+        assert new_style in ("flat", "one_per_line", "mixed")
+        self._style = new_style
+        if new_style == "one_per_line":
+            self.middle_separator.second_formatting = NodeList([EndlNode()],
+                parent=self.middle_separator, on_attribute="second_formatting")
 
     def _find_el_indentation(self):
         if len(self._data) > 1:

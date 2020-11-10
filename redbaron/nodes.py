@@ -788,7 +788,8 @@ class ListNode(ListTupleMixin, ValueIterableMixin, LiteralyEvaluableMixin, Node)
                 self.value[0].indentation = indent
             else:
                 self.value[0].indentation = self.second_formatting.pop().value
-            self.value.detect_indentation()
+            self.value._data_to_node_list()
+            self.value.detect_style()
 
 
 class LongNode(Node):
