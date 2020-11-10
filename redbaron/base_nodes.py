@@ -871,7 +871,9 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
 
     def copy(self):
         # not very optimised but at least very simple
-        return Node.generic_from_fst(self.fst())
+        new_node = Node.generic_from_fst(self.fst())
+        new_node.indentation = self.indentation
+        return new_node
 
     @classmethod
     def _baron_attributes(cls):

@@ -72,3 +72,8 @@ def test_on_new_line():
     assert not red[0].on_new_line
     red = node("[\n1, 2, 3]")
     assert red[0].on_new_line
+
+
+def test_copy_with_indentation():
+    red = RedBaron("def a():\n    pass")
+    assert red[0][0].copy().indentation == "    "
