@@ -282,9 +282,7 @@ class ProxyList(NodeList):
         self._synchronise()
 
     def __getslice__(self, i, j):
-        new_list = type(self)()
-        new_list.replace_data([el.copy() for el in self._data[i:j]])
-        return new_list
+        return [el for el, _ in self._data[i:j]]
 
     def __repr__(self):
         if in_a_shell():

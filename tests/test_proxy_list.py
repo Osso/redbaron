@@ -398,7 +398,7 @@ def test_comma_proxy_list_delegation_from_parent_node_on_value_delslice():
 
 def test_comma_proxy_list_delegation_from_parent_node_on_value_getslice():
     red = RedBaron("[plop, pouet]")
-    assert isinstance(red[0][1:1], CommaProxyList)
+    assert isinstance(red[0][1:1], list)
 
 
 def test_dot_proxy_list_len():
