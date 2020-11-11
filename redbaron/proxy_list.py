@@ -183,10 +183,18 @@ class ProxyList(NodeList):
 
         self._synchronise()
 
+    def insert_with_new_line(self, i, item):
+        self._insert(i, item)
+        self._data[i][1].second_formatting = ["\n"]
+        self._synchronise()
+
     def append(self, item):
         self.insert(len(self), item)
 
     def append_on_new_line(self, item):
+        self.insert_on_new_line(len(self), item)
+
+    def append_with_new_line(self, item):
         self.insert_on_new_line(len(self), item)
 
     def extend(self, other):
