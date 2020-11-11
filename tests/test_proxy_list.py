@@ -1273,3 +1273,16 @@ def test_deep_copy():
     red[0].value[1].value = "4"
     assert red.dumps() == "[1, 4, 3]"
     assert comma_proxy_list.dumps() == "1, 2, 3"
+
+
+def test_has_brackets():
+    red = RedBaron("from m import (a)")
+    assert red[0].targets.has_brackets()
+    red = RedBaron("from m import a")
+    assert not red[0].targets.has_brackets()
+
+
+def test_add_brackets():
+    red = RedBaron("from m import a")
+    red[0].targets.add_brackets()
+    assert red.dumps() == "from m import (a)"
