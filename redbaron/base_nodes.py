@@ -770,6 +770,8 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
             'associated_sep',
             'find_in_data',
             'value_on_new_line',
+            'insert_on_new_line',
+            'insert_with_new_line',
         ])
         for attr_name in dir(self):
             if attr_name.startswith("_"):  # private method

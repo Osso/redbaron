@@ -112,6 +112,12 @@ class ValueIterableMixin:
     def insert(self, i, item):
         self.value.insert(i, item)
 
+    def insert_on_new_line(self, i, item):
+        self.value.insert_on_new_line(i, item)
+
+    def insert_with_new_line(self, i, item):
+        self.value.insert_with_new_line(i, item)
+
     def append(self, item):
         self.value.append(item)
 
