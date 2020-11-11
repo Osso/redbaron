@@ -131,16 +131,29 @@ class ProxyList(NodeList):
 
         return el
 
-    def _synchronise(self):
-        if not self.trailing_separator and self._data and self.auto_separator:
+    def reformat(self):
+        for el in self._data:
+            if el[0].on_new_line:
+                el[0].indentation = self.el_indentation
+            else:
+                el[0].indentation = ""
+
+            if not el[1]:
+                el[1] = self.make_separator()
+
+        if not self.trailing_separator and self._data:
             self._data[-1][1] = None
+
+    def _synchronise(self):
+        if self.auto_separator:
+            self.reformat()
+
         self._data_to_node_list()
 
     def __len__(self):
         return len(self._data)
 
     def _insert(self, index, item):
-
         value = self.el_to_node_with_indentation(item)
 
         self._check_for_separator(index)
@@ -151,8 +164,30 @@ class ProxyList(NodeList):
         self._insert(i, item)
         self._synchronise()
 
+    def insert_on_new_line(self, i, item):
+        from .nodes import EndlNode
+
+        self._insert(i, item)
+
+        if i == 0:
+            if not self[0].on_new_line:
+                self.header.append(EndlNode())
+            else:
+                # sep was just created, we know it doesn't have a new line
+                self._data[i][1].second_formatting = ["\n"]
+        else:
+            if not self[i].on_new_line:
+                self._data[i-1][1].second_formatting = ["\n"]
+            else:
+                self._data[i][1].second_formatting = ["\n"]
+
+        self._synchronise()
+
     def append(self, item):
         self.insert(len(self), item)
+
+    def append_on_new_line(self, item):
+        self.insert_on_new_line(len(self), item)
 
     def extend(self, other):
         self[len(self):] = other
@@ -218,9 +253,11 @@ class ProxyList(NodeList):
 
         self._check_for_separator(min(key.start, len(self._data)))
 
-        nodes = ([self.el_to_node_with_indentation(el),
+        nodes = [[self.el_to_node_with_indentation(el),
                   self.make_separator_if_strict()]
-                 for el in value)
+                 for el in value]
+        for (_, sep), node in zip(self._data[key], nodes):
+            node[1] = sep
         self._data[key] = nodes
 
         self._synchronise()
@@ -276,7 +313,7 @@ class ProxyList(NodeList):
         self.data = list(new_node_list)
         self._node_list_to_data()
         self.detect_trailing_sep()
-        self._synchronise()
+        self._data_to_node_list()
 
     def detect_trailing_sep(self):
         if not self._data:
@@ -298,7 +335,9 @@ class ProxyList(NodeList):
         return Node.generic_to_node(el, parent=self)
 
     def el_to_node_with_indentation(self, el):
-        return self.el_to_node(el)
+        node = self.el_to_node(el)
+        node.indentation = self.el_indentation
+        return node
 
     def sort(self, key=None, reverse=False):  # pylint: disable=arguments-differ
         def wrapped_key(el):
@@ -336,27 +375,6 @@ class ProxyList(NodeList):
                     [RightParenthesisNode()]
         self._node_list_to_data()
 
-
-class SpaceProxyList(ProxyList):
-    def __init__(self, node_list=None, parent=None, on_attribute=None):
-        from .nodes import SpaceNode
-        self.middle_separator = SpaceNode()
-        super().__init__(node_list, parent=parent, on_attribute=on_attribute)
-
-
-class CommaProxyList(ProxyList):
-    _style = "flat"
-
-    def __init__(self, node_list=None, parent=None, on_attribute=None):
-        from .nodes import CommaNode
-
-        self.middle_separator = CommaNode()
-        super().__init__(node_list, parent=parent, on_attribute=on_attribute)
-
-    def replace_node_list(self, new_node_list):
-        super().replace_node_list(new_node_list)
-        self.detect_style()
-
     def detect_one_per_line(self):
         for _, sep in self._data:
             if sep and not sep.second_formatting.find("endl"):
@@ -365,29 +383,6 @@ class CommaProxyList(ProxyList):
 
     def is_multiline(self):
         return bool(self.find("endl"))
-
-    def detect_style(self):
-        if self.is_multiline():
-            if self.detect_one_per_line():
-                self.style = "one_per_line"
-            else:
-                self.style = "mixed"
-        else:
-            self.style = "flat"
-
-    @property
-    def style(self):
-        return self._style
-
-    @style.setter
-    def style(self, new_style):
-        from .nodes import EndlNode
-
-        assert new_style in ("flat", "one_per_line", "mixed")
-        self._style = new_style
-        if new_style == "one_per_line":
-            self.middle_separator.second_formatting = NodeList([EndlNode()],
-                parent=self.middle_separator, on_attribute="second_formatting")
 
     def _find_el_indentation(self):
         if len(self._data) > 1:
@@ -399,40 +394,33 @@ class CommaProxyList(ProxyList):
     def el_indentation(self):
         from .nodes import LeftParenthesisNode
 
-        if self.style in ("flat", "mixed"):
-            return ""
-
         if self:
+            # First element is not inline, we have an indent reference
             if self[0].on_new_line:
                 return self._data[0][0].indentation
 
+            # Compute indent from parent + header length
             header_len = 0
             if self.header and isinstance(self.header[-1], LeftParenthesisNode):
                 header_len = 1
-
             return (header_len + self.box.top_left.column - 1) * " "
 
+        # If list is empty, then first element will be inline
         return ""
 
-    def el_to_node_with_indentation(self, el):
-        node = self.el_to_node(el)
-        node.indentation = self.el_indentation
-        return node
 
-    def _synchronise(self):
-        if self.style == "one_per_line":
-            for el in self:
-                el.indentation = self.el_indentation
+class SpaceProxyList(ProxyList):
+    def __init__(self, node_list=None, parent=None, on_attribute=None):
+        from .nodes import SpaceNode
+        self.middle_separator = SpaceNode()
+        super().__init__(node_list, parent=parent, on_attribute=on_attribute)
 
-        if self and not self[0].on_new_line:
-            self[0].indentation = ""
-            if not self._data[0][1]:
-                self._data[0][1] = self.make_separator()
 
-        if not self.trailing_separator and self._data and self._data[-1][1]:
-            self._data[-1][1] = None
-
-        super()._synchronise()
+class CommaProxyList(ProxyList):
+    def __init__(self, node_list=None, parent=None, on_attribute=None):
+        from .nodes import CommaNode
+        self.middle_separator = CommaNode()
+        super().__init__(node_list, parent=parent, on_attribute=on_attribute)
 
 
 class DotProxyList(ProxyList):
@@ -444,14 +432,13 @@ class DotProxyList(ProxyList):
         self.middle_separator = DotNode()
         super().__init__(node_list, parent=parent, on_attribute=on_attribute)
 
-    def _synchronise(self):
+    def reformat(self):
         from .nodes import CallNode, TupleNode, ListNode
 
+        super().reformat()
         for index, (el, _) in enumerate(self._data):
             if index and isinstance(el, (CallNode, TupleNode, ListNode)):
                 self._data[index - 1][1] = None
-
-        super()._synchronise()
 
 
 class LineProxyList(ProxyList):
@@ -576,9 +563,20 @@ class DecoratorsProxyList(LineProxyList):
         fst = baron.parse("%s\ndef a():\n pass" % el)[0]['decorators'][0]
         return Node.generic_from_fst(fst, parent=self)
 
-    def _synchronise(self):
-        super()._synchronise()
+    def reformat(self):
+        super().reformat()
         # Handle indentation
         if self.parent:
-            for _, sep in self._data:
-                sep.indent = self.parent.indentation
+            for el in self:
+                el.indentation = self.parent.indentation
+            self[0].indentation = ""
+
+    def _data_to_node_list(self):
+        from . import node
+
+        if self.parent:
+            for el in self[1:]:
+                el.indentation = self.parent.indentation
+            if self.parent.indentation:
+                self.footer = [node(self.parent.indentation)]
+        super()._data_to_node_list()
