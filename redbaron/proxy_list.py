@@ -577,7 +577,8 @@ class DecoratorsProxyList(LineProxyList):
         if self.parent:
             for el in self:
                 el.indentation = self.parent.indentation
-            self[0].indentation = ""
+            if self:
+                self[0].indentation = ""
 
     def _data_to_node_list(self):
         from . import node
