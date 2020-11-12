@@ -403,6 +403,7 @@ class NodeList(UserList, BaseNode, IndentationMixin):
         if indent is None:
             indent = self.indent_unit
 
+        indented_str = deindent_str(self.dumps(), self.el_indentation)
         indented_str = indent_str(self.dumps(), indent)
         if not self.parent:
             raise ValueError("Cannot indent detached node")
@@ -413,7 +414,7 @@ class NodeList(UserList, BaseNode, IndentationMixin):
         if indent is None:
             indent = self.indent_unit
 
-        indented_str = deindent_str(self.dumps(), indent)
+        indented_str = deindent_str(self.dumps(), indent + self.el_indentation)
         if not self.parent:
             raise ValueError("Cannot indent detached node")
 

@@ -148,19 +148,24 @@ class CodeBlockMixin(ValueIterableMixin):
         return self._parse_value(value, replace=True)
 
     def _parse_value(self, value, replace=False):
-        if self.el_indentation or value.startswith(" "):
-            fst = self._parse_indented(value)
+        # if self.el_indentation or value.startswith(" "):
+        if value.startswith(" "):
+            fst = self._parse_indented(value, replace=True)
         else:
             fst = self._parse_not_indented(value)
         return fst
 
-    def _parse_indented(self, value):
-        value = indent_str(value, self.el_indentation)
+    def _parse_indented(self, value, replace=False):
+        if replace:
+            implicit_indent = self.indentation + self.default_indent
+        else:
+            implicit_indent = self.el_indentation
+        value = indent_str(value, implicit_indent)
         # First line is on the same line with def/class element
         # we do not want to the el_indentation there
         # e.g def f(): {value}
         if value.startswith(" ") and value.lstrip(" ").startswith("\n"):
-            value = value[len(self.el_indentation):]
+            value = value[len(implicit_indent):]
         fst = baron.parse("while a:\n%s" % value)[0]['value']
         fst[0] = {"type": "space", "value": fst[0]['indent']}
         return fst
@@ -224,13 +229,17 @@ class IndentedCodeBlockMixin(CodeBlockMixin):
     def _parse_value(self, value, replace=False):
         if replace:
             if value.lstrip(" ").startswith("\n"):
-                fst = self._parse_indented(value)
+                # Parse multi-line
+                fst = self._parse_indented(value, replace=True)
             else:
+                # Parse inline
                 fst = self._parse_not_indented(value)
         else:
             if self.value.header:
+                # Parse multi-line
                 fst = self._parse_indented(value)
             else:
+                # Parse inline
                 fst = self._parse_not_indented(value)
         return fst
 
