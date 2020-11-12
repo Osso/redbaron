@@ -89,3 +89,8 @@ def test_on_new_line_if():
     red = RedBaron("if a:\n pass\nfoo")
     assert red[0].on_new_line
     assert red[1].on_new_line
+
+
+def test_on_new_line_if_content():
+    red = RedBaron("if a:\n pass\n")
+    assert red[0][0].on_new_line

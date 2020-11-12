@@ -967,13 +967,14 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
         if not isinstance(self.parent, NodeList):
             return False
 
-        if self.previous:
-            return bool(self.previous.endl)
+        if not self.previous:
+            # First element
+            if isinstance(self.parent, ProxyList) and self.parent.header:
+                return self.parent.header[-1].baron_type == 'endl'
 
-        if isinstance(self.parent, ProxyList) and self.parent.header:
-            return self.parent.header[-1].baron_type == 'endl'
+            return self.parent.on_new_line
 
-        return self.parent.on_new_line
+        return bool(self.previous.endl)
 
     @property
     def endl(self):

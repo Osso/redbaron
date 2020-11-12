@@ -691,6 +691,10 @@ class IfNode(IfElseBlockSiblingMixin, IndentedCodeBlockMixin, Node):
     def test(self, value):
         return baron.parse("if %s: pass" % value)[0]["value"][0]["test"]
 
+    @property
+    def value_on_new_line(self):
+        return bool(self.second_formatting.find("endl"))
+
 
 class IfelseblockNode(CodeBlockMixin, Node):
     @nodelist_property(CodeProxyList)
@@ -698,6 +702,10 @@ class IfelseblockNode(CodeBlockMixin, Node):
         if value.startswith(" "):
             raise ValueError("except cannot be indented")
         return super()._parse_value(value, replace=True)
+
+    @property
+    def value_on_new_line(self):
+        return True
 
 
 class ImportNode(ValueIterableMixin, Node):
