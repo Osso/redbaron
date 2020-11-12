@@ -136,6 +136,9 @@ class ValueIterableMixin:
     def sort(self, key=None, reverse=False):
         return self.value.sort(key=key, reverse=reverse)
 
+    def clear(self):
+        self.value.clear()
+
 
 class CodeBlockMixin(ValueIterableMixin):
     default_indent = ""
