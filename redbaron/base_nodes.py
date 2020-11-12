@@ -28,6 +28,7 @@ INDENT_UNIT = "    "
 NODES_RENDERING_ORDER = nodes_rendering_order
 NODES_RENDERING_ORDER["root"] = [('list', 'value', True)]
 NODES_RENDERING_ORDER["empty_line"] = []
+NODES_RENDERING_ORDER["indentation"] = NODES_RENDERING_ORDER["space"]
 RESERVED_KEYWORDS = ("async", "class", "finally", "except", "else", "as",
                      "if", "elif", "while", "for", "is", "and", "or")
 
@@ -150,7 +151,7 @@ class BaseNode(NeighborsMixin):
                 node.previous_nodelist.box.top_left.line == line_no:
             node = node.previous_nodelist
 
-        while node.type in ('endl', 'space') and node.next_nodelist and \
+        while node.type in ('endl', 'space', 'indentation') and node.next_nodelist and \
                 node.next_nodelist.box.top_left.line == line_no:
             node = node.next_nodelist
 

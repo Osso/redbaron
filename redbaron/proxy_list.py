@@ -92,13 +92,15 @@ class ProxyList(NodeList):
             footer.append(self.make_empty_el(leftover_indent))
 
     def _data_to_node_list(self):
+        from .nodes import IndentationNode
+
         expected_list = []
 
         def _append_el(el):
             if not el:
                 return
             if el.indentation:
-                expected_list.append(self.make_empty_el(el.indentation))
+                expected_list.append(IndentationNode(el, parent=self))
             expected_list.append(el)
 
         for el in self.header:

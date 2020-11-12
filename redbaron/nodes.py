@@ -1162,3 +1162,29 @@ class EmptyLineNode(Node):
 
     def fst(self):
         return {"type": "space", "value": ""}
+
+
+class IndentationNode(SpaceNode):
+    baron_type = "indentation"
+
+    def __init__(self, node, parent=None, on_attribute=None):
+        from .base_nodes import BaseNode
+        assert isinstance(node, BaseNode)
+        self.node = node
+        super().__init__(parent=parent, on_attribute=on_attribute)
+
+    def _default_fst(self):
+        return {"type": "indentation", "value": None}
+
+    @property
+    def value(self):
+        return self.node.indentation
+
+    @value.setter
+    def value(self, new_value):
+        assert new_value is None
+
+    def fst(self):
+        fst = super().fst()
+        fst["type"] = "space"
+        return fst
