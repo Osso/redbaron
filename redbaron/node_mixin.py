@@ -1,5 +1,4 @@
 import ast
-from itertools import chain
 
 import baron
 import baron.path
@@ -217,6 +216,10 @@ class CodeBlockMixin(ValueIterableMixin):
             return self.indentation + self.default_indent
 
         return self._find_first_el_indentation() or self.default_indent
+
+    @property
+    def endl(self):
+        return super().endl or self.get_last_member().endl
 
 
 class IndentedCodeBlockMixin(CodeBlockMixin):

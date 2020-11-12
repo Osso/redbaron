@@ -77,3 +77,15 @@ def test_on_new_line():
 def test_copy_with_indentation():
     red = RedBaron("def a():\n    pass")
     assert red[0][0].copy().indentation == "    "
+
+
+def test_endl_if():
+    red = RedBaron("if a:\n pass\nfoo")
+    assert red[0].endl
+    assert not red[1].endl
+
+
+def test_on_new_line_if():
+    red = RedBaron("if a:\n pass\nfoo")
+    assert red[0].on_new_line
+    assert red[1].on_new_line

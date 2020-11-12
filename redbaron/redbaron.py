@@ -20,3 +20,7 @@ class RedBaron(CodeBlockMixin, Node):
     def indentation(self, value):
         if self.on_attribute:
             raise ValueError("Unhandled indentation on root")
+
+    @property
+    def value_on_new_line(self):
+        return True

@@ -414,11 +414,9 @@ class NodeList(UserList, BaseNode, IndentationMixin):
         if indent is None:
             indent = self.indent_unit
 
-        indented_str = deindent_str(self.dumps(), indent + self.el_indentation)
-        if not self.parent:
-            raise ValueError("Cannot indent detached node")
-
-        self.replace(indented_str)
+        for el in self:
+            if el.on_new_line:
+                el.decrease_indentation(indent)
 
     def replace_node_list(self, new_node_list):
         self.set_parent_and_on_attribute(new_node_list)
@@ -441,6 +439,10 @@ class NodeList(UserList, BaseNode, IndentationMixin):
     @property
     def on_new_line(self):
         return self.on_attribute == 'value' and self.parent.value_on_new_line
+
+    @property
+    def endl(self):
+        return self[-1].endl
 
 
 class NodeRegistration(type):
@@ -976,12 +978,11 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
     @property
     def endl(self):
         sep = self.associated_sep
-        if not sep:
-            return None
-        if sep.baron_type == "endl":
-            return sep
-        if sep.second_formatting:
-            return sep.second_formatting.find("endl")
+        if sep:
+            if sep.baron_type == "endl":
+                return sep
+            if sep.second_formatting:
+                return sep.second_formatting.find("endl")
         return None
 
     @property
