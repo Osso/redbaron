@@ -13,7 +13,7 @@ except ImportError:
 
 
 setup(name='redbaron',
-      version='0.9.2',
+      version='1.0',
       description='Abstraction on top of baron, a FST for python to make '
                   'writing refactoring code a realistic task',
       author='Laurent Peuch',
