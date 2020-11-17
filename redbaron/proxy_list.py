@@ -560,6 +560,12 @@ class ArgsProxyList(CommaProxyList):
         return Node.generic_from_fst(fst, parent=self)
 
 
+class DefArgsProxyList(CommaProxyList):
+    def el_to_node(self, el):
+        fst = baron.parse("def a(%s): pass" % el)[0]["arguments"][0]
+        return Node.generic_from_fst(fst, parent=self)
+
+
 class ContextsProxyList(CommaProxyList):
     def el_to_node(self, el):
         fst = baron.parse("with %s:\n pass" % el)[0]['contexts'][0]

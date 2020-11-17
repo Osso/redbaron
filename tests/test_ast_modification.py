@@ -586,3 +586,10 @@ def test_on_copied_blocknode_set_body():
     red = RedBaron("def foobar(): pass")
     z = red.find("def").copy()
     z.value = "pouet"
+
+
+def test_append_def_arg_annotated():
+    red = RedBaron("def foobar(): pass")
+    args = red.find("def").arguments
+    args.append("a: int")
+    assert args.dumps() == "a: int"

@@ -23,6 +23,7 @@ from .proxy_list import (ArgsProxyList,
                          CodeProxyList,
                          CommaProxyList,
                          ContextsProxyList,
+                         DefArgsProxyList,
                          DictProxyList,
                          DotProxyList,
                          ImportsProxyList)
@@ -288,7 +289,7 @@ class DefNode(IndentedCodeBlockMixin, DecoratorsMixin,
     def async_formatting(self):
         return self.async_
 
-    @nodelist_property(ArgsProxyList)
+    @nodelist_property(DefArgsProxyList)
     def arguments(self, value):
         return baron.parse("def a(%s): pass" % value)[0]["arguments"]
 
