@@ -56,7 +56,7 @@ class AnnotationMixin:
 
         return baron.parse("a: %s = a" % value)[0]["annotation"]
 
-    @conditional_formatting_property(NodeList, [" "], [])
+    @conditional_formatting_property(NodeList, [], [])
     def annotation_first_formatting(self):
         return self.annotation
 

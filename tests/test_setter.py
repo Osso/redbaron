@@ -1,9 +1,10 @@
 """ Tests the setter methods """
 
-# pylint: disable=redefined-outer-name
-from baron.parser import ParsingError
 import pytest
 from redbaron import RedBaron
+
+# pylint: disable=redefined-outer-name
+from baron.parser import ParsingError
 
 
 def test_setitem_nodelist():
@@ -453,26 +454,26 @@ def test_assign_node_setattr_operator():
 
 def test_assign_node_setattr_annotation():
     red = RedBaron("a = b")
-    red[0].annotation = "Int"
-    assert red.dumps() == "a : Int = b"
+    red[0].annotation = "int"
+    assert red.dumps() == "a: int = b"
 
 
 def test_assign_node_setattr_annotation_existing():
-    red = RedBaron("a : Str = b")
-    red[0].annotation = "Int"
-    assert red.dumps() == "a : Int = b"
+    red = RedBaron("a: str = b")
+    red[0].annotation = "int"
+    assert red.dumps() == "a: int = b"
 
 
 def test_assign_node_setattr_remove():
-    red = RedBaron("a : Int = b")
+    red = RedBaron("a: int = b")
     red[0].annotation = ""
     assert red.dumps() == "a = b"
 
 
 def test_standalone_annotation():
-    red = RedBaron("a : Int")
-    red[0].annotation = "Str"
-    assert red.dumps() == "a : Str"
+    red = RedBaron("a: int")
+    red[0].annotation = "str"
+    assert red.dumps() == "a: str"
 
 
 def test_star_var():
@@ -965,13 +966,13 @@ def test_def_argument_setattr_value():
 def test_def_argument_setattr_annotation():
     red = RedBaron("def a(b): pass")
     red[0].arguments[0].annotation = "Int"
-    assert red.dumps() == "def a(b : Int): pass\n"
+    assert red.dumps() == "def a(b: Int): pass\n"
 
 
 def test_def_argument_setattr_annotation_value():
-    red = RedBaron("def a(b : Int): pass")
+    red = RedBaron("def a(b: Int): pass")
     red[0].arguments[0].value = "plop"
-    assert red.dumps() == "def a(b : Int=plop): pass\n"
+    assert red.dumps() == "def a(b: Int=plop): pass\n"
 
 
 def test_def_argument_setattr_remove_annotation():
@@ -983,7 +984,7 @@ def test_def_argument_setattr_remove_annotation():
 def test_list_argument_setattr_annotation():
     red = RedBaron("def a(*b): pass")
     red[0].arguments[0].annotation = "Int"
-    assert red.dumps() == "def a(*b : Int): pass\n"
+    assert red.dumps() == "def a(*b: Int): pass\n"
 
 
 def test_list_argument_setattr_remove_annotation():
@@ -995,7 +996,7 @@ def test_list_argument_setattr_remove_annotation():
 def test_dict_argument_setattr_annotation():
     red = RedBaron("def a(**b): pass")
     red[0].arguments[0].annotation = "Int"
-    assert red.dumps() == "def a(**b : Int): pass\n"
+    assert red.dumps() == "def a(**b: Int): pass\n"
 
 
 def test_dict_argument_setattr_remove_annotation():
