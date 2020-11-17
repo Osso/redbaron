@@ -22,7 +22,8 @@ class ProxyList(NodeList):
         self.replace_node_list(node_list or [])
 
     def _node_list_to_data(self):
-        from .nodes import LeftParenthesisNode, RightParenthesisNode, SpaceNode
+        from .nodes import (LeftParenthesisNode, RightParenthesisNode,
+                            SpaceNode, EndlNode)
 
         data = []
         self.header = []
@@ -58,12 +59,16 @@ class ProxyList(NodeList):
                     data.append([empty_el, node])
                 else:
                     data[-1][1] = node
+            elif isinstance(node, EndlNode) and not data:
+                self.header.append(node)
             elif isinstance(node, SpaceNode):
+                # Space is emptied by consume_leftover_indentation()
                 pass
             else:
                 if data and data[-1][1] is None and self.strict_separator:
-                    raise Exception("node_list is missing separator "
-                                    "for %s" % self.__class__.__name__)
+                    raise Exception("node_list is missing separator after "
+                                    f"{data[-1][0].dumps()!r} "
+                                    f"for {self.__class__.__name__}")
                 node.indentation += consume_leftover()
                 data.append([node, None])
 

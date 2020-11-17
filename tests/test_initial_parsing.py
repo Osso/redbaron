@@ -98,3 +98,24 @@ def test_parent_and_on_attribute_list():
 
 def test_kwargs_only_marker_node():
     RedBaron("def a(*): pass")
+
+
+def test_import():
+    red = RedBaron("from m import a")
+    assert red[0].targets.dumps() == "a"
+
+
+def test_import_multi():
+    red = RedBaron("from m import a, b")
+    assert red[0].targets.dumps() == "a, b"
+
+
+def test_import_multiline():
+    red = RedBaron("from m import (a,\n   b)")
+    assert red[0].targets.dumps() == "(a,\n   b)"
+
+
+def test_import_on_new_line():
+    red = RedBaron("from m import (\n"
+                   "   a)")
+    assert red[0].targets.dumps() == "(\n   a)"
