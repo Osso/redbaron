@@ -593,3 +593,14 @@ def test_append_def_arg_annotated():
     args = red.find("def").arguments
     args.append("a: int")
     assert args.dumps() == "a: int"
+
+
+def test_put_on_new_line():
+    code = """
+def adapa_confirmation_mockup_joyn(session: SQLSession, service="JOYN",
+                                   pta_code=None, price_range=None,
+                                   category=None, csu_state=None):
+   pass
+"""
+    fun = RedBaron(code)[0]
+    fun.arguments[1].put_on_new_line()
