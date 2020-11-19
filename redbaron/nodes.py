@@ -880,6 +880,9 @@ class RaiseNode(Node):
 
     @comma_or_from.setter
     def comma_or_from(self, value):
+        if value == "":
+            value = None
+
         if value not in (None, "from"):
             raise ValueError(f"invalid value {value} for comma_or_from")
 

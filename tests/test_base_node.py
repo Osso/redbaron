@@ -94,3 +94,9 @@ def test_on_new_line_if():
 def test_on_new_line_if_content():
     red = RedBaron("if a:\n pass\n")
     assert red[0][0].on_new_line
+
+
+def test_copy_raise():
+    code = "raise NotImplementedError"
+    el = node(code).copy()
+    assert el.dumps() == code
