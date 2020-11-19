@@ -125,7 +125,8 @@ class BinaryOperatorNode(Node):
 
     @value.setter
     def value(self, value):
-        if value not in ("+", "-", "*", "/", "//", "%", "@", "**", "&", "^"):
+        if value not in ("+", "-", "*", "/", "//", "%", "@", "**", "&", "^",
+                         "|"):
             raise ValueError(f"invalid value {value} for binary node")
         self._value = value  # pylint: disable=attribute-defined-outside-init
 
