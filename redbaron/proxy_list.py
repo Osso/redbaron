@@ -184,7 +184,7 @@ class ProxyList(NodeList):
         else:
             if not self[i].on_new_line:
                 self._data[i-1][1].second_formatting = ["\n"]
-            else:
+            elif self._data[i][1]:  # last el?
                 self._data[i][1].second_formatting = ["\n"]
 
     def insert_on_new_line(self, i, item):
