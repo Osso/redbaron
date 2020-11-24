@@ -89,6 +89,9 @@ class NodeListProperty(NodeProperty):
         def _convert(el):
             if isinstance(el, str):
                 return Node.generic_from_str(el, parent=node_list)
+            if isinstance(el, list):
+                assert len(el) == 1
+                el = el[0]
             if isinstance(el, dict):
                 return Node.generic_from_fst(el, parent=node_list)
 
