@@ -5,6 +5,7 @@ __pycache__/
 # Distribution / packaging
 build/
 *.egg-info/
+dist/
 
 # Unit test / coverage reports
 htmlcov/
