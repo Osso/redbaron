@@ -340,6 +340,15 @@ class ElseMixin:
             return self.else_
         return self.value
 
+    def fst(self):
+        fst = super().fst()
+
+        if self.else_:
+            space = {'type': 'space', 'value': self.indentation}
+            fst["value"].append(space)
+
+        return fst
+
 
 class FinallyMixin:
     def make_empty_finally_node_inline(self):
@@ -373,12 +382,15 @@ class FinallyMixin:
             return
 
         if self.else_:
-            self.finally_.indentation += self.else_.consume_leftover_indentation()
+            self.else_.consume_leftover_indentation()
 
-        if self.excepts:
-            self.finally_.indentation += self.excepts[-1].consume_leftover_indentation()
+        elif self.excepts:
+            self.excepts[-1].consume_leftover_indentation()
 
-        self.finally_.indentation += self.value.consume_leftover_indentation()
+        else:
+            self.value.consume_leftover_indentation()
+
+        self.finally_.indentation = self.indentation
 
 
 class ListTupleMixin:

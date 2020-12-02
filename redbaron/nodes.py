@@ -1069,6 +1069,27 @@ class TryNode(ElseMixin, FinallyMixin, IndentedCodeBlockMixin, Node):
             return self.else_
         return self.excepts[-1]  # pylint: disable=unsubscriptable-object
 
+    def fst(self):
+        fst = super().fst()
+
+        if self.finally_:
+            space = {'type': 'space', 'value': self.indentation}
+            if self.else_:
+                fst["value"].append(space)
+            elif self.excepts:
+                fst["excepts"].append(space)
+            else:
+                fst["value"].append(space)
+
+        if self.else_:
+            space = {'type': 'space', 'value': self.indentation}
+            if self.excepts:
+                fst["excepts"].append(space)
+            else:
+                fst["value"].append(space)
+
+        return fst
+
 
 class TupleNode(ListTupleMixin, ValueIterableMixin, LiteralyEvaluableMixin, Node):
     @nodelist_property(CommaProxyList)
