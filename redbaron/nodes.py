@@ -301,10 +301,6 @@ class DefNode(IndentedCodeBlockMixin, DecoratorsMixin,
         for endl in fst['decorators'][1::2]:
             endl['indent'] = self.indentation
 
-        # Pop indentation space as it's already added just above
-        if fst['decorators'][-1]['type'] == 'space':
-            fst['decorators'].pop()
-
         return fst
 
 
