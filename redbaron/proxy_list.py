@@ -522,6 +522,7 @@ class CodeProxyList(LineProxyList):
         raise Exception("should not be used")
 
     def el_to_data(self, el):
+        from .nodes import EmptyLineNode
         if isinstance(el, str):
             el = self.parent._parse_value(el)
 
@@ -530,6 +531,9 @@ class CodeProxyList(LineProxyList):
             data = [[self.make_empty_el(), endl] for endl in code_list.header]
             data.extend(code_list._data)
             return data
+
+        if isinstance(el, self.separator_type):
+            return [[EmptyLineNode(parent=self), el]]
 
         return [[el, None]]
 
