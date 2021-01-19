@@ -333,7 +333,10 @@ class ElseMixin:
         if not self.else_:
             return
 
-        self.else_.indentation += self.value.consume_leftover_indentation()
+        if self.baron_type == 'try' and self.excepts:
+            self.excepts[-1].consume_leftover_indentation()
+        else:
+            self.else_.indentation += self.value.consume_leftover_indentation()
 
     def get_last_member(self):
         if self.else_:
@@ -343,7 +346,7 @@ class ElseMixin:
     def fst(self):
         fst = super().fst()
 
-        if self.else_:
+        if self.else_ and self.baron_type != 'try':  # try has special handling
             space = {'type': 'space', 'value': self.indentation}
             fst["value"].append(space)
 
@@ -390,7 +393,7 @@ class FinallyMixin:
         else:
             self.value.consume_leftover_indentation()
 
-        self.finally_.indentation = self.indentation
+        # self.finally_.indentation += self.indentation
 
 
 class ListTupleMixin:

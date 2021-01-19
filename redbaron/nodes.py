@@ -294,6 +294,19 @@ class DefNode(IndentedCodeBlockMixin, DecoratorsMixin,
     def arguments(self, value):
         return baron.parse("def a(%s): pass" % value)[0]["arguments"]
 
+    def fst(self):
+        fst = super().fst()
+
+        # Force indentation for each decorator
+        for endl in fst['decorators'][1::2]:
+            endl['indent'] = self.indentation
+
+        # Pop indentation space as it's already added just above
+        if fst['decorators'][-1]['type'] == 'space':
+            fst['decorators'].pop()
+
+        return fst
+
 
 class DefArgumentNode(Node, AnnotationMixin):
     @NodeProperty
@@ -1062,6 +1075,11 @@ class TryNode(ElseMixin, FinallyMixin, IndentedCodeBlockMixin, Node):
         code = "try:\n pass\n%sfinally:\n pass" % value
         return baron.parse(code)[0]["excepts"]
 
+    @excepts.after_set
+    def excepts(self, value):
+        self.value.consume_leftover_indentation()
+        # self.excepts.indentation = self.indentation
+
     def get_last_member(self):
         if self.finally_:
             return self.finally_
@@ -1072,18 +1090,20 @@ class TryNode(ElseMixin, FinallyMixin, IndentedCodeBlockMixin, Node):
     def fst(self):
         fst = super().fst()
 
-        if self.finally_:
-            space = {'type': 'space', 'value': self.indentation}
-            if self.else_:
-                fst["value"].append(space)
-            elif self.excepts:
+        space = {'type': 'space', 'value': self.indentation}
+        if self.excepts:
+            fst["value"].append(space)
+
+        if self.else_:
+            if self.excepts:
                 fst["excepts"].append(space)
             else:
                 fst["value"].append(space)
 
-        if self.else_:
-            space = {'type': 'space', 'value': self.indentation}
-            if self.excepts:
+        if self.finally_:
+            if self.else_:
+                fst["else"]["value"].append(space)
+            elif self.excepts:
                 fst["excepts"].append(space)
             else:
                 fst["value"].append(space)
