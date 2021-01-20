@@ -193,8 +193,13 @@ class ProxyList(NodeList):
         self._synchronise()
 
     def insert_with_new_line(self, i, item):
+        from .nodes import EndlNode
+
         self._insert(i, item)
-        self._data[i][1].second_formatting = ["\n"]
+        if self._data[i][1]:
+            self._data[i][1].second_formatting = ["\n"]
+        else:
+            self._data[i][1] = EndlNode()
         self._synchronise()
 
     def append(self, item):
@@ -531,6 +536,8 @@ class CodeProxyList(LineProxyList):
             data = [[self.make_empty_el(), endl] for endl in code_list.header]
             data.extend(code_list._data)
             return data
+
+        el.parent = self
 
         if isinstance(el, self.separator_type):
             return [[EmptyLineNode(parent=self), el]]
