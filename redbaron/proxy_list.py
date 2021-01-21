@@ -183,7 +183,10 @@ class ProxyList(NodeList):
                 self._data[i][1].second_formatting = ["\n"]
         else:
             if not self[i].on_new_line:
-                self._data[i-1][1].second_formatting = ["\n"]
+                if self._data[i-1][1]:
+                    self._data[i-1][1].second_formatting = ["\n"]
+                else:
+                    self._data[i-1] = EndlNode()
             elif self._data[i][1]:  # last el?
                 self._data[i][1].second_formatting = ["\n"]
 
