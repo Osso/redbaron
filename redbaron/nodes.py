@@ -298,8 +298,9 @@ class DefNode(IndentedCodeBlockMixin, DecoratorsMixin,
         fst = super().fst()
 
         # Force indentation for each decorator
-        for endl in fst['decorators'][1::2]:
-            endl['indent'] = self.indentation
+        for el in fst['decorators']:
+            if el['type'] == 'endl':
+                el['indent'] = self.indentation
 
         return fst
 
