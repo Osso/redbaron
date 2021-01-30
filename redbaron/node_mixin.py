@@ -258,6 +258,10 @@ class IndentedCodeBlockMixin(CodeBlockMixin):
         fst['value'].insert(0, {"type": "space", "value": indent})
         return fst['value']
 
+    @property
+    def endl(self):
+        return self.value.endl
+
 
 class IfElseBlockSiblingMixin:
     @property
