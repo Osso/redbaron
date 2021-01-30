@@ -186,14 +186,15 @@ class ProxyList(NodeList):
                 if self._data[i-1][1]:
                     self._data[i-1][1].second_formatting = ["\n"]
                 else:
-                    self._data[i-1] = EndlNode()
+                    self._data[i-1][1] = EndlNode()
             elif self._data[i][1]:  # last el?
                 self._data[i][1].second_formatting = ["\n"]
+        self._synchronise()
 
     def insert_on_new_line(self, i, item):
         self._insert(i, item)
+        # put_on_new_line() calls self._synchronise() which is needed here
         self.put_on_new_line(self[i])
-        self._synchronise()
 
     def insert_with_new_line(self, i, item):
         from .nodes import EndlNode
