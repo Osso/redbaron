@@ -70,3 +70,67 @@ def test_inner_node():
 def test_indentation_endl():
     red = RedBaron("a.b.c.d")
     assert red[0].value[-3].indentation == ""
+
+
+def test_decrease_indentation_if_else():
+    code = """
+    if cond:
+        pass
+    elif cond:
+        pass
+    else:
+        pass
+"""
+    red = RedBaron(code)
+    red.decrease_indentation("  ")
+    assert red.dumps() == deindent_str(code, "  ")
+
+
+def test_decrease_indentation_for_else():
+    code = """
+    for a in b:
+        pass
+    else:
+        pass
+"""
+    red = RedBaron(code)
+    red.decrease_indentation("  ")
+    assert red.dumps() == deindent_str(code, "  ")
+
+
+def test_decrease_indentation_while_else():
+    code = """
+    while cond:
+        pass
+    else:
+        pass
+"""
+    red = RedBaron(code)
+    red.decrease_indentation("  ")
+    assert red.dumps() == deindent_str(code, "  ")
+
+
+def test_decrease_indentation_try_finally():
+    code = """
+    try:
+        pass
+    finally:
+        pass
+"""
+    red = RedBaron(code)
+    red.decrease_indentation("  ")
+    assert red.dumps() == deindent_str(code, "  ")
+
+
+def test_decrease_indentation_try_except_else():
+    code = """
+    try:
+        pass
+    except:
+        pass
+    else:
+        pass
+"""
+    red = RedBaron(code)
+    red.decrease_indentation("  ")
+    assert red.dumps() == deindent_str(code, "  ")

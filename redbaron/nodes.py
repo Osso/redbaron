@@ -399,7 +399,7 @@ class DottedNameNode(ValueIterableMixin, Node):
     pass
 
 
-class ElifNode(IndentedCodeBlockMixin, IfElseBlockSiblingMixin, Node):
+class ElifNode(IfElseBlockSiblingMixin, IndentedCodeBlockMixin, Node):
     @NodeProperty
     def test(self, value):
         code = "if %s: pass" % value
@@ -410,7 +410,7 @@ class EllipsisNode(Node):
     pass
 
 
-class ElseNode(IndentedCodeBlockMixin, IfElseBlockSiblingMixin, Node):
+class ElseNode(IfElseBlockSiblingMixin, IndentedCodeBlockMixin, Node):
     @property
     def next_intuitive(self):
         parent = self.parent
@@ -721,6 +721,14 @@ class IfelseblockNode(CodeBlockMixin, Node):
     @property
     def value_on_new_line(self):
         return True
+
+    def increase_indentation(self, indent=None):
+        Node.increase_indentation(self, indent)
+        self.value.increase_indentation(indent)
+
+    def decrease_indentation(self, indent=None):
+        Node.decrease_indentation(self, indent)
+        self.value.decrease_indentation(indent)
 
 
 class ImportNode(ValueIterableMixin, Node):
@@ -1106,6 +1114,19 @@ class TryNode(ElseMixin, FinallyMixin, IndentedCodeBlockMixin, Node):
                 fst["value"].append(space)
 
         return fst
+
+    def increase_indentation(self, indent=None):
+        ElseMixin.increase_indentation(self, indent)
+        self.excepts.increase_indentation(indent)
+        if self.finally_:
+            self.finally_.increase_indentation(indent)
+
+    def decrease_indentation(self, indent=None):
+        ElseMixin.decrease_indentation(self, indent)
+        for except_ in self.excepts:
+            except_.decrease_indentation(indent)
+        if self.finally_:
+            self.finally_.decrease_indentation(indent)
 
 
 class TupleNode(ListTupleMixin, ValueIterableMixin, LiteralyEvaluableMixin, Node):

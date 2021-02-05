@@ -283,9 +283,11 @@ class IfElseBlockSiblingMixin:
         return previous_
 
     def increase_indentation(self, indent):
+        Node.increase_indentation(self, indent)
         self.value.increase_indentation(indent)
 
     def decrease_indentation(self, indent):
+        Node.decrease_indentation(self, indent)
         self.value.decrease_indentation(indent)
 
     @property
@@ -358,6 +360,16 @@ class ElseMixin:
             fst["value"].append(space)
 
         return fst
+
+    def increase_indentation(self, indent=None):
+        super().increase_indentation(indent)
+        if self.else_:
+            self.else_.increase_indentation(indent)
+
+    def decrease_indentation(self, indent=None):
+        super().decrease_indentation(indent)
+        if self.else_:
+            self.else_.value.decrease_indentation(indent)
 
 
 class FinallyMixin:
