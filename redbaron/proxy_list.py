@@ -596,7 +596,8 @@ class DecoratorsProxyList(LineProxyList):
     auto_separator = True
 
     def el_to_node(self, el):
-        fst = baron.parse("%s\ndef a():\n pass" % el)[0]['decorators'][0]
+        # We add @pre decorator in case el is a comment
+        fst = baron.parse("@pre\n%s\ndef a():\n pass" % el)[0]['decorators'][2]
         return Node.generic_from_fst(fst, parent=self)
 
     def _data_to_node_list(self):
