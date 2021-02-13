@@ -1,8 +1,9 @@
 from .base_nodes import Node
-from .node_mixin import CodeBlockMixin
+from .node_mixin import (CodeBlockMixin,
+                         ValueIterableMixin)
 
 
-class RedBaron(CodeBlockMixin, Node):
+class RedBaron(CodeBlockMixin, ValueIterableMixin, Node):
     baron_type = "root"
 
     def _default_fst(self):
