@@ -119,3 +119,8 @@ def test_import_on_new_line():
     red = RedBaron("from m import (\n"
                    "   a)")
     assert red[0].targets.dumps() == "(\n   a)"
+
+
+def test_double_separator():
+    red = RedBaron("fun(a,,)")
+    assert red[0].dumps() == "fun(a,)"

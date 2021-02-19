@@ -53,8 +53,8 @@ class ProxyList(NodeList):
                     self.header.append(node)
                 elif data[-1][1] is not None:
                     if self.strict_separator:
-                        raise Exception("node_list has two successive separators "
-                                        "for %s" % self.__class__.__name__)
+                        # Ignore extra separator
+                        continue
                     empty_el = self.make_empty_el(consume_leftover())
                     data.append([empty_el, node])
                 else:
