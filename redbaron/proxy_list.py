@@ -145,7 +145,7 @@ class ProxyList(NodeList):
             else:
                 el[0].indentation = ""
 
-            if not el[1]:
+            if not el[1] and el[0].next:
                 el[1] = self.make_separator()
 
         if not self.trailing_separator and self._data:
@@ -163,8 +163,8 @@ class ProxyList(NodeList):
     def _insert(self, index, item):
         value = self.el_to_node_with_indentation(item)
 
-        self._check_for_separator(index)
-        sep = self.make_separator_if_strict()
+        self._add_separator_if_needed(index)
+        sep = self.make_separator_if_strict() if index < len(self) else None
         self._data.insert(index, [value, sep])
 
     def insert(self, i, item):
@@ -281,7 +281,7 @@ class ProxyList(NodeList):
             key = slice(key, key + 1)
             value = [value]
 
-        self._check_for_separator(min(key.start, len(self._data)))
+        self._add_separator_if_needed(min(key.start, len(self._data)))
 
         nodes = [[self.el_to_node_with_indentation(el),
                   self.make_separator_if_strict()]
@@ -292,7 +292,7 @@ class ProxyList(NodeList):
 
         self._synchronise()
 
-    def _check_for_separator(self, index):
+    def _add_separator_if_needed(self, index):
         if not self._data:
             return
 
