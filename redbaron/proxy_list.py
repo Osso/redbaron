@@ -174,27 +174,27 @@ class ProxyList(NodeList):
     def put_on_new_line(self, item):
         from .nodes import EndlNode
 
+        if item.on_new_line:
+            return
+
         i = self.index(item)
         if i == 0:
             if not self[0].on_new_line:
                 self.header.append(EndlNode())
-            else:
-                # sep was just created, we know it doesn't have a new line
-                self._data[i][1].second_formatting = ["\n"]
         else:
-            if not self[i].on_new_line:
-                if self._data[i-1][1]:
-                    self._data[i-1][1].second_formatting = ["\n"]
-                else:
-                    self._data[i-1][1] = EndlNode()
-            elif self._data[i][1]:  # last el?
-                self._data[i][1].second_formatting = ["\n"]
+            if self._data[i-1][1]:
+                self._data[i-1][1].second_formatting = ["\n"]
+            else:
+                self._data[i-1][1] = EndlNode()
         self._synchronise()
 
     def insert_on_new_line(self, i, item):
         self._insert(i, item)
-        # put_on_new_line() calls self._synchronise() which is needed here
-        self.put_on_new_line(self[i])
+        if not self[i].on_new_line:
+            self.put_on_new_line(self[i])
+            # put_on_new_line() calls self._synchronise()
+        else:
+            self._synchronise()
 
     def insert_with_new_line(self, i, item):
         self._insert(i, item)
@@ -411,12 +411,6 @@ class ProxyList(NodeList):
 
     def is_multiline(self):
         return bool(self.find("endl"))
-
-    def _find_el_indentation(self):
-        if len(self._data) > 1:
-            return self._data[1][0].indentation
-
-        return self._data[0][0].indentation
 
     @property
     def el_indentation(self):
