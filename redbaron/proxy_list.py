@@ -579,6 +579,20 @@ class ImportsProxyList(CommaProxyList):
         fst = baron.parse("from m import %s" % el)[0]['targets'][0]
         return Node.generic_from_fst(fst, parent=self)
 
+    @property
+    def el_indentation(self):
+        from .nodes import LeftParenthesisNode
+
+        if self:
+            # Compute indent from parent + header length
+            header_len = 0
+            if self.header and isinstance(self.header[-1], LeftParenthesisNode):
+                header_len = 1
+            return (header_len + self.box.top_left.column - 1) * " "
+
+        # If list is empty, then first element will be inline
+        return ""
+
 
 class ArgsProxyList(CommaProxyList):
     def el_to_node(self, el):
