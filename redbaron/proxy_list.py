@@ -424,9 +424,10 @@ class ProxyList(NodeList):
         from .nodes import LeftParenthesisNode
 
         if self:
-            # First element is not inline, we have an indent reference
-            if self[0].on_new_line:
-                return self._data[0][0].indentation
+            # First element that is not inline, we have an indent reference
+            for el, _ in self._data:
+                if el.on_new_line:
+                    return el.indentation
 
             # Compute indent from parent + header length
             header_len = 0
