@@ -139,17 +139,23 @@ class ProxyList(NodeList):
         return el
 
     def reformat(self):
+        from .nodes import EndlNode
+
         for el in self._data:
             if el[0].on_new_line:
                 el[0].indentation = self.el_indentation
             else:
                 el[0].indentation = ""
 
-            if not el[1] and el[0].next:
+            if not el[1]:
                 el[1] = self.make_separator()
+            elif isinstance(el[1], EndlNode):
+                el[1] = self.make_separator()
+                el[1].second_formatting = ["\n"]
 
-        if not self.trailing_separator and self._data:
-            self._data[-1][1] = None
+        if self._data:
+            if not self.trailing_separator or not self[-1].endl:
+                self._data[-1][1] = None
 
     def _synchronise(self):
         if self.auto_separator:
@@ -186,6 +192,7 @@ class ProxyList(NodeList):
                 self._data[i-1][1].second_formatting = ["\n"]
             else:
                 self._data[i-1][1] = EndlNode()
+
         self._synchronise()
 
     def insert_on_new_line(self, i, item):
@@ -217,7 +224,7 @@ class ProxyList(NodeList):
         self.insert_on_new_line(len(self), item)
 
     def append_with_new_line(self, item):
-        self.insert_on_new_line(len(self), item)
+        self.insert_with_new_line(len(self), item)
 
     def extend(self, other):
         self[len(self):] = other

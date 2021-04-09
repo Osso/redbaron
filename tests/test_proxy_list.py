@@ -920,21 +920,21 @@ def test_comma_proxy_list_indented_insert_on_new_line_in_the_middle():
     red = RedBaron("[\n    1,\n    3,\n]")
     comma_proxy_list = red[0].value
     comma_proxy_list.insert_on_new_line(1, "2")
-    assert red.dumps() == "[\n    1,\n    2,\n    3,\n]"
+    assert red.dumps() == "[\n    1,\n    2, 3,\n]"
 
 
 def test_comma_proxy_list_append_on_new_line():
     red = RedBaron("[\n    1,\n]")
     comma_proxy_list = red[0].value
     comma_proxy_list.append_on_new_line("2")
-    assert red.dumps() == "[\n    1,\n    2,\n]"
+    assert red.dumps() == "[\n    1,\n    2]"
 
 
 def test_comma_proxy_list_append_on_new_line_first_inline():
     red = RedBaron("[1,\n]")
     comma_proxy_list = red[0].value
     comma_proxy_list.append("2")
-    assert red.dumps() == "[1,\n 2, ]"
+    assert red.dumps() == "[1,\n 2]"
 
 
 def test_comma_proxy_list_indented_pop():
@@ -1045,7 +1045,7 @@ with stuff:
 
 def test_comma_proxy_list_indented_in_indentation_case():
     red = RedBaron(comma_proxy_list_indented_code_to_test)
-    red.find("list").value.append_on_new_line("2")
+    red.find("list").value.append_with_new_line("2")
     assert red.dumps() == comma_proxy_list_indented_code_to_test_expected_result
 
 
