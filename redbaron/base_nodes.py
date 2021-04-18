@@ -965,7 +965,6 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
     @property
     def on_new_line(self):
         from .proxy_list import ProxyList
-        from .nodes import CallNode
         if not isinstance(self.parent, NodeList):
             return False
 
@@ -973,8 +972,6 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
             # First element
             if isinstance(self.parent, ProxyList) and self.parent.header:
                 return self.parent.header[-1].baron_type == 'endl'
-            if isinstance(self.parent.parent, CallNode) and self.parent.parent.second_formatting:
-                return self.parent.parent.second_formatting[-1].baron_type == 'endl'
 
             return self.parent.on_new_line
 
