@@ -599,6 +599,12 @@ class ArgsProxyList(CommaProxyList):
         fst = baron.parse("a(%s)" % el)[0]['value'][1]['value'][0]
         return Node.generic_from_fst(fst, parent=self)
 
+    def _node_list_to_data(self):
+        if self.parent and self.parent.second_formatting:
+            self.data = self.parent.second_formatting + self.data
+            self.parent.second_formatting.clear()
+        super()._node_list_to_data()
+
 
 class DefArgsProxyList(CommaProxyList):
     def el_to_node(self, el):
