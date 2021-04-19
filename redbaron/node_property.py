@@ -100,7 +100,7 @@ class NodeListProperty(NodeProperty):
             return el
 
         node_list = self.list_type([], parent=obj, on_attribute=self.name)
-        node_list.replace_node_list([_convert(el) for el in value])
+        node_list.extend_node_list([_convert(el) for el in value])
         return node_list
 
     def __get__(self, obj, objtype=None):

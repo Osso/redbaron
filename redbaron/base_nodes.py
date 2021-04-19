@@ -361,7 +361,7 @@ class NodeList(UserList, BaseNode, IndentationMixin):
 
     def filter(self, function):
         new_list = type(self)()
-        new_list.replace_node_list([x.copy() for x in self.data if function(x)])
+        new_list.extend_node_list([x.copy() for x in self.data if function(x)])
         return new_list
 
     def set_parent_and_on_attribute(self, new_data):
@@ -418,9 +418,9 @@ class NodeList(UserList, BaseNode, IndentationMixin):
             if el.on_new_line:
                 el.decrease_indentation(indent)
 
-    def replace_node_list(self, new_node_list):
+    def extend_node_list(self, new_node_list):
         self.set_parent_and_on_attribute(new_node_list)
-        self.data = new_node_list
+        self.data += new_node_list
 
     @property
     def indentation(self):

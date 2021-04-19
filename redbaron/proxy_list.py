@@ -19,7 +19,7 @@ class ProxyList(NodeList):
         self.footer = []
         self._data = []
         self.separator_type = type(self.middle_separator)
-        self.replace_node_list(node_list or [])
+        self.extend_node_list(node_list or [])
 
     def _node_list_to_data(self):
         from .nodes import (LeftParenthesisNode, RightParenthesisNode,
@@ -344,8 +344,8 @@ class ProxyList(NodeList):
         self.set_parent_and_on_attribute(self)
         self._synchronise()
 
-    def replace_node_list(self, new_node_list):
-        self.data = list(new_node_list)
+    def extend_node_list(self, new_node_list):
+        self.data += list(new_node_list)
         self._node_list_to_data()
         self.detect_trailing_sep()
         self._data_to_node_list()
@@ -601,7 +601,7 @@ class ArgsProxyList(CommaProxyList):
 
     def _node_list_to_data(self):
         if self.parent and self.parent.second_formatting:
-            self.data = self.parent.second_formatting + self.data
+            self.data = list(self.parent.second_formatting) + self.data
             self.parent.second_formatting.clear()
         super()._node_list_to_data()
 
