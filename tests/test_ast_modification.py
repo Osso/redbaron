@@ -640,3 +640,18 @@ def fun(arg1,
 def fun(arg1, arg2):
    pass
 """
+
+
+def test_put_on_same_line_2():
+    code = """
+def fun(arg1,
+        arg2):
+   pass
+"""
+    red = RedBaron(code)
+    fun = red[0]
+    fun.arguments[1].put_on_same_line()
+    assert red.dumps() == """
+def fun(arg1, arg2):
+   pass
+"""
