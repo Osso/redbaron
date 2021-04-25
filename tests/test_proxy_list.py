@@ -892,7 +892,7 @@ def test_comma_proxy_list_insert_on_new_line_one_element():
     red = RedBaron("[]")
     comma_proxy_list = red[0].value
     comma_proxy_list.insert_on_new_line(0, "1")
-    assert red.dumps() == "[\n1]"
+    assert red.dumps() == "[\n 1]"
 
 
 def test_comma_proxy_list_insert_on_new_line_at_the_beginning():
