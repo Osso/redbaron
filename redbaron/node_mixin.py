@@ -213,8 +213,8 @@ class CodeBlockMixin(ValueIterableMixin):
     def _find_first_el_indentation(self):
         return self.value[0].indentation
 
-    def put_on_new_line(self, item):
-        return self.value.put_on_new_line(item)
+    def put_on_new_line(self, item, indentation=None):
+        return self.value.put_on_new_line(item, indentation=indentation)
 
     def put_on_same_line(self, item):
         return self.value.put_on_same_line(item)

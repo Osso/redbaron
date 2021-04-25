@@ -177,13 +177,14 @@ class ProxyList(NodeList):
         self._insert(i, item)
         self._synchronise()
 
-    def put_on_new_line(self, item):
+    def put_on_new_line(self, item, indentation=None):
         from .nodes import EndlNode
 
         if item.on_new_line:
             return
 
-        item.indentation = self.el_indentation
+        item.indentation = indentation if indentation is not None \
+                                                       else self.el_indentation
 
         i = self.index(item)
         if i == 0:
