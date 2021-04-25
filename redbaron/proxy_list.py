@@ -180,11 +180,11 @@ class ProxyList(NodeList):
     def put_on_new_line(self, item, indentation=None):
         from .nodes import EndlNode
 
-        if item.on_new_line:
-            return
-
         item.indentation = indentation if indentation is not None \
                                                        else self.el_indentation
+
+        if item.on_new_line:
+            return
 
         i = self.index(item)
         if i == 0:

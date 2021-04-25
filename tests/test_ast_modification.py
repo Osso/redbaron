@@ -642,6 +642,22 @@ def fun(arg1,
 """
 
 
+def test_put_on_new_line_specific_2():
+    code = """
+def fun(arg1,
+        arg2):
+   pass
+"""
+    red = RedBaron(code)
+    fun = red[0]
+    fun.arguments[1].put_on_new_line(indentation=" ")
+    assert red.dumps() == """
+def fun(arg1,
+ arg2):
+   pass
+"""
+
+
 def test_put_on_same_line():
     code = """
 def fun(arg1,
