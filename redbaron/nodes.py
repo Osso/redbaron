@@ -319,6 +319,9 @@ class DefArgumentNode(Node, AnnotationMixin):
     def put_on_new_line(self):
         self.parent.put_on_new_line(self)
 
+    def put_on_same_line(self):
+        self.parent.put_on_same_line(self)
+
 
 class DelNode(Node):
     @NodeProperty

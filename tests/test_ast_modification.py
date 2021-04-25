@@ -597,10 +597,46 @@ def test_append_def_arg_annotated():
 
 def test_put_on_new_line():
     code = """
-def adapa_confirmation_mockup_joyn(session: SQLSession, service="JOYN",
-                                   pta_code=None, price_range=None,
-                                   category=None, csu_state=None):
+def fun(arg1, arg2):
    pass
 """
-    fun = RedBaron(code)[0]
+    red = RedBaron(code)
+    fun = red[0]
     fun.arguments[1].put_on_new_line()
+    assert red.dumps() == """
+def fun(arg1,
+        arg2):
+   pass
+"""
+
+
+def test_put_on_new_line_2():
+    code = """
+def fun(
+  arg1, arg2):
+   pass
+"""
+    red = RedBaron(code)
+    fun = red[0]
+    fun.arguments[1].put_on_new_line()
+    assert red.dumps() == """
+def fun(
+  arg1,
+  arg2):
+   pass
+"""
+
+
+def test_put_on_same_line():
+    code = """
+def fun(arg1,
+        arg2):
+   pass
+"""
+    red = RedBaron(code)
+    fun = red[0]
+    fun.arguments[1].put_on_same_line()
+    assert red.dumps() == """
+def fun(arg1, arg2):
+   pass
+"""

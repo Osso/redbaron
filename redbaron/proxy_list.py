@@ -183,15 +183,36 @@ class ProxyList(NodeList):
         if item.on_new_line:
             return
 
+        item.indentation = self.el_indentation
+
         i = self.index(item)
         if i == 0:
-            if not self[0].on_new_line:
-                self.header.append(EndlNode())
+            self.header.append(EndlNode())
         else:
             if self._data[i-1][1]:
                 self._data[i-1][1].second_formatting = ["\n"]
             else:
                 self._data[i-1][1] = EndlNode()
+
+        self._synchronise()
+
+    def put_on_same_line(self, item):
+        from .nodes import EndlNode
+
+        if not item.on_new_line:
+            return
+
+        i = self.index(item)
+        if i == 0:
+            assert isinstance(self.header[-1], EndlNode)
+            self.header.pop()
+        else:
+            if self._data[i-1][1]:
+                assert isinstance(self._data[i-1][1].second_formatting[-1], EndlNode)
+                self._data[i-1][1].second_formatting = " "
+            else:
+                assert isinstance(self._data[i-1][1], EndlNode)
+                self._data[i-1][1] = None
 
         self._synchronise()
 

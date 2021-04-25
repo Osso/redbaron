@@ -216,6 +216,9 @@ class CodeBlockMixin(ValueIterableMixin):
     def put_on_new_line(self, item):
         return self.value.put_on_new_line(item)
 
+    def put_on_same_line(self, item):
+        return self.value.put_on_same_line(item)
+
     @property
     def el_indentation(self):
         if not self.value:
