@@ -72,6 +72,20 @@ class NeighborsMixin:
         return next(self.previous_neighbors, None)
 
     @property
+    def displayable_next(self):
+        _next = self.next
+        while _next and _next.hidden:
+            _next = _next.next
+        return _next
+
+    @property
+    def displayable_previous(self):
+        previous = self.previous
+        while previous and previous.hidden:
+            previous = previous.previous
+        return previous
+
+    @property
     def neighbors_nodelist(self):
         if not isinstance(self.parent, NodeList):
             return []
@@ -974,14 +988,14 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
         if not isinstance(self.parent, NodeList):
             return False
 
-        if not self.previous:
+        if not self.displayable_previous:
             # First element
             if isinstance(self.parent, ProxyList) and self.parent.header:
                 return self.parent.header[-1].baron_type == 'endl'
 
             return self.parent.on_new_line
 
-        return bool(self.previous.endl)
+        return bool(self.displayable_previous.endl)
 
     @property
     def endl(self):

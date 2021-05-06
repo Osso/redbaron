@@ -188,14 +188,15 @@ class ProxyList(NodeList):
         if item.on_new_line:
             return
 
-        i = self.index(item)
-        if i == 0:
+        previous = item.displayable_previous
+        if not previous:
             self.header.append(EndlNode())
         else:
-            if self._data[i-1][1]:
-                self._data[i-1][1].second_formatting = ["\n"]
+            sep = self.associated_sep(previous)
+            if sep:
+                sep.second_formatting = ["\n"]
             else:
-                self._data[i-1][1] = EndlNode()
+                self.find_in_data(previous)[1] = EndlNode()
 
         self._synchronise()
 
