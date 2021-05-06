@@ -141,6 +141,9 @@ class ValueIterableMixin:
     def add_endl(self, i):
         self.value.add_endl(i)
 
+    def hide(self, item):
+        self.value.hide(item)
+
 
 class CodeBlockMixin(ValueIterableMixin):
     default_indent = ""

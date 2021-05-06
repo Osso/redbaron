@@ -105,6 +105,7 @@ class BaseNode(NeighborsMixin):
     """
     _leftover_indentation = ""
     indent_unit = 4 * " "
+    hidden = False
 
     def __init__(self, parent, on_attribute):
         self.parent = parent
@@ -322,7 +323,7 @@ class NodeList(UserList, BaseNode, IndentationMixin):
                                recursive=recursive, **kwargs)
 
     def fst(self):
-        return [x.fst() for x in self.node_list]
+        return [x.fst() for x in self.node_list if not x.hidden]
 
     def __repr__(self):
         if in_a_shell():
@@ -443,6 +444,10 @@ class NodeList(UserList, BaseNode, IndentationMixin):
     @property
     def endl(self):
         return self[-1].endl
+
+    def hide(self, item):
+        assert item in self
+        item.hidden = True
 
 
 class NodeRegistration(type):
@@ -778,6 +783,7 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
             'insert_with_new_line',
             'clear',
             'add_endl',
+            'hide',
         ])
         for attr_name in dir(self):
             if attr_name.startswith("_"):  # private method

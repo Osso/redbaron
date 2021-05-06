@@ -100,3 +100,9 @@ def test_copy_raise():
     code = "raise NotImplementedError"
     el = node(code).copy()
     assert el.dumps() == code
+
+
+def test_hide():
+    red = node("[1, 2, 3]")
+    red.hide(red[0])
+    assert red.dumps() == "[2, 3]"

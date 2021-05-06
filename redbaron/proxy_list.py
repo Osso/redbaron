@@ -112,6 +112,8 @@ class ProxyList(NodeList):
             _append_el(el)
 
         for node, sep in self._data:
+            if node.hidden:
+                continue
             _append_el(node)
             _append_el(sep)
 
@@ -459,6 +461,10 @@ class ProxyList(NodeList):
 
         # If list is empty, then first element will be inline
         return ""
+
+    def hide(self, item):
+        super().hide(item)
+        self._synchronise()
 
 
 class SpaceProxyList(ProxyList):
