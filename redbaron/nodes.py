@@ -1272,3 +1272,6 @@ class IndentationNode(SpaceNode):
         fst = super().fst()
         fst["type"] = "space"
         return fst
+
+    def consume_leftover_indentation(self):
+        return ""
