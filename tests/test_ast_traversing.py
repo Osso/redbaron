@@ -32,6 +32,20 @@ def test_node_previous():
     assert node_list[0].previous is None
 
 
+def test_node_displayable_next():
+    node_list = node("[1, 2, 3]")
+    node_list.hide(node_list[1])
+    assert node_list[0].displayable_next == node_list[2]
+    assert node_list[2].displayable_next is None
+
+
+def test_node_displayable_previous():
+    node_list = node("[1, 2, 3]")
+    node_list.hide(node_list[1])
+    assert node_list[2].displayable_previous == node_list[0]
+    assert node_list[0].displayable_previous is None
+
+
 def test_node_next_recursive():
     red = RedBaron("def a():\n    b = 1\n    c = 1\ndef c():\n    d = 1")
     first_def, second_def = red.find_all('def')
