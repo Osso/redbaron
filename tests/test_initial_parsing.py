@@ -124,3 +124,10 @@ def test_import_on_new_line():
 def test_double_separator():
     red = RedBaron("fun(a,,)")
     assert red[0].dumps() == "fun(a,)"
+
+
+def test_comment_in_args():
+    red = RedBaron("fun(\n"
+                   "# comment\n"
+                   "a)")
+    assert red[0].dumps() == "fun(\n# comment\na)"

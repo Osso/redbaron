@@ -74,6 +74,11 @@ def test_on_new_line():
     assert red[0].on_new_line
 
 
+def test_import_on_new_line():
+    red = RedBaron("import module1\nimport module2\n")
+    assert red[1].on_new_line
+
+
 def test_copy_with_indentation():
     red = RedBaron("def a():\n    pass")
     assert red[0][0].copy().indentation == "    "

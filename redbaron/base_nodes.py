@@ -985,6 +985,7 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
     @property
     def on_new_line(self):
         from .proxy_list import ProxyList
+
         if not isinstance(self.parent, NodeList):
             return False
 

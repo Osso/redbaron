@@ -85,12 +85,12 @@ def test_set_attr_def_arguments():
 def test_set_attr_def_value_inline():
     red = RedBaron("def a(): pass\n")
     red[0].value = "plop\n"
-    assert red[0].dumps() == "def a(): plop\n"
+    assert red[0].dumps() == "def a():plop\n"
 
 
 def test_set_attr_def_value_inline_multiple_spaces():
-    red = RedBaron("def a():   pass\n")
-    red[0].value = "plop\n"
+    red = RedBaron("def a(): pass\n")
+    red[0].value = "   plop\n"
     assert red[0].dumps() == "def a():   plop\n"
 
 
@@ -115,7 +115,7 @@ def test_set_root_value_simple_indented():
 def test_set_attr_def_value_simple_trailing_space_no_indent():
     red = RedBaron("def a(): pass")
     red[0].value = "  \nplop"
-    assert red[0].value.dumps() == "  \n    plop\n"
+    assert red.dumps() == "def a():  \n    plop\n"
 
 
 def test_set_attr_def_value_simple_trailing_space_idented():

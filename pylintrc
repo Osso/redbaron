@@ -49,7 +49,7 @@ load-plugins=redbaron_pylint_plugin
 #enable-msg=
 
 # Disable the message(s) with the given id(s).
-disable-msg=C0323,W0142,C0301,C0103,C0111,E0213,C0302,C0203,W0703,R0201
+disable-msg=C0323,W0142,C0301,C0103,C0111,E0213,C0302,C0203,W0703,R0201,C0330
 
 # Disable the message, report, category or checker with the given id(s). You
 # can either give multiple identifiers separated by comma (,) or put this
@@ -62,7 +62,8 @@ disable-msg=C0323,W0142,C0301,C0103,C0111,E0213,C0302,C0203,W0703,R0201
 # --disable=W"
 disable=missing-docstring,too-many-lines,protected-access,invalid-name,
         too-many-ancestors,no-self-use,too-many-public-methods,
-        global-statement,not-context-manager,unused-argument,no-member,C0330
+        global-statement,not-context-manager,unused-argument,no-member,
+        too-many-branches
 
 [REPORTS]
 

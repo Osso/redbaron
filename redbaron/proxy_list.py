@@ -19,11 +19,13 @@ class ProxyList(NodeList):
         self.footer = []
         self._data = []
         self.separator_type = type(self.middle_separator)
+        assert not self.node_list
+        assert not self.data
         self.extend_node_list(node_list or [])
 
     def _node_list_to_data(self):
         from .nodes import (LeftParenthesisNode, RightParenthesisNode,
-                            SpaceNode, EndlNode)
+                            SpaceNode, EndlNode, CommentNode)
 
         data = []
         self.header = []
@@ -43,7 +45,9 @@ class ProxyList(NodeList):
             elif isinstance(node, RightParenthesisNode):
                 assert node is self.node_list[-1]
                 self.footer.append(node)
-            elif isinstance(node, self.separator_type):
+            elif (isinstance(node, self.separator_type) or
+                  (isinstance(node, EndlNode) and data and
+                   isinstance(data[-1][0], CommentNode))):
                 if not data:
                     if self.strict_separator:
                         raise Exception("node_list starts with separator "
@@ -65,7 +69,8 @@ class ProxyList(NodeList):
                 # Space is emptied by consume_leftover_indentation()
                 pass
             else:
-                if data and data[-1][1] is None and self.strict_separator:
+                if (data and data[-1][1] is None  # no separator
+                        and self.strict_separator):
                     raise Exception("node_list is missing separator after "
                                     f"{data[-1][0].dumps()!r} "
                                     f"for {self.__class__.__name__}")
@@ -141,7 +146,7 @@ class ProxyList(NodeList):
         return el
 
     def reformat(self):
-        from .nodes import EndlNode
+        from .nodes import EndlNode, CommentNode
 
         for el in self._data:
             if el[0].on_new_line:
@@ -151,7 +156,8 @@ class ProxyList(NodeList):
 
             if not el[1]:
                 el[1] = self.make_separator()
-            elif isinstance(el[1], EndlNode):
+            elif isinstance(el[1], EndlNode) and not isinstance(el[0],
+                                                                CommentNode):
                 el[1] = self.make_separator()
                 el[1].second_formatting = ["\n"]
 

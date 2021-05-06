@@ -286,6 +286,12 @@ class DefNode(IndentedCodeBlockMixin, DecoratorsMixin,
               ReturnAnnotationMixin, Node):
     _default_test_value = "name"
 
+    def __init__(self, fst=None, parent=None, on_attribute=None):
+        # Fixes the value partly stored in formatting
+        fst['value'] = fst['sixth_formatting'] + fst['value']
+        fst['sixth_formatting'] = []
+        super().__init__(fst=fst, parent=parent, on_attribute=on_attribute)
+
     @conditional_formatting_property(NodeList, [" "], [])
     def async_formatting(self):
         return self.async_
