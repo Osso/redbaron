@@ -371,11 +371,17 @@ class ProxyList(NodeList):
         return new_list
 
     def replace_data(self, new_data):
+        for el, sep in new_data:
+            el.parent = self
+            el.on_attribute = None
+            if sep is not None:
+                sep.parent = self
+                sep.on_attribute = None
         self._data = list(new_data)
-        self.set_parent_and_on_attribute(self)
         self._synchronise()
 
     def extend_node_list(self, new_node_list):
+        self.set_parent_and_on_attribute(new_node_list)
         self.data += list(new_node_list)
         self._node_list_to_data()
         self.detect_trailing_sep()
