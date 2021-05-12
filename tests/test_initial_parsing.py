@@ -5,7 +5,8 @@ from redbaron.nodes import (AssignmentNode,
                             EndlNode,
                             IntNode,
                             NameNode,
-                            PassNode)
+                            PassNode,
+                            SpaceNode)
 
 
 def test_empty():
@@ -131,3 +132,12 @@ def test_comment_in_args():
                    "# comment\n"
                    "a)")
     assert red[0].dumps() == "fun(\n# comment\na)"
+
+
+def test_multiline_dict():
+    red = RedBaron("""
+    {
+        'key': 'value'
+    }""")
+    assert len(red[0].value.footer) == 1
+    assert isinstance(red[0].value.footer[0], SpaceNode)

@@ -353,6 +353,12 @@ class DictitemNode(Node):
         code = "{%s: a}" % value
         return baron.parse(code)[0]["value"][0]["key"]
 
+    def consume_leftover_indentation(self):
+        if not self.value.second_formatting:
+            return ""
+
+        return self.value.second_formatting[-1].consume_leftover_indentation()
+
 
 class DictNode(ValueIterableMixin, LiteralyEvaluableMixin, Node):
     @nodelist_property(DictProxyList)
