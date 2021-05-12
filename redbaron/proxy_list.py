@@ -629,7 +629,7 @@ class DictProxyList(CommaProxyList):
 
         # Workaround parser bug indentation in second formatting
         if self and self.parent.second_formatting:
-            self[0].indentation = self.parent.second_formatting[-1].indent
+            self[0].indentation += self.parent.second_formatting[-1].indent
             self.parent.second_formatting[-1].indent = ""
 
         # Workaround parser bug putting new lines in dict values

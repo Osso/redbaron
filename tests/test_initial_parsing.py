@@ -1,6 +1,7 @@
 """ Tests initial parsing through the RedBaron() base function """
 from redbaron import (RedBaron,
                       node)
+from redbaron.base_nodes import Node
 from redbaron.nodes import (AssignmentNode,
                             EndlNode,
                             IntNode,
@@ -158,3 +159,13 @@ def test_embedded_dict():
 """
     red = RedBaron(code)
     assert red.dumps() == code
+
+
+def test_fst_dict():
+    code = """
+'sub_key2': {
+    'queue': 'value2',
+}"""
+    red = RedBaron(code)
+    # import pdb; pdb.set_trace()
+    assert Node.generic_from_fst(red[0].fst()).fst() == red[0].fst()
