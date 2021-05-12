@@ -624,6 +624,7 @@ class DictProxyList(CommaProxyList):
 
         super()._node_list_to_data()
 
+        # Workaround parser bug putting new lines in dict values
         for item in self._data:
             assert isinstance(item[0], DictitemNode)
             endl = item[0].value.second_formatting.get(-1, None)
