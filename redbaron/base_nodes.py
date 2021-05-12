@@ -992,12 +992,16 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
 
     @property
     def on_new_line(self):
-        from .proxy_list import ProxyList
+        from .proxy_list import ProxyList, DictProxyList
 
         if not isinstance(self.parent, NodeList):
             return False
 
         if not self.displayable_previous:
+            if isinstance(self.parent, DictProxyList):
+                formatting = self.parent.parent.second_formatting
+                return formatting and formatting[-1].baron_type == 'endl'
+
             # First element
             if isinstance(self.parent, ProxyList) and self.parent.header:
                 return self.parent.header[-1].baron_type == 'endl'
