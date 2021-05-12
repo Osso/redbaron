@@ -463,6 +463,14 @@ class NodeList(UserList, BaseNode, IndentationMixin):
         assert item in self
         item.hidden = True
 
+    def get(self, index, default):
+        try:
+            r = self[index]
+        except IndexError:
+            r = default
+
+        return r
+
 
 class NodeRegistration(type):
     node_type_mapping = {}

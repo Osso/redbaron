@@ -614,6 +614,21 @@ class DictProxyList(CommaProxyList):
         fst = baron.parse("{%s}" % el)[0]['value'][0]
         return Node.generic_from_fst(fst, parent=self)
 
+    def _node_list_to_data(self):
+        from .nodes import DictitemNode, EndlNode
+
+        super()._node_list_to_data()
+
+        for item in self._data:
+            assert isinstance(item[0], DictitemNode)
+            endl = item[0].value.second_formatting.get(-1, None)
+            if isinstance(endl, EndlNode):
+                item[0].value.second_formatting.pop()
+                if item[1]:
+                    item[1].second_formatting.append(endl)
+                else:
+                    item[1] = endl
+
 
 class ImportsProxyList(CommaProxyList):
     def el_to_node(self, el):
