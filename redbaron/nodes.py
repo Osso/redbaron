@@ -361,7 +361,6 @@ class DictNode(ValueIterableMixin, LiteralyEvaluableMixin, Node):
         return baron.parse(code)[0]["value"]
 
     def put_on_new_line(self, item, indentation=None):
-        import pdb; pdb.set_trace()
         return self.value.put_on_new_line(item, indentation=indentation)
 
 
