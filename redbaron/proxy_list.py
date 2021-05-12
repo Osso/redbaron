@@ -611,6 +611,11 @@ class CodeProxyList(LineProxyList):
 
 class DictProxyList(CommaProxyList):
     def el_to_node(self, el):
+        from .base_nodes import BaseNode
+
+        if isinstance(el, BaseNode):
+            return Node.generic_to_node(el, parent=self)
+
         fst = baron.parse("{%s}" % el)[0]['value'][0]
         return Node.generic_from_fst(fst, parent=self)
 
