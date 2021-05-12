@@ -373,6 +373,13 @@ class DictNode(ValueIterableMixin, LiteralyEvaluableMixin, Node):
     def value_on_new_line(self):
         return bool(self.second_formatting.find("endl"))
 
+    @property
+    def endl(self):
+        return self.fourth_formatting.find('endl')
+
+    def remove_endl(self):
+        self.fourth_formatting.pop()
+
 
 class DictComprehensionNode(Node):
     @nodelist_property(NodeList)

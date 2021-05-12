@@ -632,9 +632,9 @@ class DictProxyList(CommaProxyList):
         # Workaround parser bug putting new lines in dict values
         for item in self._data:
             assert isinstance(item[0], DictitemNode)
-            endl = item[0].value.second_formatting.get(-1, None)
+            endl = item[0].value.endl
             if isinstance(endl, EndlNode):
-                item[0].value.second_formatting.pop()
+                item[0].value.remove_endl()
                 if item[1]:
                     item[1].second_formatting.append(endl)
                 else:

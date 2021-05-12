@@ -806,6 +806,7 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
             'clear',
             'add_endl',
             'hide',
+            'remove_endl',
         ])
         for attr_name in dir(self):
             if attr_name.startswith("_"):  # private method
@@ -1016,6 +1017,9 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
             if sep.second_formatting:
                 return sep.second_formatting.find("endl")
         return None
+
+    def remove_endl(self):
+        self.second_formatting.pop()
 
     @property
     def associated_sep(self):
