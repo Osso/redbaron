@@ -1010,13 +1010,12 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
 
     @property
     def endl(self):
-        sep = self.associated_sep
-        if sep:
-            if sep.baron_type == "endl":
-                return sep
-            if sep.second_formatting:
-                return sep.second_formatting.find("endl")
-        return None
+        from .proxy_list import ProxyList
+
+        if isinstance(self.parent, ProxyList) and self.parent.find_in_data(self):
+            return self.associated_sep and self.associated_sep.endl
+
+        return self.second_formatting.find("endl")
 
     def remove_endl(self):
         self.second_formatting.pop()

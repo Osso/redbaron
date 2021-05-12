@@ -422,7 +422,10 @@ class ProxyList(NodeList):
         self._data.clear()
 
     def associated_sep(self, item):
-        return self._sep_from_data_tuple(self.find_in_data(item))
+        data_tuple = self.find_in_data(item)
+        if data_tuple is None:
+            raise Exception("Invalid Item: %r" % item)
+        return self._sep_from_data_tuple(data_tuple)
 
     def find_in_data(self, item):
         for data_tuple in self._data:
