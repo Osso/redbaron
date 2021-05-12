@@ -369,6 +369,10 @@ class DictNode(ValueIterableMixin, LiteralyEvaluableMixin, Node):
     def put_on_new_line(self, item, indentation=None):
         return self.value.put_on_new_line(item, indentation=indentation)
 
+    @property
+    def value_on_new_line(self):
+        return bool(self.second_formatting.find("endl"))
+
 
 class DictComprehensionNode(Node):
     @nodelist_property(NodeList)

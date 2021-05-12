@@ -141,3 +141,20 @@ def test_multiline_dict():
     }""")
     assert len(red[0].value.footer) == 1
     assert isinstance(red[0].value.footer[0], SpaceNode)
+
+
+def test_embedded_dict():
+    code = """
+{
+    "key1": {
+        'sub_key1': {
+            'queue': 'value1',
+        },
+        'sub_key3': {
+            'queue': 'value3',
+        },
+    }
+}
+"""
+    red = RedBaron(code)
+    assert red.dumps() == code
