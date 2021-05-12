@@ -624,6 +624,11 @@ class DictProxyList(CommaProxyList):
 
         super()._node_list_to_data()
 
+        # Workaround parser bug indentation in second formatting
+        if self and self.parent.second_formatting:
+            self[0].indentation = self.parent.second_formatting[-1].indent
+            self.parent.second_formatting[-1].indent = ""
+
         # Workaround parser bug putting new lines in dict values
         for item in self._data:
             assert isinstance(item[0], DictitemNode)
