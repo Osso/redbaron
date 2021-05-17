@@ -7,6 +7,7 @@ from .base_nodes import (Node,
 from .node_mixin import (AnnotationMixin,
                          CodeBlockMixin,
                          DecoratorsMixin,
+                         DefaultLeftoverIdentation,
                          ElseMixin,
                          FinallyMixin,
                          IfElseBlockSiblingMixin,
@@ -1067,7 +1068,7 @@ class StarNode(Node):
     pass
 
 
-class StringNode(LiteralyEvaluableMixin, Node):
+class StringNode(LiteralyEvaluableMixin, DefaultLeftoverIdentation, Node):
     def consume_leftover_indentation(self):
         if not self.second_formatting:
             return ""

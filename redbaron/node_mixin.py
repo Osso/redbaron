@@ -179,14 +179,6 @@ class CodeBlockMixin(ValueIterableMixin):
         return baron.parse(value)
 
     @property
-    def leftover_indentation(self):
-        return self.value.leftover_indentation
-
-    @leftover_indentation.setter
-    def leftover_indentation(self, value):
-        self.value._leftover_indentation = value
-
-    @property
     def leftover_endl(self):
         return self.value.leftover_endl
 
@@ -428,3 +420,15 @@ class ListTupleMixin:
     @property
     def value_on_new_line(self):
         return bool(self.second_formatting.find("endl"))
+
+
+class DefaultLeftoverIdentation:
+    @property
+    def leftover_indentation(self):
+        return self.second_formatting[-1].leftover_indentation
+
+    def consume_leftover_indentation(self):
+        if not self.second_formatting:
+            return ""
+
+        return self.second_formatting[-1].consume_leftover_indentation()
