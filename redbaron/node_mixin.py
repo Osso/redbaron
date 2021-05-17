@@ -178,14 +178,6 @@ class CodeBlockMixin(ValueIterableMixin):
     def _parse_not_indented(self, value):
         return baron.parse(value)
 
-    @property
-    def leftover_endl(self):
-        return self.value.leftover_endl
-
-    @leftover_endl.setter
-    def leftover_endl(self, value):
-        self.value._leftover_endl = value
-
     def get_last_member(self):
         return self.value
 

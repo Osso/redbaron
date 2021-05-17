@@ -261,22 +261,12 @@ class BaseNode(NeighborsMixin):
 class IndentationMixin:
     def __init__(self, indent):
         self.indent = indent
-        self.leftover_endl = []
 
     def consume_leftover_indentation(self):
         return ""
 
-    @property
-    def leftover_endl(self):
-        return self._leftover_endl
-
-    @leftover_endl.setter
-    def leftover_endl(self, value):
-        self._leftover_endl = value
-
     def consume_leftover_endl(self):
-        yield from self.leftover_endl
-        self.leftover_endl.clear()
+        return []
 
 
 class NodeList(UserList, BaseNode, IndentationMixin):
