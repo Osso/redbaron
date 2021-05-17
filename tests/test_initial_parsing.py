@@ -167,5 +167,12 @@ def test_fst_dict():
     'queue': 'value2',
 }"""
     red = RedBaron(code)
-    # import pdb; pdb.set_trace()
     assert Node.generic_from_fst(red[0].fst()).fst() == red[0].fst()
+
+
+def test_ternary_dict():
+    code = """
+{'scheme': 'https' if condition else 'http'}
+"""
+    red = RedBaron(code)
+    assert red.dumps() == code

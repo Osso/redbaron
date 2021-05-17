@@ -354,7 +354,7 @@ class DictitemNode(Node):
         return baron.parse(code)[0]["value"][0]["key"]
 
     def consume_leftover_indentation(self):
-        if not self.value.second_formatting:
+        if not self.value.endl:
             return ""
 
         return self.value.second_formatting[-1].consume_leftover_indentation()
@@ -1092,6 +1092,13 @@ class TernaryOperatorNode(Node):
     @NodeProperty
     def value(self, value):
         return baron.parse("a if %s else s" % value)[0]["value"]
+
+    @property
+    def endl(self):
+        return self.value.endl
+
+    def remove_endl(self):
+        self.value.remove_endl()
 
 
 class TryNode(ElseMixin, FinallyMixin, IndentedCodeBlockMixin, Node):
