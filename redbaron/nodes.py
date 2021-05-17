@@ -852,6 +852,13 @@ class ListNode(ListTupleMixin, ValueIterableMixin, LiteralyEvaluableMixin, Node)
                 self.value[0].indentation = self.second_formatting.pop().value
             self.value._data_to_node_list()
 
+    @property
+    def endl(self):
+        return self.fourth_formatting.find('endl')
+
+    def remove_endl(self):
+        self.fourth_formatting.pop()
+
 
 class LongNode(Node):
     pass

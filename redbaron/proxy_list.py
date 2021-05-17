@@ -45,9 +45,7 @@ class ProxyList(NodeList):
             elif isinstance(node, RightParenthesisNode):
                 assert node is self.node_list[-1]
                 self.footer.append(node)
-            elif (isinstance(node, self.separator_type) or
-                  (isinstance(node, EndlNode) and data and
-                   isinstance(data[-1][0], CommentNode))):
+            elif isinstance(node, self.separator_type):
                 if not data:
                     if self.strict_separator:
                         raise Exception("node_list starts with separator "
@@ -63,8 +61,13 @@ class ProxyList(NodeList):
                     data.append([empty_el, node])
                 else:
                     data[-1][1] = node
-            elif isinstance(node, EndlNode) and not data:
-                self.header.append(node)
+            elif isinstance(node, EndlNode):
+                if not data:
+                    self.header.append(node)
+                elif data[-1][1] is None:
+                    data[-1][1] = node
+                else:
+                    data[-1][1].second_formatting.append(node)
             elif isinstance(node, SpaceNode):
                 # Space is emptied by consume_leftover_indentation()
                 pass
