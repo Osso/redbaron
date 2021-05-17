@@ -267,13 +267,15 @@ class IndentationMixin:
     def leftover_indentation(self):
         return self._leftover_indentation
 
-    @leftover_indentation.setter
-    def leftover_indentation(self, value):
-        self._leftover_indentation = value
-
     def consume_leftover_indentation(self):
+        # if not self.second_formatting:
+        #     return ""
+
+        # return self.second_formatting[-1].consume_leftover_indentation()
+
         r = self.leftover_indentation
-        self.leftover_indentation = ""
+        self._leftover_indentation = ""
+
         return r
 
     @property

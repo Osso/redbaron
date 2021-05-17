@@ -527,33 +527,28 @@ class LineProxyList(ProxyList):
 
 
 class CodeProxyList(LineProxyList):
-    def move_indentation_to_leftover(self):
-        if not self.footer or not self.parent:
-            return
+    def consume_leftover_indentation(self):
+        if not self.footer:
+            return ""
 
         if self.footer[-1].baron_type == 'space':
-            self.leftover_indentation = self.footer.pop().value
+            leftover = self.footer.pop().value
+            self._synchronise()
+            return leftover
 
-        self._synchronise()
-
-    def move_endl_to_leftover(self):
-        if not self._data or not self.parent:
-            return
-
-        index = len(self.leftover_endl)
-
-        while self._data[-1][0].type in ('empty_line', 'space'):
-            self.leftover_endl.insert(index, self._data.pop())
-
-        self._synchronise()
-
-    def consume_leftover_indentation(self):
-        self.move_indentation_to_leftover()
-        return super().consume_leftover_indentation()
+        return ""
 
     def consume_leftover_endl(self):
-        self.move_endl_to_leftover()
-        return super().consume_leftover_endl()
+        if not self._data:
+            return []
+
+        leftover_endl = []
+        while self._data[-1][0].type in ('empty_line', 'space'):
+            leftover_endl.append(self._data.pop())
+
+        self._synchronise()
+
+        return reversed(leftover_endl)
 
     @property
     def el_indentation(self):

@@ -354,10 +354,7 @@ class DictitemNode(Node):
         return baron.parse(code)[0]["value"][0]["key"]
 
     def consume_leftover_indentation(self):
-        if not self.value.endl:
-            return ""
-
-        return self.value.second_formatting[-1].consume_leftover_indentation()
+        return self.value.consume_leftover_indentation()
 
 
 class DictNode(ValueIterableMixin, LiteralyEvaluableMixin, Node):
@@ -1071,7 +1068,11 @@ class StarNode(Node):
 
 
 class StringNode(LiteralyEvaluableMixin, Node):
-    pass
+    def consume_leftover_indentation(self):
+        if not self.second_formatting:
+            return ""
+
+        return self.second_formatting[-1].consume_leftover_indentation()
 
 
 class StringChainNode(LiteralyEvaluableMixin, Node):
