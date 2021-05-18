@@ -7,14 +7,15 @@ from .base_nodes import (Node,
 from .node_mixin import (AnnotationMixin,
                          CodeBlockMixin,
                          DecoratorsMixin,
-                         DefaultLeftoverIdentation,
                          ElseMixin,
                          FinallyMixin,
+                         FourthFormattingIndentMixin,
                          IfElseBlockSiblingMixin,
                          IndentedCodeBlockMixin,
                          ListTupleMixin,
                          LiteralyEvaluableMixin,
                          ReturnAnnotationMixin,
+                         SecondFormattingIndentMixin,
                          SeparatorMixin,
                          ValueIterableMixin)
 from .node_property import (NodeProperty,
@@ -358,7 +359,8 @@ class DictitemNode(Node):
         return self.value.consume_leftover_indentation()
 
 
-class DictNode(ValueIterableMixin, LiteralyEvaluableMixin, Node):
+class DictNode(FourthFormattingIndentMixin, ValueIterableMixin,
+               LiteralyEvaluableMixin, Node):
     @nodelist_property(DictProxyList)
     def value(self, value):
         code = "{%s}" % value
@@ -833,7 +835,8 @@ class ListComprehensionNode(Node):
         return baron.parse("[%s for x in x]" % value)[0]["result"]
 
 
-class ListNode(ListTupleMixin, ValueIterableMixin, LiteralyEvaluableMixin, Node):
+class ListNode(FourthFormattingIndentMixin, ListTupleMixin, ValueIterableMixin,
+               LiteralyEvaluableMixin, Node):
     @nodelist_property(CommaProxyList)
     def value(self, value):
         return baron.parse("[%s]" % value)[0]["value"]
@@ -1084,7 +1087,7 @@ class StarNode(Node):
     pass
 
 
-class StringNode(LiteralyEvaluableMixin, DefaultLeftoverIdentation, Node):
+class StringNode(LiteralyEvaluableMixin, SecondFormattingIndentMixin, Node):
     pass
 
 

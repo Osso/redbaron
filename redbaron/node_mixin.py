@@ -286,7 +286,7 @@ class IfElseBlockSiblingMixin:
         return self.parent.parent.indentation + self.indent_unit
 
 
-class DefaultLeftoverIdentation:
+class SecondFormattingIndentMixin:
     def consume_leftover_indentation(self):
         if not self.second_formatting:
             return ""
@@ -294,7 +294,15 @@ class DefaultLeftoverIdentation:
         return self.second_formatting.consume_leftover_indentation()
 
 
-class SeparatorMixin(DefaultLeftoverIdentation):
+class FourthFormattingIndentMixin:
+    def consume_leftover_indentation(self):
+        if not self.fourth_formatting:
+            return ""
+
+        return self.fourth_formatting.consume_leftover_indentation()
+
+
+class SeparatorMixin(SecondFormattingIndentMixin):
     pass
 
 

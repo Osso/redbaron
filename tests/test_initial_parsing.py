@@ -161,6 +161,16 @@ def test_embedded_dict():
     assert red.dumps() == code
 
 
+def test_embedded_dict2():
+    code = """
+{
+        "key": {}
+    }
+"""
+    red = RedBaron(code)
+    assert red.dumps() == code
+
+
 def test_embedded_list():
     code = """
 {
