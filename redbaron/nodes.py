@@ -1085,11 +1085,7 @@ class StarNode(Node):
 
 
 class StringNode(LiteralyEvaluableMixin, DefaultLeftoverIdentation, Node):
-    def consume_leftover_indentation(self):
-        if not self.second_formatting:
-            return ""
-
-        return self.second_formatting[-1].consume_leftover_indentation()
+    pass
 
 
 class StringChainNode(LiteralyEvaluableMixin, Node):

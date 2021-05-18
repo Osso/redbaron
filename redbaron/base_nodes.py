@@ -437,6 +437,9 @@ class NodeList(UserList, BaseNode, IndentationMixin):
 
     @property
     def endl(self):
+        if not self:
+            return None
+
         return self[-1].endl
 
     def hide(self, item):
@@ -452,15 +455,17 @@ class NodeList(UserList, BaseNode, IndentationMixin):
         return r
 
     def consume_leftover_indentation(self):
-        from .nodes import SpaceNode, EndlNode
+        from .nodes import SpaceNode
+
+        if not self.endl:
+            return ""
 
         indent = ""
 
-        while self and isinstance(self[-1], SpaceNode):
+        while isinstance(self[-1], SpaceNode):
             indent += self.pop().value
 
-        if self and isinstance(self[-1], EndlNode):
-            indent += self[-1].consume_leftover_indentation()
+        indent += self[-1].consume_leftover_indentation()
 
         return indent
 

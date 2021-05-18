@@ -286,20 +286,16 @@ class IfElseBlockSiblingMixin:
         return self.parent.parent.indentation + self.indent_unit
 
 
-class SeparatorMixin:
+class DefaultLeftoverIdentation:
     def consume_leftover_indentation(self):
-        from .nodes import EndlNode
-
         if not self.second_formatting:
             return ""
 
-        node = self.second_formatting[-1]
-        if isinstance(node, EndlNode):
-            indent = node.indent
-            node.indent = ""
-            return indent
+        return self.second_formatting.consume_leftover_indentation()
 
-        return ""
+
+class SeparatorMixin(DefaultLeftoverIdentation):
+    pass
 
 
 class ElseMixin:
@@ -410,15 +406,3 @@ class ListTupleMixin:
     @property
     def value_on_new_line(self):
         return bool(self.second_formatting.find("endl"))
-
-
-class DefaultLeftoverIdentation:
-    @property
-    def leftover_indentation(self):
-        return self.second_formatting[-1].leftover_indentation
-
-    def consume_leftover_indentation(self):
-        if not self.second_formatting:
-            return ""
-
-        return self.second_formatting[-1].consume_leftover_indentation()
