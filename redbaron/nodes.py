@@ -840,17 +840,16 @@ class ListNode(ListTupleMixin, ValueIterableMixin, LiteralyEvaluableMixin, Node)
 
     @value.after_set
     def value(self, value):
-        self.fix_second_formatting()
+        self.move_second_formatting()
 
-    def fix_second_formatting(self):
-        if self.value and self.second_formatting:
-            if isinstance(self.second_formatting[-1], EndlNode):
-                indent = self.second_formatting[-1].indent
-                self.second_formatting[-1].indent = ""
-                self.value[0].indentation = indent
+    def move_second_formatting(self):
+        indent = self.second_formatting.consume_leftover_indentation()
+        if indent:
+            if self.value:
+                self.value[0].indentation += indent
+                self.value._data_to_node_list()
             else:
-                self.value[0].indentation = self.second_formatting.pop().value
-            self.value._data_to_node_list()
+                self.value.append(SpaceNode.make(indent))
 
     @property
     def endl(self):
@@ -858,6 +857,16 @@ class ListNode(ListTupleMixin, ValueIterableMixin, LiteralyEvaluableMixin, Node)
 
     def remove_endl(self):
         self.fourth_formatting.pop()
+
+    def consume_leftover_indentation(self):
+        if self.fourth_formatting and self.fourth_formatting.find("endl"):
+            return self.fourth_formatting.consume_leftover_indentation()
+
+        if self.fourth_formatting:
+            return self.value.consume_leftover_indentation() + \
+                   self.fourth_formatting.consume_leftover_indentation()
+
+        return self.value.consume_leftover_indentation()
 
 
 class LongNode(Node):
