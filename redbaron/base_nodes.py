@@ -1010,8 +1010,12 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
     def endl(self):
         from .proxy_list import ProxyList
 
-        if isinstance(self.parent, ProxyList) and self.parent.find_in_data(self):
-            return self.associated_sep and self.associated_sep.endl
+        if isinstance(self.parent, ProxyList):
+            try:
+                return self.associated_sep and self.associated_sep.endl
+            except ValueError:
+                # self is a separator
+                pass
 
         return self.second_formatting.find("endl")
 
@@ -1023,6 +1027,12 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
         if not isinstance(self.parent, NodeList):
             return None
         return self.parent.associated_sep(self)
+
+    @associated_sep.setter
+    def associated_sep(self, value):
+        if not isinstance(self.parent, NodeList):
+            return None
+        return self.parent.set_associated_sep(self, value)
 
     @property
     def value_on_new_line(self):

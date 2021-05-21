@@ -201,11 +201,11 @@ class ProxyList(NodeList):
         if not previous:
             self.header.append(EndlNode())
         else:
-            sep = self.associated_sep(previous)
-            if sep:
-                sep.second_formatting = ["\n"]
+            data = self.find_in_data(previous)
+            if data[1]:
+                data[1].second_formatting = ["\n"]
             else:
-                self.find_in_data(previous)[1] = EndlNode()
+                data[1] = EndlNode()
 
         self._synchronise()
 
@@ -426,15 +426,25 @@ class ProxyList(NodeList):
 
     def associated_sep(self, item):
         data_tuple = self.find_in_data(item)
-        if data_tuple is None:
-            raise Exception("Invalid Item: %r" % item)
-        return self._sep_from_data_tuple(data_tuple)
+        sep = self._sep_from_data_tuple(data_tuple)
+        if sep is item:
+            raise ValueError("Invalid Item: %r" % item)
+        return sep
+
+    def set_associated_sep(self, item, value):
+        data_tuple = self.find_in_data(item)
+        if item is data_tuple[1]:
+            raise ValueError("Invalid Item: %r" % item)
+        data_tuple[1] = value
+        self._synchronise()
 
     def find_in_data(self, item):
         for data_tuple in self._data:
-            if self._el_from_data_tuple(data_tuple) is item:
+            if (self._el_from_data_tuple(data_tuple) is item or
+                    self._sep_from_data_tuple(data_tuple) is item):
                 return data_tuple
-        return None
+
+        raise ValueError("Invalid Item: %r" % item)
 
     def has_brackets(self):
         from .nodes import LeftParenthesisNode, RightParenthesisNode
@@ -608,6 +618,19 @@ class CodeProxyList(LineProxyList):
 
         self._data[key] = nodes
         self._synchronise()
+
+    def hide(self, item):
+        from .nodes import CommentNode
+        from .node_mixin import CodeBlockMixin
+
+        super().hide(item)
+
+        # Handle inline comments
+        if item.previous and not item.previous.associated_sep:
+            if isinstance(item, CommentNode):
+                item.previous.associated_sep = item.associated_sep
+            else:
+                isinstance(item.previous, CodeBlockMixin)
 
 
 class DictProxyList(CommaProxyList):

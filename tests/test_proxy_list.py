@@ -1,5 +1,5 @@
 """ Tests the rendering feature """
-
+import pytest
 import redbaron
 from redbaron import (RedBaron,
                       node)
@@ -1255,7 +1255,8 @@ def test_find_in_data():
     red = RedBaron("a\nb")
     assert red.value.find_in_data(red[0])[0] is red[0]
     assert red.value.find_in_data(red[1])[0] is red[1]
-    assert not red.value.find_in_data(node("a"))
+    with pytest.raises(ValueError):
+        red.value.find_in_data(node("a"))
 
 
 def test_associated_sep():
