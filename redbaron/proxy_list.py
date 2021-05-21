@@ -458,10 +458,17 @@ class ProxyList(NodeList):
             return
 
         from .nodes import LeftParenthesisNode, RightParenthesisNode
-        self.data = [LeftParenthesisNode()] + \
-                    self.data + \
-                    [RightParenthesisNode()]
-        self._node_list_to_data()
+        self.header.insert(0, LeftParenthesisNode())
+        self.footer.append(RightParenthesisNode())
+        self._synchronise()
+
+    def remove_brackets(self):
+        if not self.has_brackets():
+            return
+
+        del self.header[0]
+        del self.footer[-1]
+        self._synchronise()
 
     def detect_one_per_line(self):
         for _, sep in self._data:

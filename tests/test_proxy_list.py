@@ -1296,6 +1296,12 @@ def test_add_brackets():
     assert red.dumps() == "from m import (a)"
 
 
+def test_remove_brackets():
+    red = RedBaron("from m import (a)")
+    red[0].targets.remove_brackets()
+    assert red.dumps() == "from m import a"
+
+
 def test_comma_proxy_list_insert_with_new_line():
     red = RedBaron("[\n    1,\n]")
     comma_proxy_list = red[0].value
