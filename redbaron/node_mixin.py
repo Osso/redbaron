@@ -138,8 +138,8 @@ class ValueIterableMixin:
     def clear(self):
         self.value.clear()
 
-    def add_endl(self, i):
-        self.value.add_endl(i)
+    def add_endl(self, item):
+        self.value.add_endl(item)
 
     def hide(self, item):
         self.value.hide(item)

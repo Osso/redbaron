@@ -906,28 +906,28 @@ def test_comma_proxy_list_insert_on_new_line_at_the_beginning_already_endl():
     red = RedBaron("[\n    1]")
     comma_proxy_list = red[0].value
     comma_proxy_list.insert_on_new_line(0, "2")
-    assert red.dumps() == "[\n    2, 1]"
+    assert red.dumps() == "[\n    2,\n    1]"
 
 
 def test_comma_proxy_list_indented_insert_on_new_line_at_the_end():
     red = RedBaron("[\n    1,\n]")
     comma_proxy_list = red[0].value
     comma_proxy_list.insert_on_new_line(1, "2")
-    assert red.dumps() == "[\n    1,\n    2]"
+    assert red.dumps() == "[\n    1,\n    2,\n]"
 
 
 def test_comma_proxy_list_indented_insert_on_new_line_in_the_middle():
     red = RedBaron("[\n    1,\n    3,\n]")
     comma_proxy_list = red[0].value
     comma_proxy_list.insert_on_new_line(1, "2")
-    assert red.dumps() == "[\n    1,\n    2, 3,\n]"
+    assert red.dumps() == "[\n    1,\n    2,\n    3,\n]"
 
 
 def test_comma_proxy_list_append_on_new_line():
     red = RedBaron("[\n    1,\n]")
     comma_proxy_list = red[0].value
     comma_proxy_list.append_on_new_line("2")
-    assert red.dumps() == "[\n    1,\n    2]"
+    assert red.dumps() == "[\n    1,\n    2,\n]"
 
 
 def test_comma_proxy_list_append_on_new_line_first_inline():
