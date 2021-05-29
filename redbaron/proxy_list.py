@@ -642,6 +642,15 @@ class CodeProxyList(LineProxyList):
             else:
                 isinstance(item.previous, CodeBlockMixin)
 
+    def make_code_block(self, start, length):
+        try:
+            start_index = self.index(start)
+        except ValueError as e:
+            raise ValueError("Invalid start %r" % start) from e
+        code_block = self.deep_copy()
+        code_block._data[:] = code_block._data[start_index:start_index+length]
+        return code_block
+
 
 class DictProxyList(CommaProxyList):
     def el_to_node(self, el):
