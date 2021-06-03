@@ -649,6 +649,7 @@ class CodeProxyList(LineProxyList):
             raise ValueError("Invalid start %r" % start) from e
         code_block = self.deep_copy()
         code_block._data[:] = code_block._data[start_index:start_index+length]
+        code_block._synchronise()
         return code_block
 
 
