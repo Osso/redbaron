@@ -424,8 +424,9 @@ class ProxyList(NodeList):
         self._data = sorted(self._data, key=wrapped_key, reverse=reverse)
         self._synchronise()
 
-    def clear_data(self):
+    def clear(self):
         self._data.clear()
+        self._synchronise()
 
     def associated_sep(self, item):
         data_tuple = self.find_in_data(item)

@@ -1314,3 +1314,11 @@ def test_comma_proxy_list_append_with_new_line():
     comma_proxy_list = red[0].value
     comma_proxy_list.append_with_new_line("2")
     assert red.dumps() == "[\n    1,\n    2,\n]"
+
+
+def test_comma_proxy_clear():
+    red = RedBaron("[1, 2, 3]")
+    comma_proxy_list = red[0].value
+    comma_proxy_list.clear()
+    assert not comma_proxy_list._data
+    assert not comma_proxy_list.data
