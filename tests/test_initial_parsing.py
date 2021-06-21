@@ -212,11 +212,11 @@ def test_ternary_dict():
 
 def test_def_ending_comment():
     code = """
-    def f():
-        pass
-        # ending comment
+while True:
+    pass
+# comment 2
 
-    # more code
+# more
 """
     red = RedBaron(code)
     assert red.dumps() == code
