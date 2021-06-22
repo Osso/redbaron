@@ -220,3 +220,12 @@ while True:
 """
     red = RedBaron(code)
     assert red.dumps() == code
+
+
+def test_return_with_comment():
+    code = """
+def f():
+    return  # comment
+"""
+    red = RedBaron(code)
+    assert red.dumps() == code

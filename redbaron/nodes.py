@@ -18,7 +18,8 @@ from .node_mixin import (AnnotationMixin,
                          SecondFormattingIndentMixin,
                          SeparatorMixin,
                          ValueIterableMixin)
-from .node_property import (NodeProperty,
+from .node_property import (NodeListProperty,
+                            NodeProperty,
                             conditional_formatting_property,
                             nodelist_property)
 from .proxy_list import (ArgsProxyList,
@@ -1005,13 +1006,20 @@ class ReprNode(Node):
 
 
 class ReturnNode(Node):
+    formatting = NodeListProperty(NodeList)
+
     @NodeProperty
     def value(self, value):
         return baron.parse("return %s" % value)[0]["value"]
 
-    @conditional_formatting_property(NodeList, [" "], [], allow_set=False)
-    def formatting(self):
-        return self.value
+    @value.after_set
+    def value(self, value):
+        if value:
+            if not self.formatting:
+                self.formatting = [" "]
+        elif value is not None:
+            self.formatting = []
+
 
 
 class SemicolonNode(Node):
