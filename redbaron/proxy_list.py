@@ -506,6 +506,14 @@ class ProxyList(NodeList):
         super().hide(item)
         self._synchronise()
 
+    def move_after(self, el, to):
+        """Keeps new lines"""
+        old_index = self.index(el)
+        new_index = self.index(to)
+        self._data.insert(new_index+1, self._data[old_index])
+        del self._data[old_index]
+        self._synchronise()
+
 
 class SpaceProxyList(ProxyList):
     def __init__(self, node_list=None, parent=None, on_attribute=None):

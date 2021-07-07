@@ -805,6 +805,7 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
             'add_endl',
             'hide',
             'remove_endl',
+            'move_after',
         ])
         for attr_name in dir(self):
             if attr_name.startswith("_"):  # private method
@@ -1037,3 +1038,8 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
     @property
     def value_on_new_line(self):
         return False
+
+    def move_after(self, el):
+        assert self.parent
+
+        el.parent.move_after(self, el)

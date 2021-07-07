@@ -686,3 +686,9 @@ def fun(arg1,
 def fun(arg1, arg2):
    pass
 """
+
+
+def test_move_after():
+    red = RedBaron("import a\nimport b\n")
+    red[0].move_after(red[1])
+    assert red.dumps() == "import b\nimport a\n"
