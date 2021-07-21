@@ -23,6 +23,9 @@ class ProxyList(NodeList):
         assert not self.data
         self.extend_node_list(node_list or [])
 
+    def can_be_in_header(self, node):
+        return True
+
     def _node_list_to_data(self):
         from .nodes import (LeftParenthesisNode, RightParenthesisNode,
                             SpaceNode, EndlNode)
@@ -48,20 +51,41 @@ class ProxyList(NodeList):
             elif isinstance(node, self.separator_type):
                 if not data:
                     if self.strict_separator:
+                        # e.g. , a, starts with separator, invalid code
                         raise Exception("node_list starts with separator "
                                         "for %s" % self.__class__.__name__)
-                    self.append_leftover_indent_to_header(consume_leftover(),
-                                                          self.header)
-                    self.header.append(node)
-                elif data[-1][1] is not None:
+                    elif self.can_be_in_header(node):
+                        # e.g. def fun():\n pass body starts with new line
+                        self.append_leftover_indent_to_header(consume_leftover(),
+                                                              self.header)
+                        self.header.append(node)
+                    else:
+                        # e.g. def fun():\n\n pass body starts with new lines
+                        empty_el = self.make_empty_el(consume_leftover())
+                        data.append([empty_el, node])
+                elif data[-1][1] is None:
+                    # e.g. (a, b) normal case
+                    data[-1][1] = node
+                elif isinstance(data[-1][1], self.separator_type):
                     if self.strict_separator:
+                        # e.g. (a,,) 2 separators in a row
                         # Ignore extra separator
                         continue
+                    # e.g. def fun():\n\n 2 separators in a row
                     empty_el = self.make_empty_el(consume_leftover())
                     data.append([empty_el, node])
-                else:
+                elif isinstance(data[-1][1], EndlNode):
+                    # can only happen if self.separtor_type is not a new line
+                    # e.g. (a\n, b) new line before separator
+                    endl = data[-1][1]
                     data[-1][1] = node
+                    data[-1][1].first_formatting.append(endl)
+                    data[-1][1].extend(endl.second_formatting)
+                    del endl.second_formatting[:]
+                else:
+                    raise Exception("unhandled separator location")
             elif isinstance(node, EndlNode):
+                # can only happen if self.separtor_type is not a new line
                 if not data:
                     self.header.append(node)
                 elif data[-1][1] is None:
@@ -559,6 +583,11 @@ class LineProxyList(ProxyList):
 
 
 class CodeProxyList(LineProxyList):
+    def can_be_in_header(self, node):
+        if self.header:
+            return False
+        return isinstance(node, self.separator_type)
+
     def consume_leftover_indentation(self):
         if not self.footer:
             return ""
