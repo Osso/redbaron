@@ -25,7 +25,7 @@ class ProxyList(NodeList):
 
     def _node_list_to_data(self):
         from .nodes import (LeftParenthesisNode, RightParenthesisNode,
-                            SpaceNode, EndlNode, CommentNode)
+                            SpaceNode, EndlNode)
 
         data = []
         self.header = []
