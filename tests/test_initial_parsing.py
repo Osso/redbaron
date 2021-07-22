@@ -229,3 +229,11 @@ def f():
 """
     red = RedBaron(code)
     assert red.dumps() == code
+
+
+def test_def_inine():
+    code = """
+def fun(): pass
+"""
+    red = RedBaron(code)
+    assert red.dumps() == code
