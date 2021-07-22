@@ -231,9 +231,35 @@ def f():
     assert red.dumps() == code
 
 
-def test_def_inine():
+def test_def_inline():
     code = """
 def fun(): pass
+"""
+    red = RedBaron(code)
+    assert red.dumps() == code
+
+
+def test_def_multiline():
+    code = """
+def fun():
+    pass
+"""
+    red = RedBaron(code)
+    assert red.dumps() == code
+
+
+def test_class_inline():
+    code = """
+class C: pass
+"""
+    red = RedBaron(code)
+    assert red.dumps() == code
+
+
+def test_class_multiline():
+    code = """
+class C:
+    pass
 """
     red = RedBaron(code)
     assert red.dumps() == code
