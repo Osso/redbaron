@@ -175,9 +175,11 @@ class ProxyList(NodeList):
     def reformat(self):
         from .nodes import EndlNode, CommentNode
 
+        indentation = self.el_indentation
+
         for el in self._data:
             if el[0].on_new_line:
-                el[0].indentation = self.el_indentation
+                el[0].indentation = indentation
             else:
                 el[0].indentation = ""
 
