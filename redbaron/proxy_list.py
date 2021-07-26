@@ -291,8 +291,9 @@ class ProxyList(NodeList):
         self[len(self):] = other
 
     def pop(self, i=-1):
-        self._data.pop(i)
+        el = self._data.pop(i)
         self._synchronise()
+        return el
 
     def remove(self, item):
         self.pop(self.index(item))
