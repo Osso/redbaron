@@ -963,9 +963,14 @@ class RaiseNode(Node):
     def value(self, value):
         return baron.parse("raise %s" % value)[0]["value"]
 
-    @conditional_formatting_property(NodeList, [" "], [], allow_set=False)
-    def first_formatting(self):
-        return self.value
+    @value.after_set
+    def value(self, value):
+        if value:
+            if not self.first_formatting:
+                self.first_formatting = [" "]
+        elif value is not None:
+            self.first_formatting = []
+
 
     @NodeProperty
     def instance(self, value):
@@ -1019,7 +1024,6 @@ class ReturnNode(Node):
                 self.formatting = [" "]
         elif value is not None:
             self.formatting = []
-
 
 
 class SemicolonNode(Node):
