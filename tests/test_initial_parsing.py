@@ -231,6 +231,15 @@ def f():
     assert red.dumps() == code
 
 
+def test_raise_with_comment():
+    code = """
+def f():
+    raise  # comment
+"""
+    red = RedBaron(code)
+    assert red.dumps() == code
+
+
 def test_def_inline():
     code = """
 def fun(): pass
