@@ -997,15 +997,25 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
         if not isinstance(self.parent, NodeList):
             return False
 
+        # Check integrity
+        if isinstance(self.parent, ProxyList):
+            assert self.parent.find_in_data(self)
+
+        # Separator
+        try:
+            displayable_previous = self.displayable_previous
+        except ValueError:
+            return False
+
         # First element
-        if not self.displayable_previous:
+        if not displayable_previous:
             if isinstance(self.parent, ProxyList) and self.parent.header:
                 if self.parent.header[-1].baron_type == 'endl':
                     return True
 
             return self.parent.on_new_line
 
-        return bool(self.displayable_previous.endl)
+        return bool(displayable_previous.endl)
 
     @property
     def endl(self):

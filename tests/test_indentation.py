@@ -134,3 +134,13 @@ def test_decrease_indentation_try_except_else():
     red = RedBaron(code)
     red.decrease_indentation("  ")
     assert red.dumps() == deindent_str(code, "  ")
+
+
+def test_decrease_indentation_atom_node():
+    code = """
+    fun() \\
+        .more()
+"""
+    red = RedBaron(code)
+    red.decrease_indentation("  ")
+    assert red.dumps() == deindent_str(code, "  ")

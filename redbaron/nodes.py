@@ -1,5 +1,7 @@
 import re
 
+from redbaron.utils import deindent_str
+
 import baron
 
 from .base_nodes import (Node,
@@ -101,6 +103,10 @@ class AtomtrailersNode(ValueIterableMixin, Node):
     @nodelist_property(DotProxyList)
     def value(self, value):
         return baron.parse("(%s)" % value)[0]["value"]["value"]
+
+    def decrease_indentation(self, indent=None):
+        super().decrease_indentation(indent=indent)
+        self.value.decrease_indentation(indent)
 
 
 class AwaitNode(Node):
@@ -395,6 +401,15 @@ class DictComprehensionNode(Node):
 class DotNode(Node):
     def _default_fst(self):
         return {"type": "dot", "first_formatting": [], "second_formatting": []}
+
+    @property
+    def on_new_line(self):
+        return super().on_new_line or self.first_formatting.endl
+
+    def decrease_indentation(self, indent=None):
+        # import pdb; pdb.set_trace()
+        for el in self.first_formatting:
+            el.decrease_indentation(indent=indent)
 
 
 class DottedAsNameNode(ValueIterableMixin, Node):
@@ -1085,6 +1100,15 @@ class SpaceNode(SeparatorMixin, Node):
         indent = self.value  # pylint: disable=access-member-before-definition
         self.value = ""  # pylint: disable=attribute-defined-outside-init
         return indent
+
+    @property
+    def endl(self):
+        return "\n" in self.value
+
+    def decrease_indentation(self, indent=None):
+        import pdb; pdb.set_trace()
+        self.value = deindent_str(indent + self.value, indent)  # pylint: disable=attribute-defined-outside-init
+
 
 
 class StandaloneAnnotationNode(Node):

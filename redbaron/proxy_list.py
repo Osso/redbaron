@@ -573,6 +573,18 @@ class DotProxyList(ProxyList):
             if index and isinstance(el, (CallNode, TupleNode, ListNode)):
                 self._data[index - 1][1] = None
 
+    def decrease_indentation(self, indent=None):
+        super().decrease_indentation(indent=indent)
+
+        if indent is None:
+            indent = self.indent_unit
+
+        # import pdb; pdb.set_trace()
+
+        for el, sep in self._data:
+            if sep and sep.on_new_line:
+                sep.decrease_indentation(indent)
+
 
 class LineProxyList(ProxyList):
     strict_separator = False
