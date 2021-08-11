@@ -1119,7 +1119,7 @@ class SpaceNode(SeparatorMixin, Node):
 
     @property
     def endl(self):
-        return "\n" in self.value
+        return super().endl or "\n" in self.value
 
     def increase_indentation(self, indent=None):
         if indent is None:
