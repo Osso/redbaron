@@ -162,7 +162,7 @@ class CodeBlockMixin(ValueIterableMixin):
 
     def _parse_indented(self, value, replace=False):
         if replace:
-            implicit_indent = self.indentation + self.indent_unit
+            implicit_indent = self.indentation + self.default_indent
         else:
             implicit_indent = self.el_indentation
         value = indent_str(value, implicit_indent)
@@ -217,6 +217,8 @@ class CodeBlockMixin(ValueIterableMixin):
 
 
 class IndentedCodeBlockMixin(CodeBlockMixin):
+    default_indent = BaseNode.indent_unit
+
     @nodelist_property(CodeProxyList)
     def value(self, value):
         return self._parse_value(value, replace=True)
