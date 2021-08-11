@@ -16,7 +16,6 @@ from .node_property import (AliasProperty,
 from .syntax_highlight import (help_highlight,
                                python_highlight)
 from .utils import (baron_type_from_class,
-                    deindent_str,
                     fix_baron_box,
                     in_a_shell,
                     in_ipython,
@@ -24,7 +23,7 @@ from .utils import (baron_type_from_class,
                     squash_successive_duplicates,
                     truncate)
 
-INDENT_UNIT = "    "
+INDENT_UNIT = 4 * " "
 NODES_RENDERING_ORDER = nodes_rendering_order
 NODES_RENDERING_ORDER["root"] = [('list', 'value', True)]
 NODES_RENDERING_ORDER["empty_line"] = []
@@ -117,8 +116,8 @@ class BaseNode(NeighborsMixin):
     Abstract class for Node and NodeList that contains methods
     that are used by both.
     """
+    indent_unit = INDENT_UNIT
     _leftover_indentation = ""
-    indent_unit = 4 * " "
     hidden = False
 
     def __init__(self, parent, on_attribute):
@@ -394,24 +393,19 @@ class NodeList(UserList, BaseNode, IndentationMixin):
             node.on_attribute = None
         super().extend(other)
 
-    def increase_indentation(self, indent=None):
-        if indent is None:
-            indent = self.indent_unit
-
-        indented_str = deindent_str(self.dumps(), self.el_indentation)
-        indented_str = indent_str(self.dumps(), indent)
-        if not self.parent:
-            raise ValueError("Cannot indent detached node")
-
-        self.replace(indented_str)
-
-    def decrease_indentation(self, indent=INDENT_UNIT):
+    def increase_indentation(self, indent):
         if indent is None:
             indent = self.indent_unit
 
         for el in self:
-            if el.on_new_line:
-                el.decrease_indentation(indent)
+            el.increase_indentation(indent)
+
+    def decrease_indentation(self, indent):
+        if indent is None:
+            indent = self.indent_unit
+
+        for el in self:
+            el.decrease_indentation(indent)
 
     def extend_node_list(self, new_node_list):
         self.set_parent_and_on_attribute(new_node_list)
@@ -965,11 +959,17 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
         if indent is None:
             indent = self.indent_unit
 
+        if not self.on_new_line:
+            return
+
         self.indentation += indent
 
     def decrease_indentation(self, indent=None):
         if indent is None:
             indent = self.indent_unit
+
+        if not self.on_new_line:
+            return
 
         self.indentation = self.indentation[len(indent):]
 

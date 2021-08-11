@@ -1,6 +1,7 @@
 import re
 
-from redbaron.utils import deindent_str
+from redbaron.utils import (deindent_str,
+                            indent_str)
 
 import baron
 
@@ -91,6 +92,14 @@ class AssignmentNode(AnnotationMixin, Node):
     @NodeProperty
     def value(self, value):
         return baron.parse("a = %s" % value)[0]["value"]
+
+    def increase_indentation(self, indent=None):
+        super().increase_indentation(indent=indent)
+        self.second_formatting.increase_indentation(indent)
+
+    def decrease_indentation(self, indent=None):
+        super().decrease_indentation(indent=indent)
+        self.second_formatting.decrease_indentation(indent)
 
 
 class AssociativeParenthesisNode(Node):
@@ -406,10 +415,11 @@ class DotNode(Node):
     def on_new_line(self):
         return super().on_new_line or self.first_formatting.endl
 
+    def increase_indentation(self, indent=None):
+        self.first_formatting.increase_indentation(indent=indent)
+
     def decrease_indentation(self, indent=None):
-        # import pdb; pdb.set_trace()
-        for el in self.first_formatting:
-            el.decrease_indentation(indent=indent)
+        self.first_formatting.decrease_indentation(indent=indent)
 
 
 class DottedAsNameNode(ValueIterableMixin, Node):
@@ -1105,10 +1115,19 @@ class SpaceNode(SeparatorMixin, Node):
     def endl(self):
         return "\n" in self.value
 
-    def decrease_indentation(self, indent=None):
-        import pdb; pdb.set_trace()
-        self.value = deindent_str(indent + self.value, indent)  # pylint: disable=attribute-defined-outside-init
+    def increase_indentation(self, indent=None):
+        if indent is None:
+            indent = self.indent_unit
 
+        super().increase_indentation(indent=indent)
+        self.value = indent_str(self.value, indent)[indent:]  # pylint: disable=attribute-defined-outside-init
+
+    def decrease_indentation(self, indent=None):
+        if indent is None:
+            indent = self.indent_unit
+
+        super().decrease_indentation(indent=indent)
+        self.value = deindent_str(indent + self.value, indent)  # pylint: disable=attribute-defined-outside-init
 
 
 class StandaloneAnnotationNode(Node):
