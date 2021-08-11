@@ -583,8 +583,6 @@ class DotProxyList(ProxyList):
         if indent is None:
             indent = self.indent_unit
 
-        # import pdb; pdb.set_trace()
-
         for el, sep in self._data:
             if sep and sep.on_new_line:
                 sep.decrease_indentation(indent)
