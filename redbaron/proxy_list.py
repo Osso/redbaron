@@ -541,6 +541,10 @@ class ProxyList(NodeList):
         del self._data[old_index]
         self._synchronise()
 
+    def increase_indentation(self, indent):
+        super().increase_indentation(indent=indent)
+        self._synchronise()
+
 
 class SpaceProxyList(ProxyList):
     def __init__(self, node_list=None, parent=None, on_attribute=None):

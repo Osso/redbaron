@@ -769,6 +769,12 @@ class IfNode(IfElseBlockSiblingMixin, IndentedCodeBlockMixin, Node):
     def value_on_new_line(self):
         return bool(self.second_formatting.find("endl"))
 
+    def increase_indentation(self, indent=None):
+        self.value.increase_indentation(indent)
+
+    def decrease_indentation(self, indent=None):
+        self.value.decrease_indentation(indent)
+
 
 class IfelseblockNode(CodeBlockMixin, Node):
     @nodelist_property(CodeProxyList)
