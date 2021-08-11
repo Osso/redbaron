@@ -207,9 +207,9 @@ class CodeBlockMixin(ValueIterableMixin):
     @property
     def el_indentation(self):
         if not self.value:
-            return self.indentation + self.indent_unit
+            return self.indentation + self.default_indent
 
-        return self._find_first_el_indentation() or self.indent_unit
+        return self._find_first_el_indentation() or self.default_indent
 
     @property
     def endl(self):
