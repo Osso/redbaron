@@ -419,9 +419,11 @@ class DotNode(Node):
 
     def increase_indentation(self, indent=None):
         self.first_formatting.increase_indentation(indent=indent)
+        self.second_formatting.increase_indentation(indent=indent)
 
     def decrease_indentation(self, indent=None):
         self.first_formatting.decrease_indentation(indent=indent)
+        self.second_formatting.decrease_indentation(indent=indent)
 
 
 class DottedAsNameNode(ValueIterableMixin, Node):

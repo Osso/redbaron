@@ -169,6 +169,16 @@ def test_decrease_indentation_assignement_and_atom_node():
     assert red.dumps() == deindent_str(code, "  ")
 
 
+def test_decrease_indentation_assignement_and_atom_node_2():
+    code = """
+    a = fun(). \\
+            more()
+"""
+    red = RedBaron(code)
+    red.decrease_indentation("  ")
+    assert red.dumps() == deindent_str(code, "  ")
+
+
 def test_decrease_indentation_space_node():
     code = [SpaceNode({"type": "space", "value": "\n "}), node("# hello")]
     red = NodeList(code)

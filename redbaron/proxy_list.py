@@ -584,7 +584,7 @@ class DotProxyList(ProxyList):
             indent = self.indent_unit
 
         for _, sep in self._data:
-            if sep and sep.on_new_line:
+            if sep:
                 sep.decrease_indentation(indent)
 
 
