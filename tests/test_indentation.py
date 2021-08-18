@@ -1,6 +1,9 @@
 """ Tests the rendering feature """
 
-from redbaron import RedBaron
+from redbaron import (NodeList,
+                      RedBaron,
+                      node)
+from redbaron.nodes import SpaceNode
 from redbaron.utils import (deindent_str,
                             indent_str)
 
@@ -164,3 +167,10 @@ def test_decrease_indentation_assignement_and_atom_node():
     red = RedBaron(code)
     red.decrease_indentation("  ")
     assert red.dumps() == deindent_str(code, "  ")
+
+
+def test_decrease_indentation_space_node():
+    code = [SpaceNode({"type": "space", "value": "\n "}), node("# hello")]
+    red = NodeList(code)
+    red.decrease_indentation("  ")
+    assert red.dumps() == "\n# hello"

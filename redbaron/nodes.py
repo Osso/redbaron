@@ -1103,6 +1103,8 @@ class SliceNode(Node):
 
 
 class SpaceNode(SeparatorMixin, Node):
+    value = ""
+
     def __repr__(self):
         return repr(baron.dumps([self.fst()]))
 
@@ -1115,7 +1117,10 @@ class SpaceNode(SeparatorMixin, Node):
                    on_attribute=on_attribute)
 
     def consume_leftover_indentation(self):
-        indent = self.value  # pylint: disable=access-member-before-definition
+        try:
+            indent = self.value.splitlines()[-1]  # pylint: disable=access-member-before-definition
+        except IndexError:
+            indent = ""
         self.value = ""  # pylint: disable=attribute-defined-outside-init
         return indent
 
