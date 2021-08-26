@@ -173,8 +173,6 @@ class ProxyList(NodeList):
         return el
 
     def reformat(self):
-        from .nodes import EndlNode, CommentNode
-
         indentation = self.el_indentation
 
         for el in self._data:
@@ -182,13 +180,6 @@ class ProxyList(NodeList):
                 el[0].indentation = indentation
             else:
                 el[0].indentation = ""
-
-            if not el[1]:
-                el[1] = self.make_separator()
-            elif isinstance(el[1], EndlNode) and not isinstance(el[0],
-                                                                CommentNode):
-                el[1] = self.make_separator()
-                el[1].second_formatting = ["\n"]
 
         if self._data:
             if not self.trailing_separator or not self[-1].endl:
@@ -207,7 +198,10 @@ class ProxyList(NodeList):
         value = self.el_to_node_with_indentation(item)
 
         self._add_separator_if_needed(index)
-        sep = self.make_separator_if_strict() if index < len(self) else None
+        if index < len(self) or self.trailing_separator:
+            sep = self.make_separator_if_strict()
+        else:
+            sep = None
         self._data.insert(index, [value, sep])
 
     def insert(self, i, item):
