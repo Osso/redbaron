@@ -172,7 +172,7 @@ class ProxyList(NodeList):
 
         return el
 
-    def reformat(self):
+    def reformat(self, force_separator=False):
         indentation = self.el_indentation
 
         for el in self._data:
@@ -180,6 +180,16 @@ class ProxyList(NodeList):
                 el[0].indentation = indentation
             else:
                 el[0].indentation = ""
+
+            if force_separator:
+                from .nodes import EndlNode, CommentNode
+
+                if not el[1]:
+                    el[1] = self.make_separator()
+                elif isinstance(el[1], EndlNode) and not isinstance(el[0],
+                                                                    CommentNode):
+                    el[1] = self.make_separator()
+                    el[1].second_formatting = ["\n"]
 
         if self._data:
             if not self.trailing_separator or not self[-1].endl:
