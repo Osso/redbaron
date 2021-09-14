@@ -272,3 +272,12 @@ class C:
 """
     red = RedBaron(code)
     assert red.dumps() == code
+
+
+def test_dict():
+    code = """
+{'status': condition1 and
+    condition2}
+"""
+    red = RedBaron(code)
+    assert red.dumps() == code

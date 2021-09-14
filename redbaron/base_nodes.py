@@ -1004,7 +1004,7 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
         if isinstance(self.parent, ProxyList):
             assert self.parent.find_in_data(self)
 
-        # Separator
+        # We are a separator
         try:
             displayable_previous = self.displayable_previous
         except ValueError:
@@ -1021,6 +1021,10 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
         return bool(displayable_previous.endl)
 
     @property
+    def _endl(self):
+        return self.second_formatting.find("endl")
+
+    @property
     def endl(self):
         from .proxy_list import ProxyList
 
@@ -1031,7 +1035,7 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
                 # self is a separator
                 pass
 
-        return self.second_formatting.find("endl")
+        return self._endl
 
     def remove_endl(self):
         self.second_formatting.pop()

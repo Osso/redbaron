@@ -109,6 +109,13 @@ class AssociativeParenthesisNode(Node):
     def value(self, value):
         return baron.parse("(%s)" % value)[0]["value"]
 
+    @property
+    def _endl(self):
+        return self.third_formatting.find('endl')
+
+    def remove_endl(self):
+        self.third_formatting.pop()
+
 
 class AtomtrailersNode(ValueIterableMixin, Node):
     @nodelist_property(DotProxyList)
@@ -158,6 +165,13 @@ class BinaryOperatorNode(Node):
     def second(self, value):
         return baron.parse("bb + %s" % value)[0]["second"]
 
+    @property
+    def _endl(self):
+        return None
+
+    def remove_endl(self):
+        pass
+
 
 class BinaryStringNode(Node, LiteralyEvaluableMixin):
     pass
@@ -185,6 +199,13 @@ class BooleanOperatorNode(Node):
     @NodeProperty
     def second(self, value):
         return baron.parse("bb and %s" % value)[0]["second"]
+
+    @property
+    def _endl(self):
+        return None
+
+    def remove_endl(self):
+        pass
 
 
 class BreakNode(Node):
@@ -392,7 +413,7 @@ class DictNode(FourthFormattingIndentMixin, ValueIterableMixin,
         return bool(self.second_formatting.find("endl"))
 
     @property
-    def endl(self):
+    def _endl(self):
         return self.fourth_formatting.find('endl')
 
     def remove_endl(self):
@@ -526,7 +547,7 @@ class EndlNode(Node):
         return indent
 
     @property
-    def endl(self):
+    def _endl(self):
         return self
 
 
@@ -891,7 +912,7 @@ class ListNode(FourthFormattingIndentMixin, ListTupleMixin, ValueIterableMixin,
                 self.value.append(SpaceNode.make(indent))
 
     @property
-    def endl(self):
+    def _endl(self):
         return self.fourth_formatting.find('endl')
 
     def remove_endl(self):
@@ -1127,8 +1148,8 @@ class SpaceNode(SeparatorMixin, Node):
         return indent
 
     @property
-    def endl(self):
-        return super().endl or "\n" in self.value
+    def _endl(self):
+        return super()._endl or "\n" in self.value
 
     def increase_indentation(self, indent=None):
         if indent is None:
@@ -1181,7 +1202,7 @@ class TernaryOperatorNode(Node):
         return baron.parse("a if %s else s" % value)[0]["value"]
 
     @property
-    def endl(self):
+    def _endl(self):
         return self.value.endl
 
     def remove_endl(self):
