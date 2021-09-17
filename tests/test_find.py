@@ -82,14 +82,14 @@ def test_find_case_insensitive():
 
 def test_find_kwarg_lambda():
     red = RedBaron("[1, 2, 3, 4]")
-    assert red.find("int", value=lambda x: int(x) % 2 == 0) == red.find_all("int")[1]
-    assert red.find_all("int", value=lambda x: int(x) % 2 == 0) == red.find_all("int")[1::2]
+    assert red.find("number", value=lambda x: int(x) % 2 == 0) == red.find_all("number")[1]
+    assert red.find_all("number", value=lambda x: int(x) % 2 == 0) == red.find_all("number")[1::2]
 
 
 def test_find_lambda():
     red = RedBaron("[1, 2, 3, 4]")
-    assert red.find("int", lambda x: int(x.value) % 2 == 0) == red.find_all("int")[1]
-    assert red.find_all("int", lambda x: int(x.value) % 2 == 0) == red.find_all("int")[1::2]
+    assert red.find("number", lambda x: int(x.value) % 2 == 0) == red.find_all("number")[1]
+    assert red.find_all("number", lambda x: int(x.value) % 2 == 0) == red.find_all("number")[1::2]
 
 
 def test_find_kwarg_regex_instance():
@@ -127,8 +127,8 @@ def test_find_all_kwarg_glob_syntaxe():
 
 def test_identifier_find_kwarg_lambda():
     red = RedBaron("stuff\n1\n'string'")
-    assert red.find(lambda x: x in ["name", "int"]) == red[0]
-    assert red.find_all(lambda x: x in ["name", "int"]) == list(red[:2])
+    assert red.find(lambda x: x in ["name", "number"]) == red[0]
+    assert red.find_all(lambda x: x in ["name", "number"]) == list(red[:2])
 
 
 def test_identifier_find_kwarg_regex_instance():

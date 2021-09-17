@@ -50,4 +50,4 @@ def test_root(red):
 
 def test_get_root():
     red = RedBaron("def a(b=c):\n    return 42")
-    assert red is red.find("int").root
+    assert red is red.find("number").root

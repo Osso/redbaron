@@ -25,7 +25,7 @@ def test_set_attr_on_import():
 def test_set_attr_on_list():
     red = RedBaron("[]")
     red[0].value = "1, 2, 3"
-    assert red[0].value[0].type == "int"
+    assert red[0].value[0].type == "number"
 
 
 def test_set_attr_on_list_empty():
@@ -37,13 +37,13 @@ def test_set_attr_on_list_empty():
 def test_set_attr_on_set():
     red = RedBaron("{1,}")
     red[0].value = "1, 2, 3"
-    assert red[0].value[0].type == "int"
+    assert red[0].value[0].type == "number"
 
 
 def test_set_attr_on_tuple():
     red = RedBaron("(1,)")
     red[0].value = "1, 2, 3"
-    assert red[0].value[0].type == "int"
+    assert red[0].value[0].type == "number"
 
 
 def test_set_attr_on_tuple_empty():
@@ -55,13 +55,13 @@ def test_set_attr_on_tuple_empty():
 def test_set_attr_on_repr():
     red = RedBaron("`1`")
     red[0].value = "1, 2, 3"
-    assert red[0].value[0].type == "int"
+    assert red[0].value[0].type == "number"
 
 
 def test_set_attr_on_dict():
     red = RedBaron("{}")
     red[0].value = "1: 2, 3: 4"
-    assert red[0].value[0].key.type == "int"
+    assert red[0].value[0].key.type == "number"
 
 
 def test_set_attr_on_dict_empty():

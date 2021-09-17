@@ -20,7 +20,7 @@ def test_assign_on_object_value():
 
     binop.first = "42"  # will be parsed as a int
     assert binop.first.value == "42"
-    assert binop.first.type == "int"
+    assert binop.first.type == "number"
 
 
 def test_assign_on_object_value_fst():

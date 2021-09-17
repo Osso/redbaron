@@ -4,8 +4,8 @@ from redbaron import (RedBaron,
 from redbaron.base_nodes import Node
 from redbaron.nodes import (AssignmentNode,
                             EndlNode,
-                            IntNode,
                             NameNode,
+                            NumberNode,
                             PassNode,
                             SpaceNode)
 
@@ -28,14 +28,14 @@ def test_name():
 
 def test_int():
     red = node("1")
-    assert isinstance(red, IntNode)
+    assert isinstance(red, NumberNode)
     assert red.value == "1"
 
 
 def test_assignment():
     red = RedBaron("a = 2")
     assert isinstance(red[0], AssignmentNode)
-    assert isinstance(red[0].value, IntNode)
+    assert isinstance(red[0].value, NumberNode)
     assert red[0].value.value == "2"
     assert isinstance(red[0].target, NameNode)
     assert red[0].target.value == "a"
@@ -46,7 +46,7 @@ def test_binary_operator_plus():
     assert binop.value == "+"
     assert isinstance(binop.first, NameNode)
     assert binop.first.value == "z"
-    assert isinstance(binop.second, IntNode)
+    assert isinstance(binop.second, NumberNode)
     assert binop.second.value == "42"
 
 
@@ -55,7 +55,7 @@ def test_binary_operator_minus():
     assert binop.value == "-"
     assert isinstance(binop.first, NameNode)
     assert binop.first.value == "z"
-    assert isinstance(binop.second, IntNode)
+    assert isinstance(binop.second, NumberNode)
     assert binop.second.value == "42"
 
 

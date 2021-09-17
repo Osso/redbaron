@@ -697,18 +697,6 @@ class ForNode(ElseMixin, IndentedCodeBlockMixin, Node):
         return self.next
 
 
-class FloatNode(Node, LiteralyEvaluableMixin):
-    pass
-
-
-class FloatExponantNode(Node, LiteralyEvaluableMixin):
-    pass
-
-
-class FloatExponantComplexNode(Node, LiteralyEvaluableMixin):
-    pass
-
-
 class FromImportNode(ValueIterableMixin, Node):
     def names(self):
         """Return the list of new names imported
@@ -836,13 +824,23 @@ class ImportNode(ValueIterableMixin, Node):
         return baron.parse("import %s" % value)[0]["value"]
 
 
-class IntNode(Node, LiteralyEvaluableMixin):
+class NumberNode(Node, LiteralyEvaluableMixin):
     def fst(self):
         return {
-            "type": "int",
+            "type": "number",
+            "sub_type": "int",
             "value": self.value,
-            "section": "number",
         }
+
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        if self.sub_type == "binary" and not re.match(r'^0b[01]+$', value):
+            raise ValueError(f"invalid value {value} for binary node")
+        self._value = value  # pylint: disable=attribute-defined-outside-init
 
 
 class InterpolatedStringNode(Node, LiteralyEvaluableMixin):
@@ -1026,7 +1024,6 @@ class RaiseNode(Node):
                 self.first_formatting = [" "]
         elif value is not None:
             self.first_formatting = []
-
 
     @NodeProperty
     def instance(self, value):
