@@ -1164,11 +1164,14 @@ class SpaceNode(SeparatorMixin, Node):
             indent = self.indent_unit
 
         super().increase_indentation(indent=indent)
-        self.value = indent_str(self.value, indent)[indent:]  # pylint: disable=attribute-defined-outside-init
+        self.value = indent_str(self.value + "a", indent)[len(indent):-1]  # pylint: disable=attribute-defined-outside-init
 
     def decrease_indentation(self, indent=None):
         if indent is None:
             indent = self.indent_unit
+
+        if "\n" not in self.value:
+            return
 
         super().decrease_indentation(indent=indent)
         self.value = deindent_str(indent + self.value, indent)  # pylint: disable=attribute-defined-outside-init

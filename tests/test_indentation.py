@@ -186,6 +186,16 @@ def test_decrease_indentation_space_node():
     assert red.dumps() == "\n# hello"
 
 
+def test_increase_indentation_brackets():
+    code = """
+    a = (fun().
+            more())
+"""
+    red = RedBaron(code)
+    red.increase_indentation("  ")
+    assert red.dumps() == indent_str(code, "  ")
+
+
 def test_decrease_indentation_brackets():
     code = """
     a = (fun().
@@ -196,11 +206,21 @@ def test_decrease_indentation_brackets():
     assert red.dumps() == deindent_str(code, "  ")
 
 
-def test_increase_indentation_brackets():
+def test_increase_indentation_assignement_backslash():
     code = """
-    a = (fun().
-            more())
+    a = \\
+        1
 """
     red = RedBaron(code)
     red.increase_indentation("  ")
     assert red.dumps() == indent_str(code, "  ")
+
+
+def test_decrease_indentation_assignement_backslash():
+    code = """
+    a = \\
+        1
+"""
+    red = RedBaron(code)
+    red.decrease_indentation("  ")
+    assert red.dumps() == deindent_str(code, "  ")
