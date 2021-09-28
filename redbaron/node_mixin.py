@@ -145,6 +145,16 @@ class ValueIterableMixin:
         self.value.hide(item)
 
 
+class IndentedValueMixin:
+    def increase_indentation(self, indent=None):
+        super().increase_indentation(indent=indent)
+        self.value.increase_indentation(indent)
+
+    def decrease_indentation(self, indent=None):
+        super().decrease_indentation(indent=indent)
+        self.value.decrease_indentation(indent)
+
+
 class CodeBlockMixin(ValueIterableMixin):
     default_indent = ""
 

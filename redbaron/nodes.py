@@ -15,6 +15,7 @@ from .node_mixin import (AnnotationMixin,
                          FourthFormattingIndentMixin,
                          IfElseBlockSiblingMixin,
                          IndentedCodeBlockMixin,
+                         IndentedValueMixin,
                          ListTupleMixin,
                          LiteralyEvaluableMixin,
                          ReturnAnnotationMixin,
@@ -104,7 +105,7 @@ class AssignmentNode(AnnotationMixin, Node):
         self.value.decrease_indentation(indent=indent)
 
 
-class AssociativeParenthesisNode(Node):
+class AssociativeParenthesisNode(ValueIterableMixin, IndentedValueMixin, Node):
     @NodeProperty
     def value(self, value):
         return baron.parse("(%s)" % value)[0]["value"]
@@ -117,14 +118,10 @@ class AssociativeParenthesisNode(Node):
         self.third_formatting.pop()
 
 
-class AtomtrailersNode(ValueIterableMixin, Node):
+class AtomtrailersNode(ValueIterableMixin, IndentedValueMixin, Node):
     @nodelist_property(DotProxyList)
     def value(self, value):
         return baron.parse("(%s)" % value)[0]["value"]["value"]
-
-    def decrease_indentation(self, indent=None):
-        super().decrease_indentation(indent=indent)
-        self.value.decrease_indentation(indent)
 
 
 class AwaitNode(Node):
@@ -549,6 +546,20 @@ class EndlNode(Node):
     @property
     def _endl(self):
         return self
+
+    def increase_indentation(self, indent=None):
+        if indent is None:
+            indent = self.indent_unit
+
+        super().increase_indentation(indent=indent)
+        self.indent = indent_str(self.indent, indent)  # pylint: disable=attribute-defined-outside-init
+
+    def decrease_indentation(self, indent=None):
+        if indent is None:
+            indent = self.indent_unit
+
+        super().decrease_indentation(indent=indent)
+        self.indent = deindent_str(self.indent, indent)  # pylint: disable=attribute-defined-outside-init
 
 
 class ExceptNode(IndentedCodeBlockMixin, Node):

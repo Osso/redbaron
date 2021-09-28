@@ -184,3 +184,23 @@ def test_decrease_indentation_space_node():
     red = NodeList(code)
     red.decrease_indentation("  ")
     assert red.dumps() == "\n# hello"
+
+
+def test_decrease_indentation_brackets():
+    code = """
+    a = (fun().
+            more())
+"""
+    red = RedBaron(code)
+    red.decrease_indentation("  ")
+    assert red.dumps() == deindent_str(code, "  ")
+
+
+def test_increase_indentation_brackets():
+    code = """
+    a = (fun().
+            more())
+"""
+    red = RedBaron(code)
+    red.increase_indentation("  ")
+    assert red.dumps() == indent_str(code, "  ")
