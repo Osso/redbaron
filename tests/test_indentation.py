@@ -224,3 +224,23 @@ def test_decrease_indentation_assignement_backslash():
     red = RedBaron(code)
     red.decrease_indentation("  ")
     assert red.dumps() == deindent_str(code, "  ")
+
+
+def test_increase_indentation_brackets_2():
+    code = """
+a = (fun()
+  .filter())
+"""
+    red = RedBaron(code)
+    red.increase_indentation("  ")
+    assert red.dumps() == indent_str(code, "  ")
+
+
+def test_decrease_indentation_brackets_2():
+    code = """
+  a = (fun()
+    .filter())
+"""
+    red = RedBaron(code)
+    red.decrease_indentation("  ")
+    assert red.dumps() == deindent_str(code, "  ")

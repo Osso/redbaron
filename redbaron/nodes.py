@@ -214,6 +214,20 @@ class CallNode(ValueIterableMixin, Node):
     def value(self, value):
         return baron.parse("a(%s)" % value)[0]["value"][1]["value"]
 
+    def increase_indentation(self, indent=None):
+        if indent is None:
+            indent = self.indent_unit
+
+        super().increase_indentation(indent=indent)
+        self.fourth_formatting.increase_indentation(indent=indent)
+
+    def decrease_indentation(self, indent=None):
+        if indent is None:
+            indent = self.indent_unit
+
+        super().decrease_indentation(indent=indent)
+        self.fourth_formatting.decrease_indentation(indent=indent)
+
 
 class CallArgumentNode(Node):
     @NodeProperty
@@ -552,7 +566,7 @@ class EndlNode(Node):
             indent = self.indent_unit
 
         super().increase_indentation(indent=indent)
-        self.indent = indent_str(self.indent, indent)  # pylint: disable=attribute-defined-outside-init
+        self.indent = indent_str(self.indent + "a", indent)[:-1]  # pylint: disable=attribute-defined-outside-init
 
     def decrease_indentation(self, indent=None):
         if indent is None:
