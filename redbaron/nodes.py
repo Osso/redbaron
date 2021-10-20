@@ -374,12 +374,6 @@ class DefArgumentNode(Node, AnnotationMixin):
         code = "def a(%s=b): pass" % value
         return baron.parse(code)[0]["arguments"][0]["target"]
 
-    def put_on_new_line(self, indentation=None):
-        self.parent.put_on_new_line(self, indentation=indentation)
-
-    def put_on_same_line(self):
-        self.parent.put_on_same_line(self)
-
 
 class DelNode(Node):
     @NodeProperty

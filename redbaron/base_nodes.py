@@ -800,6 +800,8 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
             'hide',
             'remove_endl',
             'move_after',
+            'put_on_new_line',
+            'put_on_same_line',
         ])
         for attr_name in dir(self):
             if attr_name.startswith("_"):  # private method
@@ -1060,3 +1062,9 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
         assert self.parent
 
         el.parent.move_after(self, el)
+
+    def put_on_new_line(self, indentation=None):
+        self.parent.put_on_new_line(self, indentation=indentation)
+
+    def put_on_same_line(self):
+        self.parent.put_on_same_line(self)
