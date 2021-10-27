@@ -209,7 +209,7 @@ class BreakNode(Node):
     pass
 
 
-class CallNode(ValueIterableMixin, Node):
+class CallNode(ValueIterableMixin, IndentedValueMixin, Node):
     @nodelist_property(ArgsProxyList)
     def value(self, value):
         return baron.parse("a(%s)" % value)[0]["value"][1]["value"]
