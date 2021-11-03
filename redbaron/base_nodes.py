@@ -136,8 +136,16 @@ class BaseNode(NeighborsMixin):
 
     @property
     def box(self):
-        path = self.path().to_baron_path()
-        return self._baron_path_to_box(self.root.fst(), path)
+        target = self if not self.hidden else self.displayable_next
+
+        path = target.path().to_baron_path()
+        box = self._baron_path_to_box(self.root.fst(), path)
+
+        if self.hidden:
+            box.bottom_right = box.top_left
+
+        return box
+
 
     def find_by_position(self, position):
         path = baron.path.position_to_path(self.fst(), position) or []
