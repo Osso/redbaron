@@ -1403,7 +1403,7 @@ class EmptyLineNode(Node):
         return repr(baron.dumps([self.fst()]))
 
     def fst(self):
-        return {"type": "space", "value": ""}
+        return self._default_fst()
 
 
 class IndentationNode(SpaceNode):
