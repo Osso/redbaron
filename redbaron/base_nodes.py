@@ -146,7 +146,6 @@ class BaseNode(NeighborsMixin):
 
         return box
 
-
     def find_by_position(self, position):
         path = baron.path.position_to_path(self.fst(), position) or []
         return self.find_by_path(path)
