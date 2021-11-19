@@ -588,6 +588,19 @@ def test_on_copied_blocknode_set_body():
     z.value = "pouet"
 
 
+def test_copy_proxy_list_new_line():
+    code = """
+def fun():
+    with a:
+        stuff
+
+    with b:
+        stuff
+"""
+    red = RedBaron(code)
+    assert red[0].copy()[0].associated_sep is None
+
+
 def test_append_def_arg_annotated():
     red = RedBaron("def foobar(): pass")
     args = red.find("def").arguments
