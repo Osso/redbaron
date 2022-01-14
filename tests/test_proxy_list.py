@@ -145,6 +145,13 @@ def test_comma_proxy_list_remove():
     assert red.dumps() == "[]"
 
 
+def test_comma_proxy_list_remove_el():
+    red = RedBaron("[1]")
+    comma_proxy_list = red[0].value
+    comma_proxy_list[0].remove()
+    assert red.dumps() == "[]"
+
+
 def test_comma_proxy_list_remove_2_at_top():
     red = RedBaron("[2, 1]")
     comma_proxy_list = red[0].value

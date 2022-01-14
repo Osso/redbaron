@@ -1075,3 +1075,7 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
 
     def put_on_same_line(self):
         self.parent.put_on_same_line(self)
+
+    def remove(self):
+        assert self.parent
+        self.parent.remove(self)
