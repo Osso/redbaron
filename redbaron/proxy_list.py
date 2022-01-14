@@ -195,11 +195,13 @@ class ProxyList(NodeList):
             if not self.trailing_separator or not self[-1].endl:
                 self._data[-1][1] = None
 
+        self._data_to_node_list()
+
     def _synchronise(self):
         if self.auto_separator:
             self.reformat()
-
-        self._data_to_node_list()
+        else:
+            self._data_to_node_list()
 
     def __len__(self):
         return len(self._data)
@@ -580,13 +582,14 @@ class DotProxyList(ProxyList):
         self.middle_separator = DotNode()
         super().__init__(node_list, parent=parent, on_attribute=on_attribute)
 
-    def reformat(self):
+    def reformat(self, force_separator=False):
         from .nodes import CallNode, TupleNode, ListNode
 
-        super().reformat()
+        super().reformat(force_separator=force_separator)
         for index, (el, _) in enumerate(self._data):
             if index and isinstance(el, (CallNode, TupleNode, ListNode)):
                 self._data[index - 1][1] = None
+        self._data_to_node_list()
 
     def decrease_indentation(self, indent=None):
         super().decrease_indentation(indent=indent)
