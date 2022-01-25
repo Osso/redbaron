@@ -761,13 +761,17 @@ class ImportsProxyList(CommaProxyList):
 
     @property
     def el_indentation(self):
-        from .nodes import LeftParenthesisNode
+        from .nodes import LeftParenthesisNode, EndlNode
 
         if self:
             # Compute indent from parent + header length
             header_len = 0
-            if self.header and isinstance(self.header[-1], LeftParenthesisNode):
-                header_len = 1
+            if self.header:
+                if isinstance(self.header[-1], LeftParenthesisNode):
+                    header_len = 1
+                elif (isinstance(self.header[-2], LeftParenthesisNode) and
+                      isinstance(self.header[-1], EndlNode)):
+                    return self.indent_unit
             return (header_len + self.box.top_left.column - 1) * " "
 
         # If list is empty, then first element will be inline

@@ -46,6 +46,11 @@ def test_indentation_no_parent():
     assert red[0].copy().indentation == ''
 
 
+def test_indentation_import():
+    red = node("from a import (\na1)")
+    assert red.targets.el_indentation == "    "
+
+
 def test_indentation_root():
     red = RedBaron("pouet")
     assert red[0].indentation == ""
