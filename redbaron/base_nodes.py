@@ -271,9 +271,6 @@ class IndentationMixin:
     def consume_leftover_indentation(self):
         return ""
 
-    def consume_leftover_endl(self):
-        return []
-
 
 class NodeList(UserList, BaseNode, IndentationMixin):
     def __init__(self, node_list=None, parent=None, on_attribute=None):
@@ -781,7 +778,6 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
             'path',
             'replace',
             'to_python',
-            'consume_leftover_endl',
             'consume_leftover_indentation',
             'set_attributes_from_fst',
             'set_on_attribute_node',

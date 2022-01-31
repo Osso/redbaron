@@ -108,20 +108,9 @@ class ProxyList(NodeList):
                 data.append([node, None])
 
             leftover_indent = node.consume_leftover_indentation()
-            self.append_leftover_endl_to_data(node, data)
 
         self.append_leftover_indent_to_footer(leftover_indent, self.footer)
         self._data = data
-
-    def append_leftover_endl_to_data(self, node, data):
-        from .nodes import EndlNode
-
-        if isinstance(self.middle_separator, EndlNode):
-            for el in node.consume_leftover_endl():
-                el[0].parent = self
-                if el[1] is not None:
-                    el[1].parent = self
-                data.append(el)
 
     def append_leftover_indent_to_header(self, leftover_indent, header):
         if leftover_indent:
@@ -635,18 +624,6 @@ class CodeProxyList(LineProxyList):
             return leftover
 
         return ""
-
-    def consume_leftover_endl(self):
-        if not self._data:
-            return []
-
-        leftover_endl = []
-        while self._data[-1][0].type in ('empty_line', 'space'):
-            leftover_endl.append(self._data.pop())
-
-        self._synchronise()
-
-        return reversed(leftover_endl)
 
     @property
     def el_indentation(self):
