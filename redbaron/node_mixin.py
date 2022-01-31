@@ -179,12 +179,17 @@ class CodeBlockMixin(ValueIterableMixin):
         # we do not want to the el_indentation there
         # e.g def f(): {value}
         if value.startswith(" ") and value.lstrip(" ").startswith("\n"):
+            leading_endl = ""
             value = value[len(implicit_indent):]
+        else:
+            leading_endl = "\n"
 
         # Handle the case of empty lines
         if value.strip(" \n"):
-            fst = baron.parse("while a:\n%s" % value)[0]['value']
-            fst[0] = {"type": "space", "value": fst[0]['indent']}
+            fst = baron.parse("while a:%s%s" % (leading_endl,
+                                                value))[0]['value']
+            if leading_endl:
+                fst[0] = {"type": "space", "value": fst[0]['indent']}
         else:
             fst = baron.parse(value)
 
