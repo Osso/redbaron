@@ -181,8 +181,14 @@ class CodeBlockMixin(ValueIterableMixin):
         # e.g def f(): {value}
         if value.startswith(" ") and value.lstrip(" ").startswith("\n"):
             value = value[len(implicit_indent):]
-        fst = baron.parse("while a:\n%s" % value)[0]['value']
-        fst[0] = {"type": "space", "value": fst[0]['indent']}
+
+        # Handle the case of empty lines
+        if value.strip(" \n"):
+            fst = baron.parse("while a:\n%s" % value)[0]['value']
+            fst[0] = {"type": "space", "value": fst[0]['indent']}
+        else:
+            fst = baron.parse(value)
+
         return fst
 
     def _parse_not_indented(self, value):
