@@ -63,6 +63,9 @@ class ProxyList(NodeList):
                         # e.g. def fun():\n\n pass body starts with new lines
                         empty_el = self.make_empty_el(consume_leftover())
                         data.append([empty_el, node])
+                elif not self.el_allows_sep(data[-1][0]):
+                    empty_el = self.make_empty_el(consume_leftover())
+                    data.append([empty_el, node])
                 elif data[-1][1] is None:
                     # e.g. (a, b) normal case
                     data[-1][1] = node
@@ -85,7 +88,7 @@ class ProxyList(NodeList):
                 else:
                     raise Exception("unhandled separator location")
             elif isinstance(node, EndlNode):
-                # can only happen if self.separtor_type is not a new line
+                # can only happen if self.separator_type is not a new line
                 if not data:
                     self.header.append(node)
                 elif data[-1][1] is None:
@@ -558,6 +561,9 @@ class ProxyList(NodeList):
         super().increase_indentation(indent=indent)
         self._synchronise()
 
+    def el_allows_sep(self, el):
+        return True
+
 
 class SpaceProxyList(ProxyList):
     def __init__(self, node_list=None, parent=None, on_attribute=None):
@@ -720,6 +726,10 @@ class CodeProxyList(LineProxyList):
         code_block._data[:] = code_block._data[start_index:start_index+length]
         code_block._synchronise()
         return code_block
+
+    def el_allows_sep(self, el):
+        from .nodes import CodeBlockMixin
+        return not isinstance(el, CodeBlockMixin)
 
 
 class DictProxyList(CommaProxyList):
