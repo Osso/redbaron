@@ -187,9 +187,12 @@ class CodeBlockMixin(ValueIterableMixin):
         # Handle the case of empty lines
         if value.strip(" \n"):
             fst = baron.parse("while a:%s%s" % (leading_endl,
-                                                value))[0]['value']
+                                                value))
+            trailing_endl = fst[1:]
+            fst = fst[0]['value']
             if leading_endl:
                 fst[0] = {"type": "space", "value": fst[0]['indent']}
+            fst += trailing_endl
         else:
             fst = baron.parse(value)
 
@@ -250,21 +253,20 @@ class IndentedCodeBlockMixin(CodeBlockMixin):
                 fst = self._parse_indented(value, replace=True)
             else:
                 # Parse inline
-                fst = self._parse_not_indented(value)
+                fst = self._parse_inline(value)
         else:
             if self.value.header:
                 # Parse multi-line
                 fst = self._parse_indented(value)
             else:
                 # Parse inline
-                fst = self._parse_not_indented(value)
+                fst = self._parse_inline(value)
         return fst
 
-    def _parse_not_indented(self, value):
-        fst = baron.parse("while a: %s" % value)
-        if len(fst) > 1:
+    def _parse_inline(self, value):
+        if value.rstrip("\n").count("\n"):
             raise ValueError("inline code can't have multiple lines")
-        fst = fst[0]
+        fst = baron.parse("while a: %s" % value)[0]
         indent = fst['third_formatting'][0]['value'][1:]
         fst['value'].insert(0, {"type": "space", "value": indent})
         return fst['value']
