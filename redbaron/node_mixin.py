@@ -163,8 +163,7 @@ class CodeBlockMixin(ValueIterableMixin):
         return self._parse_value(value, replace=True)
 
     def _parse_value(self, value, replace=False):
-        # if self.el_indentation or value.startswith(" "):
-        if value.startswith(" "):
+        if value.lstrip("\n").startswith(" "):
             fst = self._parse_indented(value, replace=True)
         else:
             fst = self._parse_not_indented(value)
