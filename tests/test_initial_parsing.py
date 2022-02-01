@@ -210,7 +210,7 @@ def test_ternary_dict():
     assert red.dumps() == code
 
 
-def test_def_ending_comment():
+def test_while_ending_comment():
     code = """
 while True:
     pass
