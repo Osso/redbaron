@@ -281,3 +281,14 @@ def test_dict():
 """
     red = RedBaron(code)
     assert red.dumps() == code
+
+
+def test_def_inside_def():
+    code = """
+def fun():
+
+    def sub():
+        pass
+"""
+    red = RedBaron(code)
+    assert red.dumps() == code
