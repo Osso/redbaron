@@ -292,3 +292,15 @@ def fun():
 """
     red = RedBaron(code)
     assert red.dumps() == code
+
+
+def test_def_inside_def_inside_class():
+    code = """
+class A:
+    def fun():
+
+        def sub():
+            pass
+"""
+    red = RedBaron(code)
+    assert red.dumps() == code
