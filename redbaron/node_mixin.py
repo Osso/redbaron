@@ -11,7 +11,8 @@ from .node_property import (NodeProperty,
                             nodelist_property)
 from .proxy_list import (CodeProxyList,
                          DecoratorsProxyList)
-from .utils import indent_str
+from .utils import (indent_str,
+                    strip_comments)
 
 
 class LiteralyEvaluableMixin:
@@ -185,7 +186,7 @@ class CodeBlockMixin(ValueIterableMixin):
             leading_endl = "\n"
 
         # Handle the case of empty lines
-        if value.strip(" \n"):
+        if strip_comments(value.strip(" \n")):
             fst = baron.parse("while a:%s%s" % (leading_endl,
                                                 value))
             trailing_endl = fst[1:]

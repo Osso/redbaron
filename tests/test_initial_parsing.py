@@ -304,3 +304,10 @@ class A:
 """
     red = RedBaron(code)
     assert red.dumps() == code
+
+
+def test_comment_el():
+    code = "def a():\n    pass"
+    el = "# comment"
+    red = node(code)
+    red.append(el)
