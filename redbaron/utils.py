@@ -81,3 +81,8 @@ def squash_successive_duplicates(iterable):
             continue
         previous = j
         yield j
+
+
+def strip_comments(code):
+    return '\n'.join([line for line in code.split("\n")
+                      if not line.lstrip(" ").startswith("#")])

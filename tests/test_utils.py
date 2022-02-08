@@ -3,6 +3,7 @@ from redbaron.utils import (deindent_str,
                             in_ipython,
                             indent_str,
                             squash_successive_duplicates,
+                            strip_comments,
                             truncate)
 
 
@@ -85,3 +86,33 @@ def test_truncate():
 
 def test_squash_successive_duplicates():
     assert list(squash_successive_duplicates([1, 2, 3, 3, 4])) == [1, 2, 3, 4]
+
+
+def test_strip_comments():
+    code = """
+def a():
+  # plop
+  1 + 2
+  if caramba:
+      plop
+  pouf
+"""
+    stripped = """
+def a():
+  1 + 2
+  if caramba:
+      plop
+  pouf
+"""
+    assert strip_comments(code) == stripped
+
+
+def test_strip_comments_2():
+    code = """
+def a():
+  1 + 2
+  if caramba:
+      plop
+  pouf
+"""
+    assert strip_comments(code) == code
