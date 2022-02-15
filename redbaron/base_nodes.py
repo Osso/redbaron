@@ -455,7 +455,7 @@ class NodeList(UserList, BaseNode, IndentationMixin):
     def consume_leftover_indentation(self):
         from .nodes import SpaceNode
 
-        if not self.endl:
+        if not self.endl or not self.data:
             return ""
 
         indent = ""
