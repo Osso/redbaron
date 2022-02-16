@@ -460,10 +460,13 @@ class NodeList(UserList, BaseNode, IndentationMixin):
 
         indent = ""
 
-        while isinstance(self[-1], SpaceNode):
+        while self.data and isinstance(self[-1], SpaceNode):
+            if "\n" in self[-1].value:
+                return self[-1].consume_leftover_indentation()
             indent += self.pop().value
 
-        indent += self[-1].consume_leftover_indentation()
+        if self.data:
+            indent += self[-1].consume_leftover_indentation()
 
         return indent
 
