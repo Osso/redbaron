@@ -35,8 +35,7 @@ class Path:
 
         index = node.on_attribute
         if index:
-            if index[:-1] in RESERVED_KEYWORDS:
-                assert index[-1] == "_"
+            if index[-1] == "_" and index[:-1] in RESERVED_KEYWORDS:
                 index = index[:-1]
             return index
 
