@@ -264,7 +264,10 @@ class IndentedCodeBlockMixin(CodeBlockMixin):
     def _parse_inline(self, value):
         if value.rstrip("\n").count("\n"):
             raise ValueError("inline code can't have multiple lines")
-        fst = baron.parse("while a: %s" % value)[0]
+        if strip_comments(value.strip(" \n")):
+            fst = baron.parse("while a: %s" % value)[0]
+        else:
+            fst = baron.parse(value)[0]
         indent = fst['third_formatting'][0]['value'][1:]
         fst['value'].insert(0, {"type": "space", "value": indent})
         return fst['value']
