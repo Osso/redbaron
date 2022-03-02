@@ -578,11 +578,12 @@ class DotProxyList(ProxyList):
         super().__init__(node_list, parent=parent, on_attribute=on_attribute)
 
     def reformat(self, force_separator=False):
-        from .nodes import CallNode, TupleNode, ListNode
+        from .nodes import CallNode, TupleNode, ListNode, GetitemNode
 
         super().reformat(force_separator=force_separator)
         for index, (el, _) in enumerate(self._data):
-            if index and isinstance(el, (CallNode, TupleNode, ListNode)):
+            if index and isinstance(el, (CallNode, TupleNode, ListNode,
+                                         GetitemNode)):
                 self._data[index - 1][1] = None
         self._data_to_node_list()
 
