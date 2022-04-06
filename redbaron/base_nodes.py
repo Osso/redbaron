@@ -470,6 +470,9 @@ class NodeList(UserList, BaseNode, IndentationMixin):
 
         return indent
 
+    def associated_sep(self, item):
+        return None
+
 
 class NodeRegistration(type):
     node_type_mapping = {}
