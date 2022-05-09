@@ -705,3 +705,18 @@ def test_move_after():
     red = RedBaron("import a\nimport b\n")
     red[0].move_after(red[1])
     assert red.dumps() == "import b\nimport a\n"
+
+
+def test_remove_endl():
+    code = """
+def fun(arg1,
+        arg2):
+   pass
+"""
+    red = RedBaron(code)
+    fun = red[0]
+    fun.arguments[0].remove_endl()
+    assert red.dumps() == """
+def fun(arg1, arg2):
+   pass
+"""

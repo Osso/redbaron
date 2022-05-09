@@ -239,17 +239,25 @@ class ProxyList(NodeList):
         if not item.on_new_line:
             return
 
-        i = self.index(item)
-        if i == 0:
+        if item.displayable_previous:
+            self.remove_endl(item.displayable_previous)
+        else:
             assert isinstance(self.header[-1], EndlNode)
             self.header.pop()
+            self._synchronise()
+
+    def remove_endl(self, item):
+        from .nodes import EndlNode
+
+        if not item.endl:
+            return
+
+        sep = item.associated_sep
+        if isinstance(sep, EndlNode):
+            item.associated_sep = None
         else:
-            if self._data[i-1][1]:
-                assert isinstance(self._data[i-1][1].second_formatting[-1], EndlNode)
-                self._data[i-1][1].second_formatting = " "
-            else:
-                assert isinstance(self._data[i-1][1], EndlNode)
-                self._data[i-1][1] = None
+            assert sep.endl
+            sep.remove_endl()
 
         self._synchronise()
 
@@ -566,6 +574,13 @@ class CommaProxyList(ProxyList):
         from .nodes import CommaNode
         self.middle_separator = CommaNode()
         super().__init__(node_list, parent=parent, on_attribute=on_attribute)
+
+    def remove_endl(self, item):
+        if item.displayable_next:
+            item.associated_sep.second_formatting = " "
+            self._synchronise()
+        else:
+            super().remove_endl(item)
 
 
 class DotProxyList(ProxyList):

@@ -1039,17 +1039,16 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
     def endl(self):
         from .proxy_list import ProxyList
 
-        if isinstance(self.parent, ProxyList):
-            try:
-                return self.associated_sep and self.associated_sep.endl
-            except ValueError:
-                # self is a separator
-                pass
+        if isinstance(self.parent, ProxyList) and self in self.parent:
+            return self.associated_sep and self.associated_sep.endl
 
         return self._endl
 
     def remove_endl(self):
-        self.second_formatting.pop()
+        if isinstance(self.parent, NodeList) and self in self.parent:
+            self.parent.remove_endl(self)
+        else:
+            self.second_formatting.pop()
 
     @property
     def associated_sep(self):
