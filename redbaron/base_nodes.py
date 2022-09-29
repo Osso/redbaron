@@ -807,6 +807,7 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
             'move_after',
             'put_on_new_line',
             'put_on_same_line',
+            'is_sep',
         ])
         for attr_name in dir(self):
             if attr_name.startswith("_"):  # private method
@@ -1035,13 +1036,13 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
     def endl(self):
         from .proxy_list import ProxyList
 
-        if isinstance(self.parent, ProxyList) and self in self.parent:
+        if isinstance(self.parent, ProxyList) and not self.is_sep:
             return self.associated_sep and self.associated_sep.endl
 
         return self._endl
 
     def remove_endl(self):
-        if isinstance(self.parent, NodeList) and self in self.parent:
+        if isinstance(self.parent, NodeList) and not self.is_sep:
             self.parent.remove_endl(self)
         else:
             self.second_formatting.pop()
@@ -1076,3 +1077,13 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
     def remove(self):
         assert self.parent
         self.parent.remove(self)
+
+    @property
+    def is_sep(self):
+        from redbaron.proxy_list import SEP_KEY_PREFIX, ProxyList
+
+        if not isinstance(self.parent, ProxyList):
+            raise ValueError("parent is not a ProxyList")
+
+        key = str(self.parent.index(self))
+        return key.startswith(SEP_KEY_PREFIX)

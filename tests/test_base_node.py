@@ -111,3 +111,12 @@ def test_hide():
     red = node("[1, 2, 3]")
     red.hide(red[0])
     assert red.dumps() == "[2, 3]"
+
+
+def test_is_sep():
+    red = node("[1, 2, 3]")
+    assert not red.node_list[0].is_sep
+    assert red.node_list[1].is_sep
+    assert not red.node_list[2].is_sep
+    assert red.node_list[3].is_sep
+    assert not red.node_list[4].is_sep
