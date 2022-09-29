@@ -207,7 +207,16 @@ class BaseNode(NeighborsMixin):
         return next(self.find_iter(identifier, *args, **kwargs), None)
 
     def replace(self, new_node):
-        self.set_on_attribute_node(new_node)
+        if not self.parent:
+            raise ValueError("Can't replace() on root")
+
+        if isinstance(self.parent, NodeList):
+            assert self.parent[self.index_on_parent] is self
+            self.parent[self.index_on_parent] = new_node
+        else:
+            assert self.on_attribute
+            assert getattr(self.parent, self.on_attribute) is self
+            setattr(self.parent, self.on_attribute, new_node)
 
     @property
     def index_on_parent(self):
@@ -250,18 +259,6 @@ class BaseNode(NeighborsMixin):
         else:
             raise ValueError(f"Invalid value {value} for to_node()")
         return node
-
-    def set_on_attribute_node(self, node):
-        if not self.parent:
-            raise ValueError("Can't set on_attribute_node on root")
-
-        if isinstance(self.parent, NodeList):
-            assert self.parent[self.index_on_parent] is self
-            self.parent[self.index_on_parent] = node
-        else:
-            assert self.on_attribute
-            assert getattr(self.parent, self.on_attribute) is self
-            setattr(self.parent, self.on_attribute, node)
 
 
 class IndentationMixin:
@@ -786,7 +783,6 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
             'to_python',
             'consume_leftover_indentation',
             'set_attributes_from_fst',
-            'set_on_attribute_node',
             'to_node',
             'generic_to_node',
             'get_from_baron_index',

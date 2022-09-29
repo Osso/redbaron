@@ -145,6 +145,10 @@ class ValueIterableMixin:
     def hide(self, item):
         self.value.hide(item)
 
+    @property
+    def node_list(self):
+        return self.value.node_list
+
 
 class IndentedValueMixin:
     def increase_indentation(self, indent=None):

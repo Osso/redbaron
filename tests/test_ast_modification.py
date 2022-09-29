@@ -2,8 +2,11 @@
 
 # pylint: disable=redefined-outer-name
 import pytest
-from redbaron import RedBaron
+from redbaron import (Node,
+                      RedBaron,
+                      node)
 from redbaron.nodes import (CallNode,
+                            CommaNode,
                             NameNode)
 
 

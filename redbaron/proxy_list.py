@@ -6,6 +6,8 @@ import baron
 from .base_nodes import (Node,
                          NodeList)
 
+SEP_KEY_PREFIX = "sep:"
+
 
 class ProxyList(NodeList):
     strict_separator = True
@@ -313,7 +315,14 @@ class ProxyList(NodeList):
             self.pop(index)
 
     def index(self, item, *args):
-        return list(self).index(item, *args)
+        try:
+            index = list(self).index(item, *args)
+        except ValueError:
+            index = "%s%u" % \
+                (SEP_KEY_PREFIX,
+                 [sep for _, sep in self._data].index(item, *args))
+
+        return index
 
     def baron_index(self, value):
         return self.node_list.index(value)
@@ -329,7 +338,11 @@ class ProxyList(NodeList):
     def __getitem__(self, index):
         if isinstance(index, slice):
             return self.__getslice__(index.start, index.stop)
-        return self._el_from_data_tuple(self._data[index])
+        elif isinstance(index, str) and index.startswith(SEP_KEY_PREFIX):
+            index = self.index_from_sep_key(index)
+            return self._sep_from_data_tuple(self._data[index])
+        else:
+            return self._el_from_data_tuple(self._data[index])
 
     def get_from_baron_index(self, index):
         return self.node_list[index]
@@ -353,6 +366,14 @@ class ProxyList(NodeList):
         return list(self).count(item)
 
     def __setitem__(self, key, value):
+        # Handle key="sep:..."
+        if isinstance(key, str):
+            assert key.startswith(SEP_KEY_PREFIX)
+            index = self.index_from_sep_key(key)
+            self._data[index][1] = value
+            self._synchronise()
+            return
+
         # Single element, make a one element slice
         if not isinstance(key, slice):
             key = slice(key, key + 1)
@@ -560,6 +581,9 @@ class ProxyList(NodeList):
 
     def el_allows_sep(self, el):
         return True
+
+    def index_from_sep_key(self, key):
+        return int(key[len(SEP_KEY_PREFIX):])
 
 
 class SpaceProxyList(ProxyList):
