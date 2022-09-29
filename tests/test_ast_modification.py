@@ -568,6 +568,19 @@ def test_replace():
     assert red.dumps() == "caramba"
 
 
+def test_set_sep():
+    red = node("[1]")
+    assert red["sep:0"] is None
+    red.value.auto_separator = False
+    red["sep:0"] = Node.generic_from_fst({
+        'type': 'comma',
+        'first_formatting': [],
+        'second_formatting': [{'type': 'space', 'value': ' '}]})
+
+    assert isinstance(red["sep:0"], CommaNode)
+    assert red.dumps() == "[1, ]"
+
+
 def test_copy():
     red = RedBaron("a")
     name = red[0]
