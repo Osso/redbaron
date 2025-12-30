@@ -78,6 +78,7 @@ dev = [
     "pygments>=2.19.2",
     "pyright>=1.1.400",
     "pytest>=8.4.2",
+    "pytest-cov>=7.0.0",
     "ruff>=0.14.10",
 ]
 

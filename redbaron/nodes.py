@@ -244,14 +244,14 @@ class CaseNode(IndentedCodeBlockMixin, Node):
     @NodeProperty
     def pattern(self, value):
         code = f"match x:\n    case {value}: pass"
-        return baron.parse(code)[0]["cases"][0]["pattern"]
+        return baron.parse(code)[0]["cases"][1]["pattern"]
 
     @NodeProperty
     def guard(self, value):
         if not value:
             return None
         code = f"match x:\n    case _ if {value}: pass"
-        return baron.parse(code)[0]["cases"][0]["guard"]
+        return baron.parse(code)[0]["cases"][1]["guard"]
 
 
 class ClassNode(IndentedCodeBlockMixin, Node, DecoratorsMixin):
@@ -1105,7 +1105,7 @@ class PatternAsNode(Node):
     @NodeProperty
     def pattern(self, value):
         code = f"match x:\n    case {value} as y: pass"
-        return baron.parse(code)[0]["cases"][0]["pattern"]["pattern"]
+        return baron.parse(code)[0]["cases"][1]["pattern"]["pattern"]
 
 
 class PatternOrNode(Node):
