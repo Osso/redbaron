@@ -3,16 +3,10 @@ import ast
 import baron
 import baron.path
 
-from .base_nodes import (BaseNode,
-                         Node,
-                         NodeList)
-from .node_property import (NodeProperty,
-                            conditional_formatting_property,
-                            nodelist_property)
-from .proxy_list import (CodeProxyList,
-                         DecoratorsProxyList)
-from .utils import (indent_str,
-                    strip_comments)
+from .base_nodes import BaseNode, Node, NodeList
+from .node_property import NodeProperty, conditional_formatting_property, nodelist_property
+from .proxy_list import CodeProxyList, DecoratorsProxyList
+from .utils import indent_str, strip_comments
 
 
 class LiteralyEvaluableMixin:
@@ -45,7 +39,7 @@ class DecoratorsMixin:
             return s.index("@")
         indentation = _detect_indentation(value)
 
-        code = "%s%sdef a(): pass" % (value, indentation*" ")
+        code = "{}{}def a(): pass".format(value, indentation*" ")
         return baron.parse(code)[0]["decorators"]
 
 
@@ -55,7 +49,7 @@ class AnnotationMixin:
         if not value:
             return None
 
-        return baron.parse("a: %s = a" % value)[0]["annotation"]
+        return baron.parse(f"a: {value} = a")[0]["annotation"]
 
     @conditional_formatting_property(NodeList, [], [])
     def annotation_first_formatting(self):
@@ -72,7 +66,7 @@ class ReturnAnnotationMixin:
         if not value:
             return None
 
-        code = "def a() -> %s: pass" % value
+        code = f"def a() -> {value}: pass"
         return baron.parse(code)[0]["return_annotation"]
 
     @conditional_formatting_property(NodeList, [" "], [])
@@ -191,8 +185,7 @@ class CodeBlockMixin(ValueIterableMixin):
 
         # Handle the case of empty lines
         if strip_comments(value.strip(" \n")):
-            fst = baron.parse("while a:%s%s" % (leading_endl,
-                                                value))
+            fst = baron.parse(f"while a:{leading_endl}{value}")
             trailing_endl = fst[1:]
             fst = fst[0]['value']
             if leading_endl:
@@ -272,7 +265,7 @@ class IndentedCodeBlockMixin(CodeBlockMixin):
         if value.rstrip("\n").count("\n"):
             raise ValueError("inline code can't have multiple lines")
         if strip_comments(value.strip(" \n")):
-            fst = baron.parse("while a: %s" % value)[0]
+            fst = baron.parse(f"while a: {value}")[0]
             indent = fst['third_formatting'][0]['value'][1:]
         else:
             fst = {"value": [baron.parse(value)[0]]}

@@ -1,10 +1,8 @@
-from redbaron.utils import (in_a_shell,
-                            truncate)
-
 import baron
 
-from .base_nodes import (Node,
-                         NodeList)
+from redbaron.utils import in_a_shell, truncate
+
+from .base_nodes import Node, NodeList
 
 SEP_KEY_PREFIX = "sep:"
 
@@ -29,8 +27,7 @@ class ProxyList(NodeList):
         return True
 
     def _node_list_to_data(self):
-        from .nodes import (LeftParenthesisNode, RightParenthesisNode,
-                            SpaceNode, EndlNode)
+        from .nodes import EndlNode, LeftParenthesisNode, RightParenthesisNode, SpaceNode
 
         data = []
         self.header = []
@@ -55,7 +52,7 @@ class ProxyList(NodeList):
                     if self.strict_separator:
                         # e.g. , a, starts with separator, invalid code
                         raise Exception("node_list starts with separator "
-                                        "for %s" % self.__class__.__name__)
+                                        f"for {self.__class__.__name__}")
                     elif self.can_be_in_header(node):
                         # e.g. def fun():\n pass body starts with new line
                         self.append_leftover_indent_to_header(consume_leftover(),
@@ -157,7 +154,7 @@ class ProxyList(NodeList):
         return self.make_separator() if self.auto_separator else None
 
     def make_empty_el(self, value=""):
-        from .nodes import SpaceNode, EmptyLineNode
+        from .nodes import EmptyLineNode, SpaceNode
 
         if value:
             el = SpaceNode.make(value, parent=self)
@@ -176,7 +173,7 @@ class ProxyList(NodeList):
                 el[0].indentation = ""
 
             if force_separator:
-                from .nodes import EndlNode, CommentNode
+                from .nodes import CommentNode, EndlNode
 
                 if not el[1]:
                     el[1] = self.make_separator()
@@ -185,9 +182,8 @@ class ProxyList(NodeList):
                     el[1] = self.make_separator()
                     el[1].second_formatting = ["\n"]
 
-        if self._data:
-            if not self.trailing_separator or not self[-1].endl:
-                self._data[-1][1] = None
+        if self._data and (not self.trailing_separator or not self[-1].endl):
+            self._data[-1][1] = None
 
         self._data_to_node_list()
 
@@ -318,14 +314,16 @@ class ProxyList(NodeList):
         try:
             index = list(self).index(item, *args)
         except ValueError:
-            index = "%s%u" % \
-                (SEP_KEY_PREFIX,
-                 [sep for _, sep in self._data].index(item, *args))
+            index = f"{SEP_KEY_PREFIX}{[sep for _, sep in self._data].index(item, *args)}"
 
         return index
 
     def baron_index(self, value):
         return self.node_list.index(value)
+
+    def is_separator(self, node):
+        """Check if a node is a separator without triggering index() recursion."""
+        return any(sep is node for _, sep in self._data)
 
     def _el_from_data_tuple(self, el):
         node, _ = el
@@ -384,7 +382,7 @@ class ProxyList(NodeList):
         nodes = [[self.el_to_node_with_indentation(el),
                   self.make_separator_if_strict()]
                  for el in value]
-        for (_, sep), node in zip(self._data[key], nodes):
+        for (_, sep), node in zip(self._data[key], nodes, strict=False):
             node[1] = sep
         self._data[key] = nodes
 
@@ -415,7 +413,7 @@ class ProxyList(NodeList):
         if in_a_shell():
             return self.__str__()
 
-        return "<%s %s, \"%s\" %s, on %s %s>" % (
+        return "<{} {}, \"{}\" {}, on {} {}>".format(
             self.__class__.__name__,
             self.path().to_baron_path(),
             truncate(self.dumps().replace("\n", "\\n"), 20),
@@ -428,7 +426,7 @@ class ProxyList(NodeList):
         to_return = ""
         for number, value in enumerate(self._data):
             value = value[0]
-            to_return += (("%-3s " % number) + "\n    ".join(value.__repr__().split("\n")))
+            to_return += f"{number:<3} " + "\n    ".join(value.__repr__().split("\n"))
             to_return += "\n"
         return to_return
 
@@ -493,13 +491,13 @@ class ProxyList(NodeList):
         data_tuple = self.find_in_data(item)
         sep = self._sep_from_data_tuple(data_tuple)
         if sep is item:
-            raise ValueError("Invalid Item: %r" % item)
+            raise ValueError(f"Invalid Item: {item!r}")
         return sep
 
     def set_associated_sep(self, item, value):
         data_tuple = self.find_in_data(item)
         if item is data_tuple[1]:
-            raise ValueError("Invalid Item: %r" % item)
+            raise ValueError(f"Invalid Item: {item!r}")
         data_tuple[1] = value
         self._synchronise()
 
@@ -509,7 +507,7 @@ class ProxyList(NodeList):
                     self._sep_from_data_tuple(data_tuple) is item):
                 return data_tuple
 
-        raise ValueError("Invalid Item: %r" % item)
+        raise ValueError(f"Invalid Item: {item!r}")
 
     def has_brackets(self):
         from .nodes import LeftParenthesisNode, RightParenthesisNode
@@ -536,10 +534,7 @@ class ProxyList(NodeList):
         self._synchronise()
 
     def detect_one_per_line(self):
-        for _, sep in self._data:
-            if sep and not sep.second_formatting.find("endl"):
-                return False
-        return True
+        return all(not (sep and not sep.second_formatting.find("endl")) for _, sep in self._data)
 
     def is_multiline(self):
         return bool(self.find("endl"))
@@ -617,7 +612,7 @@ class DotProxyList(ProxyList):
         super().__init__(node_list, parent=parent, on_attribute=on_attribute)
 
     def reformat(self, force_separator=False):
-        from .nodes import CallNode, TupleNode, ListNode, GetitemNode
+        from .nodes import CallNode, GetitemNode, ListNode, TupleNode
 
         super().reformat(force_separator=force_separator)
         for index, (el, _) in enumerate(self._data):
@@ -722,8 +717,8 @@ class CodeProxyList(LineProxyList):
         self._synchronise()
 
     def hide(self, item):
-        from .nodes import CommentNode
         from .node_mixin import CodeBlockMixin
+        from .nodes import CommentNode
 
         super().hide(item)
 
@@ -738,7 +733,7 @@ class CodeProxyList(LineProxyList):
         try:
             start_index = self.index(start)
         except ValueError as e:
-            raise ValueError("Invalid start %r" % start) from e
+            raise ValueError(f"Invalid start {start!r}") from e
         code_block = self.deep_copy()
         code_block._data[:] = code_block._data[start_index:start_index+length]
         code_block._synchronise()
@@ -756,7 +751,7 @@ class DictProxyList(CommaProxyList):
         if isinstance(el, BaseNode):
             return Node.generic_to_node(el, parent=self)
 
-        fst = baron.parse("{%s}" % el)[0]['value'][0]
+        fst = baron.parse(f"{{{el}}}")[0]['value'][0]
         return Node.generic_from_fst(fst, parent=self)
 
     def _node_list_to_data(self):
@@ -783,12 +778,12 @@ class DictProxyList(CommaProxyList):
 
 class ImportsProxyList(CommaProxyList):
     def el_to_node(self, el):
-        fst = baron.parse("from m import %s" % el)[0]['targets'][0]
+        fst = baron.parse(f"from m import {el}")[0]['targets'][0]
         return Node.generic_from_fst(fst, parent=self)
 
     @property
     def el_indentation(self):
-        from .nodes import LeftParenthesisNode, EndlNode
+        from .nodes import EndlNode, LeftParenthesisNode
 
         if self:
             # Compute indent from parent + header length
@@ -807,7 +802,7 @@ class ImportsProxyList(CommaProxyList):
 
 class ArgsProxyList(CommaProxyList):
     def el_to_node(self, el):
-        fst = baron.parse("a(%s)" % el)[0]['value'][1]['value'][0]
+        fst = baron.parse(f"a({el})")[0]['value'][1]['value'][0]
         return Node.generic_from_fst(fst, parent=self)
 
     def _node_list_to_data(self):
@@ -819,7 +814,7 @@ class ArgsProxyList(CommaProxyList):
 
 class DefArgsProxyList(CommaProxyList):
     def el_to_node(self, el):
-        fst = baron.parse("def a(%s): pass" % el)[0]["arguments"][0]
+        fst = baron.parse(f"def a({el}): pass")[0]["arguments"][0]
         return Node.generic_from_fst(fst, parent=self)
 
     def _node_list_to_data(self):
@@ -831,7 +826,7 @@ class DefArgsProxyList(CommaProxyList):
 
 class ContextsProxyList(CommaProxyList):
     def el_to_node(self, el):
-        fst = baron.parse("with %s:\n pass" % el)[0]['contexts'][0]
+        fst = baron.parse(f"with {el}:\n pass")[0]['contexts'][0]
         return Node.generic_from_fst(fst, parent=self)
 
 
@@ -840,7 +835,7 @@ class DecoratorsProxyList(LineProxyList):
 
     def el_to_node(self, el):
         # We add @pre decorator in case el is a comment
-        fst = baron.parse("@pre\n%s\ndef a():\n pass" % el)[0]['decorators'][2]
+        fst = baron.parse(f"@pre\n{el}\ndef a():\n pass")[0]['decorators'][2]
         return Node.generic_from_fst(fst, parent=self)
 
     def _data_to_node_list(self):

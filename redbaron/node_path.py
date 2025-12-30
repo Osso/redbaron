@@ -57,9 +57,9 @@ class Path:
                     break
                 node = node.get_from_baron_index(key)
             except AttributeError:
-                raise ValueError(f"{node} has no attribute {key}")
+                raise ValueError(f"{node} has no attribute {key}") from None
             except IndexError:
-                raise ValueError(f"{node} has no index {key}")
+                raise ValueError(f"{node} has no index {key}") from None
 
         return cls(node)
 

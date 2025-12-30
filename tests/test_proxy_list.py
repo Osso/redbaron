@@ -1,12 +1,10 @@
 """ Tests the rendering feature """
 import pytest
+
 import redbaron
-from redbaron import (RedBaron,
-                      node)
+from redbaron import RedBaron, node
 from redbaron.base_nodes import NodeList
-from redbaron.proxy_list import (CommaProxyList,
-                                 DotProxyList,
-                                 LineProxyList)
+from redbaron.proxy_list import CommaProxyList, DotProxyList, LineProxyList
 
 redbaron.DEBUG = True
 

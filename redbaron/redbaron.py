@@ -1,6 +1,5 @@
 from .base_nodes import Node
-from .node_mixin import (CodeBlockMixin,
-                         ValueIterableMixin)
+from .node_mixin import CodeBlockMixin, ValueIterableMixin
 
 
 class RedBaron(CodeBlockMixin, ValueIterableMixin, Node):

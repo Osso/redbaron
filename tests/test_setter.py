@@ -1,10 +1,12 @@
 """ Tests the setter methods """
 
 import pytest
-from redbaron import RedBaron
 
 # pylint: disable=redefined-outer-name
+from baron.inner_formatting_grouper import GroupingError
 from baron.parser import ParsingError
+
+from redbaron import RedBaron
 
 
 def test_setitem_nodelist():
@@ -424,7 +426,7 @@ def test_assign_node_setattr_target():
     red = RedBaron("a = b")
     red[0].target = "plop"
     assert red.dumps() == "plop = b"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].target = "raise"
 
 
@@ -432,7 +434,7 @@ def test_assign_node_setattr_value():
     red = RedBaron("a = b")
     red[0].value = "plop"
     assert red.dumps() == "a = plop"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].value = "raise"
 
 
@@ -448,7 +450,7 @@ def test_assign_node_setattr_operator():
     assert red.dumps() == "a -= b"
     red[0].operator = ''
     assert red.dumps() == "a = b"
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # noqa: B017
         red[0].operator = "raise"
 
 
@@ -490,7 +492,7 @@ def test_await_setattr_value():
 
 def test_await_setattr_value_expr():
     red = RedBaron("await a")
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].value = "def a(): pass"
 
 
@@ -511,7 +513,7 @@ def test_for_setattr_target():
     red[0].target = "caramba"
     assert red.dumps() == "for i in caramba: pass\n"
     assert red[0].target.type == "name"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].target = "raise"
 
 
@@ -520,7 +522,7 @@ def test_for_setattr_iterator():
     red[0].iterator = "caramba"
     assert red.dumps() == "for caramba in a: pass\n"
     assert red[0].iterator.type == "name"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].iterator = "raise"
 
 
@@ -575,7 +577,7 @@ def test_while_setattr_test():
     red[0].test = "caramba"
     assert red.dumps() == "while caramba: pass\n"
     assert red[0].test.type == "name"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].test = "raise"
 
 
@@ -659,7 +661,7 @@ def test_with_context_item_as():
 def test_with_context_item_as_empty_string():
     red = RedBaron("with a as b: pass")
     red[0].contexts[0].as_ = ""
-    assert red[0].contexts[0].as_ == None
+    assert red[0].contexts[0].as_ is None
     assert red[0].dumps() == "with a: pass\n"
 
 
@@ -680,7 +682,7 @@ def test_setattr_if_test():
     red[0].value[0].test = "caramba"
     assert red.dumps() == "if caramba: pass\n"
     assert red[0].value[0].test.type == "name"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].value[0].test = "raise"
 
 
@@ -701,7 +703,7 @@ def test_setattr_elif_test():
     red[0].value[1].test = "caramba"
     assert red.dumps() == "if a: pass\nelif caramba: pass\n"
     assert red[0].value[1].test.type == "name"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].value[1].test = "raise"
 
 
@@ -779,7 +781,7 @@ def test_except_setattr_target():
 
 def test_except_setattr_target_raise_no_exception():
     red = RedBaron("try: pass\nexcept: pass\n")
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # noqa: B017
         red[0].excepts[0].target = "plop"
 
 
@@ -800,7 +802,7 @@ def test_assert_setattr_value():
     red = RedBaron("assert a")
     red[0].value = "42 + pouet"
     assert red.dumps() == "assert 42 + pouet"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].value = "def a(): pass"
 
 
@@ -820,7 +822,7 @@ def test_associative_parenthesis_setattr_value():
     red = RedBaron("(plop)")
     red[0].value = "1 + 43"
     assert red.dumps() == "(1 + 43)"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].value = "def a(): pass"
 
 
@@ -828,7 +830,7 @@ def test_atom_trailers_setattr_value():
     red = RedBaron("a(plop)")
     red[0].value = "a.plop[2](42)"
     assert red.dumps() == "a.plop[2](42)"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].value = "def a(): pass"
 
 
@@ -844,7 +846,7 @@ def test_binary_operator_setattr_value():
     red = RedBaron("a - b")
     red[0].value = "+"
     assert red.dumps() == "a + b"
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         red[0].value = "some illegal stuff"
 
 
@@ -852,7 +854,7 @@ def test_binary_operator_setattr_first():
     red = RedBaron("a + b")
     red[0].first = "caramba"
     assert red.dumps() == "caramba + b"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].first = "def a(): pass"
 
 
@@ -860,7 +862,7 @@ def test_binary_operator_setattr_second():
     red = RedBaron("a + b")
     red[0].second = "caramba"
     assert red.dumps() == "a + caramba"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].second = "def a(): pass"
 
 
@@ -868,7 +870,7 @@ def test_boolean_operator_setattr_value():
     red = RedBaron("a and b")
     red[0].value = "or"
     assert red.dumps() == "a or b"
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         red[0].value = "some illegal stuff"
 
 
@@ -876,7 +878,7 @@ def test_boolean_operator_setattr_first():
     red = RedBaron("a and b")
     red[0].first = "caramba"
     assert red.dumps() == "caramba and b"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].first = "def a(): pass"
 
 
@@ -884,7 +886,7 @@ def test_boolean_operator_setattr_second():
     red = RedBaron("a and b")
     red[0].second = "caramba"
     assert red.dumps() == "a and caramba"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].second = "def a(): pass"
 
 
@@ -892,7 +894,7 @@ def test_comparison_setattr_value():
     red = RedBaron("a > b")
     red[0].value = "<"
     assert red.dumps() == "a < b"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].value = "some illegal stuff"
 
 
@@ -900,7 +902,7 @@ def test_comparison_setattr_first():
     red = RedBaron("a > b")
     red[0].first = "caramba"
     assert red.dumps() == "caramba > b"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].first = "def a(): pass"
 
 
@@ -908,7 +910,7 @@ def test_comparison_setattr_second():
     red = RedBaron("a > b")
     red[0].second = "caramba"
     assert red.dumps() == "a > caramba"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].second = "def a(): pass"
 
 
@@ -916,7 +918,7 @@ def test_call_argument_setattr_value():
     red = RedBaron("a(b)")
     red[0].value[1].value[0].value = "caramba"
     assert red.dumps() == "a(caramba)"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].value[1].value[0].value = "def a(): pass"
 
 
@@ -926,7 +928,7 @@ def test_call_argument_setattr_name():
     assert red.dumps() == "a(caramba=b)"
     red[0].value[1].value[0].target = ""
     assert red.dumps() == "a(b)"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].value[1].value[0].value = "def a(): pass"
 
 
@@ -935,9 +937,9 @@ def test_decorator_setattr_value():
     red[0].decorators[0].value = "a.b.c"
     assert red.dumps() == "@a.b.c\ndef a(): pass\n"
     assert red[0].decorators[0].value.type == "dotted_name"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].decorators[0].value = "def a(): pass"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].decorators[0].value = "a()"
 
 
@@ -959,7 +961,7 @@ def test_def_argument_setattr_value():
     red = RedBaron("def a(b): pass")
     red[0].arguments[0].value = "plop"
     assert red.dumps() == "def a(b=plop): pass\n"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].arguments[0].value = "def a(): pass\n"
 
 
@@ -1009,7 +1011,7 @@ def test_del_setattr_value():
     red = RedBaron("del a")
     red[0].value = "a, b, c"
     assert red.dumps() == "del a, b, c"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].value = "def a(): pass\n"
 
 
@@ -1017,7 +1019,7 @@ def test_dict_argument_setattr_value():
     red = RedBaron("a(**b)")
     red[0].value[1].value[0].value = "plop"
     assert red.dumps() == "a(**plop)"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].value[1].value[0].value = "def a(): pass\n"
 
 
@@ -1025,7 +1027,7 @@ def test_dict_item_setattr_value():
     red = RedBaron("{a: b}")
     red[0].value[0].value = "plop"
     assert red.dumps() == "{a: plop}"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].value[0].value = "def a(): pass\n"
 
 
@@ -1033,7 +1035,7 @@ def test_dict_item_setattr_key():
     red = RedBaron("{a: b}")
     red[0].value[0].key = "plop"
     assert red.dumps() == "{plop: b}"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].value[0].key = "def a(): pass\n"
 
 
@@ -1041,7 +1043,7 @@ def test_exec_setattr_value():
     red = RedBaron("exec a")
     red[0].value = "plop"
     assert red.dumps() == "exec plop"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].value = "def a(): pass\n"
 
 
@@ -1049,7 +1051,7 @@ def test_exec_setattr_globals():
     red = RedBaron("exec a in b")
     red[0].globals = "pouet"
     assert red.dumps() == "exec a in pouet"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].globals = "def a(): pass\n"
 
 
@@ -1057,7 +1059,7 @@ def test_exec_setattr_globals_wasnt_set():
     red = RedBaron("exec a")
     red[0].globals = "pouet"
     assert red.dumps() == "exec a in pouet"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].globals = "def a(): pass\n"
 
 
@@ -1065,7 +1067,7 @@ def test_exec_setattr_globals_none():
     red = RedBaron("exec a in b")
     red[0].globals = ""
     assert red.dumps() == "exec a"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].globals = "def a(): pass\n"
 
 
@@ -1073,7 +1075,7 @@ def test_exec_setattr_locals():
     red = RedBaron("exec a in b")
     red[0].locals = "pouet"
     assert red.dumps() == "exec a in b, pouet"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].locals = "def a(): pass\n"
 
 
@@ -1081,13 +1083,13 @@ def test_exec_setattr_locals_none():
     red = RedBaron("exec a in b, c")
     red[0].locals = ""
     assert red.dumps() == "exec a in b"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].locals = "def a(): pass\n"
 
 
 def test_exec_setattr_locals_no_globals_raise():
     red = RedBaron("exec a")
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # noqa: B017
         red[0].locals = "pouet"
 
 
@@ -1095,7 +1097,7 @@ def test_from_import_setattr_value():
     red = RedBaron("from a import b")
     red[0].value = "a.b.c"
     assert red.dumps() == "from a.b.c import b"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].value = "def a(): pass\n"
 
 
@@ -1103,7 +1105,7 @@ def test_from_import_setattr_targets():
     red = RedBaron("from a import b")
     red[0].targets = "a as plop, d as oufti"
     assert red.dumps() == "from a import a as plop, d as oufti"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].targets = "def a(): pass\n"
 
 
@@ -1111,7 +1113,7 @@ def test_getitem_setattr_value():
     red = RedBaron("a[b]")
     red[0].value[1].value = "a.b.c"
     assert red.dumps() == "a[a.b.c]"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].value[1].value = "def a(): pass\n"
 
 
@@ -1119,7 +1121,7 @@ def test_nonlocal_setattr_value():
     red = RedBaron("nonlocal a")
     red[0].value = "a, b, c"
     assert red.dumps() == "nonlocal a, b, c"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].value = "def a(): pass\n"
 
 
@@ -1127,7 +1129,7 @@ def test_global_setattr_value():
     red = RedBaron("global a")
     red[0].value = "a, b, c"
     assert red.dumps() == "global a, b, c"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].value = "def a(): pass\n"
 
 
@@ -1135,7 +1137,7 @@ def test_lambda_setattr_value():
     red = RedBaron("lambda: plop")
     red[0].value = "42 * 3"
     assert red.dumps() == "lambda: 42 * 3"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].value = "def a(): pass\n"
 
 
@@ -1143,7 +1145,7 @@ def test_lambda_setattr_arguments():
     red = RedBaron("lambda: plop")
     red[0].arguments = "a, b=c, *d, **e"
     assert red.dumps() == "lambda a, b=c, *d, **e: plop"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].arguments = "def a(): pass\n"
 
 
@@ -1157,7 +1159,7 @@ def test_list_argument_setattr_value():
     red = RedBaron("lambda *b: plop")
     red[0].arguments[0].value = "hop"
     assert red.dumps() == "lambda *hop: plop"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].arguments[0].value = "def a(): pass\n"
 
 
@@ -1165,7 +1167,7 @@ def test_print_setattr_value():
     red = RedBaron("print(a)")
     red[0].value = "(hop, plop)"
     assert red.dumps() == "print(hop, plop)"
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         red[0].value = "def a(): pass\n"
 
 
@@ -1185,7 +1187,7 @@ def test_raise_setattr_value():
     red = RedBaron("raise a")
     red[0].value = "hop"
     assert red.dumps() == "raise hop"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].value = "def a(): pass\n"
 
 
@@ -1229,7 +1231,7 @@ def test_return_setattr_value():
     red = RedBaron("return a")
     red[0].value = "hop"
     assert red.dumps() == "return hop"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].value = "def a(): pass\n"
 
 
@@ -1249,7 +1251,7 @@ def test_slice_setattr_lower():
     red = RedBaron("a[:]")
     red[0].value[1].value.lower = "hop"
     assert red.dumps() == "a[hop:]"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].value[1].value.lower = "def a(): pass\n"
 
 
@@ -1263,7 +1265,7 @@ def test_slice_setattr_upper():
     red = RedBaron("a[:]")
     red[0].value[1].value.upper = "hop"
     assert red.dumps() == "a[:hop]"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].value[1].value.upper = "def a(): pass\n"
 
 
@@ -1277,7 +1279,7 @@ def test_slice_setattr_step():
     red = RedBaron("a[:]")
     red[0].value[1].value.step = "hop"
     assert red.dumps() == "a[::hop]"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].value[1].value.step = "def a(): pass\n"
 
 
@@ -1291,7 +1293,7 @@ def test_ternary_operator_setattr_first():
     red = RedBaron("a if b else c")
     red[0].first = "hop"
     assert red.dumps() == "hop if b else c"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].first = "def a(): pass\n"
 
 
@@ -1299,7 +1301,7 @@ def test_ternary_operator_setattr_second():
     red = RedBaron("a if b else c")
     red[0].second = "hop"
     assert red.dumps() == "a if b else hop"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].second = "def a(): pass\n"
 
 
@@ -1307,7 +1309,7 @@ def test_ternary_operator_setattr_value():
     red = RedBaron("a if b else c")
     red[0].value = "hop"
     assert red.dumps() == "a if hop else c"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].value = "def a(): pass\n"
 
 
@@ -1315,7 +1317,7 @@ def test_unitary_operator_setattr_target():
     red = RedBaron("-a")
     red[0].target = "hop"
     assert red.dumps() == "-hop"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].target = "def a(): pass\n"
 
 
@@ -1323,7 +1325,7 @@ def test_yield_setattr_value():
     red = RedBaron("yield a")
     red[0].value = "hop"
     assert red.dumps() == "yield hop"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].value = "def a(): pass\n"
 
 
@@ -1343,7 +1345,7 @@ def test_yield_atom_setattr_value():
     red = RedBaron("(yield a)")
     red[0].value = "hop"
     assert red.dumps() == "(yield hop)"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].value = "def a(): pass\n"
 
 
@@ -1363,7 +1365,7 @@ def test_yield_from_setattr_value():
     red = RedBaron("yield from a")
     red[0].value = "hop"
     assert red.dumps() == "yield from hop"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].value = "def a(): pass\n"
 
 
@@ -1371,7 +1373,7 @@ def test_list_comprehension_set_attr_result():
     red = RedBaron("[a for b in c]")
     red[0].result = "hop"
     assert red.dumps() == "[hop for b in c]"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].result = "def a(): pass\n"
 
 
@@ -1379,7 +1381,7 @@ def test_list_comprehension_set_attr_generators():
     red = RedBaron("[a for b in c]")
     red[0].generators = "for pouet in plop if zuto"
     assert red.dumps() == "[a for pouet in plop if zuto]"
-    with pytest.raises(Exception):
+    with pytest.raises(GroupingError):
         red[0].generators = "def a(): pass\n"
 
 
@@ -1387,7 +1389,7 @@ def test_generator_comprehension_set_attr_result():
     red = RedBaron("(a for b in c)")
     red[0].result = "hop"
     assert red.dumps() == "(hop for b in c)"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].result = "def a(): pass\n"
 
 
@@ -1395,7 +1397,7 @@ def test_generator_comprehension_set_attr_generators():
     red = RedBaron("(a for b in c)")
     red[0].generators = "for pouet in plop if zuto"
     assert red.dumps() == "(a for pouet in plop if zuto)"
-    with pytest.raises(Exception):
+    with pytest.raises(GroupingError):
         red[0].generators = "def a(): pass\n"
 
 
@@ -1403,7 +1405,7 @@ def test_set_comprehension_set_attr_result():
     red = RedBaron("{a for b in c}")
     red[0].result = "hop"
     assert red.dumps() == "{hop for b in c}"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].result = "def a(): pass\n"
 
 
@@ -1411,7 +1413,7 @@ def test_set_comprehension_set_attr_generators():
     red = RedBaron("{a for b in c}")
     red[0].generators = "for pouet in plop if zuto"
     assert red.dumps() == "{a for pouet in plop if zuto}"
-    with pytest.raises(Exception):
+    with pytest.raises(GroupingError):
         red[0].generators = "def a(): pass\n"
 
 
@@ -1419,7 +1421,7 @@ def test_dict_comprehension_set_attr_result():
     red = RedBaron("{a: z for b in c}")
     red[0].result = "hop: pop"
     assert red.dumps() == "{hop: pop for b in c}"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].result = "def a(): pass\n"
 
 
@@ -1427,7 +1429,7 @@ def test_dict_comprehension_set_attr_generators():
     red = RedBaron("{a: z for b in c}")
     red[0].generators = "for pouet in plop if zuto"
     assert red.dumps() == "{a: z for pouet in plop if zuto}"
-    with pytest.raises(Exception):
+    with pytest.raises(GroupingError):
         red[0].generators = "def a(): pass\n"
 
 
@@ -1435,7 +1437,7 @@ def test_comprehension_loop_setattr_iterator():
     red = RedBaron("{a: z for b in c}")
     red[0].generators[0].iterator = "plop"
     assert red.dumps() == "{a: z for plop in c}"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].generators[0].iterator = "def a(): pass\n"
 
 
@@ -1443,7 +1445,7 @@ def test_comprehension_loop_setattr_target():
     red = RedBaron("{a: z for b in c}")
     red[0].generators[0].target = "plop"
     assert red.dumps() == "{a: z for b in plop}"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].generators[0].target = "def a(): pass\n"
 
 
@@ -1451,7 +1453,7 @@ def test_comprehension_loop_setattr_ifs():
     red = RedBaron("{a: z for b in c}")
     red[0].generators[0].ifs = "if x if y if z"
     assert red.dumps() == "{a: z for b in c if x if y if z}"
-    with pytest.raises(Exception):
+    with pytest.raises(GroupingError):
         red[0].generators[0].ifs = "def a(): pass\n"
 
 
@@ -1465,7 +1467,7 @@ def test_comprehension_if_setattr_value():
     red = RedBaron("[a for b in c if plop]")
     red[0].generators[0].ifs[0].value = "1 + 1 == 2"
     assert red.dumps() == "[a for b in c if 1 + 1 == 2]"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].generators[0].ifs[0].value = "def a(): pass\n"
 
 
@@ -1473,7 +1475,7 @@ def test_argument_generator_comprehension_set_attr_result():
     red = RedBaron("a(a for b in c)")
     red[0].value[1].value[0].result = "hop"
     assert red.dumps() == "a(hop for b in c)"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].value[1].value[0].result = "def a(): pass\n"
 
 
@@ -1481,7 +1483,7 @@ def test_argument_generator_comprehension_set_attr_generators():
     red = RedBaron("a(a for b in c)")
     red[0].value[1].value[0].generators = "for pouet in plop if zuto"
     assert red.dumps() == "a(a for pouet in plop if zuto)"
-    with pytest.raises(Exception):
+    with pytest.raises(GroupingError):
         red[0].value[1].value[0].generators = "def a(): pass\n"
 
 
@@ -1489,7 +1491,7 @@ def test_string_chain_set_attr_value():
     red = RedBaron("'a' 'b'")
     red[0].value = "'a'     'b' 'c'"
     assert red.dumps() == "'a'     'b' 'c'"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].value = "def a(): pass\n"
 
 
@@ -1497,7 +1499,7 @@ def test_dotted_as_name_setattr_value():
     red = RedBaron("import a")
     red[0].value[0].value = "a.b.c"
     assert red.dumps() == "import a.b.c"
-    with pytest.raises(Exception):
+    with pytest.raises(ParsingError):
         red[0].value[0].value = "def a(): pass\n"
 
 
@@ -1505,7 +1507,7 @@ def test_dotted_as_name_setattr_target():
     red = RedBaron("import a as qsd")
     red[0].value[0].target = "plop"
     assert red.dumps() == "import a as plop"
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # noqa: B017
         red[0].value[0].target = "def a(): pass\n"
 
 
@@ -1525,7 +1527,7 @@ def test_name_as_name_setattr_value():
     red = RedBaron("from x import a")
     red[0].targets[0].value = "a"
     assert red.dumps() == "from x import a"
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # noqa: B017
         red[0].targets[0].value = "def a(): pass\n"
 
 
@@ -1533,7 +1535,7 @@ def test_name_as_name_setattr_target():
     red = RedBaron("from x import a as qsd")
     red[0].targets[0].target = "plop"
     assert red.dumps() == "from x import a as plop"
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # noqa: B017
         red[0].targets[0].target = "def a(): pass\n"
 
 

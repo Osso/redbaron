@@ -1,13 +1,7 @@
 """ Tests initial parsing through the RedBaron() base function """
-from redbaron import (RedBaron,
-                      node)
+from redbaron import RedBaron, node
 from redbaron.base_nodes import Node
-from redbaron.nodes import (AssignmentNode,
-                            EndlNode,
-                            NameNode,
-                            NumberNode,
-                            PassNode,
-                            SpaceNode)
+from redbaron.nodes import AssignmentNode, EndlNode, NameNode, NumberNode, PassNode, SpaceNode
 
 
 def test_empty():

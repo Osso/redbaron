@@ -1,5 +1,4 @@
-from redbaron import (RedBaron,
-                      node)
+from redbaron import RedBaron, node
 
 
 def test_node_next_neighbors():

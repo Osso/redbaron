@@ -1,11 +1,8 @@
 """ Tests the rendering feature """
 
-from redbaron import (NodeList,
-                      RedBaron,
-                      node)
+from redbaron import NodeList, RedBaron, node
 from redbaron.nodes import SpaceNode
-from redbaron.utils import (deindent_str,
-                            indent_str)
+from redbaron.utils import deindent_str, indent_str
 
 test_indent_code = """
 def a():

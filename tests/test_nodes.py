@@ -1,7 +1,7 @@
+from baron.render import nodes_rendering_order
+
 from redbaron import RedBaron
 from redbaron.base_nodes import NodeRegistration
-
-from baron.render import nodes_rendering_order
 
 
 def test_all_baron_types_are_mapped():

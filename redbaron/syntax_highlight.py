@@ -1,17 +1,14 @@
-HAS_PYGMENTS = True
+import importlib.util
 
-try:
-    import pygments  # pylint: disable=unused-import
-except ImportError:
-    HAS_PYGMENTS = False
+HAS_PYGMENTS = importlib.util.find_spec("pygments") is not None
 
 
 if HAS_PYGMENTS:
-    from pygments.token import Comment, Text, String, Keyword, Name, Operator, Generic
-    from pygments.lexer import RegexLexer, bygroups
     from pygments import highlight
-    from pygments.lexers import PythonLexer  # pylint: disable=no-name-in-module
     from pygments.formatters import TerminalTrueColorFormatter  # pylint: disable=no-name-in-module
+    from pygments.lexer import RegexLexer, bygroups
+    from pygments.lexers import PythonLexer  # pylint: disable=no-name-in-module
+    from pygments.token import Comment, Generic, Keyword, Name, Operator, String, Text
 
     class HelpLexer(RegexLexer):
         name = 'Lexer for RedBaron .help() method output'

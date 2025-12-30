@@ -1,5 +1,5 @@
-from contextlib import redirect_stdout
 import io
+from contextlib import redirect_stdout
 
 import redbaron
 from redbaron import RedBaron

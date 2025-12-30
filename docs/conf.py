@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # RedBaron documentation build configuration file, created by
 # sphinx-quickstart on Mon Mar 24 06:52:35 2014.
@@ -13,7 +12,6 @@
 # serve to show the default.
 
 import sys
-import os
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -49,21 +47,17 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'RedBaron'
-copyright = u'2014, Laurent Peuch'
+project = 'RedBaron'
+copyright = '2014, Laurent Peuch'
 
-import sys
 sys.path.append("..")
-
-from redbaron import RedBaron
-red = RedBaron(open("../setup.py", "r").read())
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
 # The short X.Y version.
-version = eval(red.find("call_argument", target=lambda x: x and x.dumps() == "version").value.value)
+version = "1.0"
 # The full version, including alpha/beta/rc tags.
 release = version
 
@@ -208,8 +202,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  ('index', 'RedBaron.tex', u'RedBaron Documentation',
-   u'Laurent Peuch', 'manual'),
+  ('index', 'RedBaron.tex', 'RedBaron Documentation',
+   'Laurent Peuch', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -238,8 +232,8 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'redbaron', u'RedBaron Documentation',
-     [u'Laurent Peuch'], 1)
+    ('index', 'redbaron', 'RedBaron Documentation',
+     ['Laurent Peuch'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -252,8 +246,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'RedBaron', u'RedBaron Documentation',
-   u'Laurent Peuch', 'RedBaron', 'One line description of project.',
+  ('index', 'RedBaron', 'RedBaron Documentation',
+   'Laurent Peuch', 'RedBaron', 'One line description of project.',
    'Miscellaneous'),
 ]
 

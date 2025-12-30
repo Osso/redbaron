@@ -1,7 +1,6 @@
-from . import nodes
-from .base_nodes import (Node,
-                         NodeList)
-from .redbaron import RedBaron
+from . import nodes as nodes
+from .base_nodes import Node, NodeList
+from .redbaron import RedBaron as RedBaron
 
 DEBUG = False
 FORCE_IPYTHON_BEHAVIOR = False

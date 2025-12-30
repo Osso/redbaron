@@ -3,6 +3,7 @@
 import re
 
 import pytest
+
 from redbaron import RedBaron
 
 
@@ -57,7 +58,7 @@ def test_find_empty():
     assert red.find("something_else") is None
     assert red.find("something_else", useless="pouet") is None
     with pytest.raises(AttributeError):
-        red.will_raises  # pylint: disable=pointless-statement
+        red.will_raises  # noqa: B018
 
 
 def test_find():

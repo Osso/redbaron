@@ -1,6 +1,7 @@
 """ Tests the relative_box feature """
 
 import pytest
+
 from redbaron import RedBaron
 
 red_1 = RedBaron("""\

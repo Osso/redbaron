@@ -1,0 +1,81 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "redbaron"
+version = "1.0"
+description = "Abstraction on top of baron, a FST for python to make writing refactoring code a realistic task"
+readme = "README.md"
+license = "LGPL-3.0-or-later"
+authors = [
+    { name = "Laurent Peuch", email = "cortex@worlddomination.be" }
+]
+keywords = ["baron", "fst", "ast", "refactoring"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
+    "Topic :: Software Development",
+    "Topic :: Software Development :: Code Generators",
+    "Topic :: Software Development :: Libraries",
+]
+requires-python = ">=3.12"
+dependencies = [
+    "baron",
+]
+
+[tool.uv.sources]
+baron = { path = "../baron", editable = true }
+
+[project.optional-dependencies]
+notebook = ["pygments"]
+dev = [
+    "pytest>=7.0",
+    "pygments",
+    "ruff",
+]
+
+[project.urls]
+Homepage = "https://github.com/PyCQA/redbaron"
+Repository = "https://github.com/PyCQA/redbaron"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes
+    "I",      # isort
+    "UP",     # pyupgrade
+    "B",      # flake8-bugbear
+    "C4",     # flake8-comprehensions
+    "SIM",    # flake8-simplify
+]
+ignore = [
+    "E501",   # line too long (handled by formatter)
+    "B006",   # mutable default argument (used intentionally in some places)
+    "B007",   # unused loop variable
+    "SIM108", # ternary operator (can reduce readability)
+    "SIM105", # contextlib.suppress (explicit try/except is fine)
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["redbaron"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+
+[dependency-groups]
+dev = [
+    "pygments>=2.19.2",
+    "pytest>=8.4.2",
+    "ruff>=0.14.10",
+]

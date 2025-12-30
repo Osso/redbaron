@@ -1,9 +1,8 @@
 import pytest
-from redbaron import (RedBaron,
-                      node)
+
+from redbaron import RedBaron, node
 from redbaron.base_nodes import NodeList
-from redbaron.nodes import (RawStringNode,
-                            SpaceNode)
+from redbaron.nodes import RawStringNode, SpaceNode
 
 
 def test_redbaron_classname_to_baron_type():
@@ -20,7 +19,7 @@ def test_dumps():
 
 def test_generate_identifiers():
     red = RedBaron("def a(): pass")
-    assert set(red[0].generate_identifiers()) == set(["defnode", "def"])
+    assert set(red[0].generate_identifiers()) == {"defnode", "def"}
 
 
 def test_index():
@@ -28,7 +27,7 @@ def test_index():
     assert red[0].value[2].index_on_parent == 2
     assert red[0].index_on_parent == 0
     with pytest.raises(ValueError):
-        red[0].value.index_on_parent  # pylint: disable=pointless-statement
+        red[0].value.index_on_parent  # noqa: B018
 
 
 def test_filter():

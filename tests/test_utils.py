@@ -1,10 +1,12 @@
-from redbaron.utils import (deindent_str,
-                            in_a_shell,
-                            in_ipython,
-                            indent_str,
-                            squash_successive_duplicates,
-                            strip_comments,
-                            truncate)
+from redbaron.utils import (
+    deindent_str,
+    in_a_shell,
+    in_ipython,
+    indent_str,
+    squash_successive_duplicates,
+    strip_comments,
+    truncate,
+)
 
 
 def test_in_a_shell():

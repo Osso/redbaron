@@ -8,8 +8,7 @@ missing nodes.
 Taken in part from https://bitbucket.org/pfctdayelise/pylint-pytest/downloads
 """
 
-from astroid import MANAGER
-from astroid import nodes
+from astroid import MANAGER, nodes
 from astroid.builder import AstroidBuilder
 
 PYTEST_STUB = """

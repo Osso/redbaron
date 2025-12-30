@@ -1,7 +1,7 @@
-from io import StringIO
 import logging
 import re
 import sys
+from io import StringIO
 
 logger = logging.getLogger("redbaron")
 
@@ -33,11 +33,10 @@ def in_ipython():
         return True
 
     try:
-        __IPYTHON__
+        __IPYTHON__  # type: ignore[name-defined]  # noqa: B018
     except NameError:
         return False
-    else:
-        return True
+    return True
 
 
 def indent_str(block_of_text, indentation):

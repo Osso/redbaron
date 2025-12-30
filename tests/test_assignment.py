@@ -1,5 +1,4 @@
-from redbaron import (RedBaron,
-                      node)
+from redbaron import RedBaron, node
 from redbaron.nodes import NameNode
 from redbaron.proxy_list import CommaProxyList
 

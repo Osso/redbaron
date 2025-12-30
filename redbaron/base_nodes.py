@@ -1,27 +1,25 @@
+import inspect
+import re
 from collections import UserList
 from fnmatch import fnmatch
-import inspect
 from itertools import dropwhile
-import re
 
 import baron
 import baron.path
 from baron.render import nodes_rendering_order
 
 from .node_path import Path
-from .node_property import (AliasProperty,
-                            NodeListProperty,
-                            NodeProperty,
-                            set_name_for_node_properties)
-from .syntax_highlight import (help_highlight,
-                               python_highlight)
-from .utils import (baron_type_from_class,
-                    fix_baron_box,
-                    in_a_shell,
-                    in_ipython,
-                    indent_str,
-                    squash_successive_duplicates,
-                    truncate)
+from .node_property import AliasProperty, NodeListProperty, NodeProperty, set_name_for_node_properties
+from .syntax_highlight import help_highlight, python_highlight
+from .utils import (
+    baron_type_from_class,
+    fix_baron_box,
+    in_a_shell,
+    in_ipython,
+    indent_str,
+    squash_successive_duplicates,
+    truncate,
+)
 
 INDENT_UNIT = 4 * " "
 NODES_RENDERING_ORDER = nodes_rendering_order
@@ -30,13 +28,6 @@ NODES_RENDERING_ORDER["empty_line"] = []
 NODES_RENDERING_ORDER["indentation"] = NODES_RENDERING_ORDER["space"]
 RESERVED_KEYWORDS = ("async", "class", "finally", "except", "else", "as",
                      "if", "elif", "while", "for", "is", "and", "or")
-
-# Python 3.6 compatibility
-try:
-    re.Pattern
-except AttributeError:
-    re.Pattern = re._pattern_type
-
 
 class NeighborsMixin:
     @property
@@ -308,9 +299,8 @@ class NodeList(UserList, BaseNode, IndentationMixin):
 
     def _find_iter(self, identifier, *args, recursive=True, **kwargs):
         for node in self.data:
-            for matched_node in node._find_iter(identifier, *args,
-                                                recursive=recursive, **kwargs):
-                yield matched_node
+            yield from node._find_iter(identifier, *args,
+                                                recursive=recursive, **kwargs)
 
     def find_iter(self, identifier, *args, recursive=True, **kwargs):
         return self._find_iter(identifier, *args,
@@ -323,7 +313,7 @@ class NodeList(UserList, BaseNode, IndentationMixin):
         if in_a_shell():
             return self.__str__()
 
-        return "<%s %s, \"%s\" %s, on %s %s>" % (
+        return "<{} {}, \"{}\" {}, on {} {}>".format(
             self.__class__.__name__,
             self.path().to_baron_path(),
             truncate(self.dumps().replace("\n", "\\n"), 20),
@@ -335,7 +325,7 @@ class NodeList(UserList, BaseNode, IndentationMixin):
     def __str__(self):
         to_return = ""
         for number, value in enumerate(self.data):
-            to_return += ("%-3s " % number) + "\n    ".join(value.__repr__().split("\n"))
+            to_return += f"{number:<3} " + "\n    ".join(value.__repr__().split("\n"))
             to_return += "\n"
         return to_return
 
@@ -522,7 +512,7 @@ class NodeRegistration(type):
         try:
             return mcs.node_type_mapping[baron_type]
         except IndexError:
-            raise ValueError(f"Invalid baron type {baron_type}")
+            raise ValueError(f"Invalid baron type {baron_type}") from None
 
     @classmethod
     def all_types(mcs):
@@ -613,9 +603,8 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
             if previous_.find("except"):
                 return previous_.find_all("except")[-1]
 
-        elif previous_ and previous_.type in ("for", "while"):
-            if previous_.find("else"):
-                return previous_.find("else")
+        elif previous_ and previous_.type in ("for", "while") and previous_.find("else"):
+            return previous_.find("else")
 
         return previous_
 
@@ -755,10 +744,10 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
             cls.__name__.replace("Node", ""),
         ]
         ids += cls._other_identifiers
-        return sorted(set(map(lambda x: x.lower(), ids)))
+        return sorted({x.lower() for x in ids})
 
     def _get_helpers(self):
-        not_helpers = set([
+        not_helpers = {
             'at',
             'copy',
             'decrease_indentation',
@@ -808,7 +797,7 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
             'put_on_new_line',
             'put_on_same_line',
             'is_sep',
-        ])
+        }
         for attr_name in dir(self):
             if attr_name.startswith("_"):  # private method
                 continue
@@ -844,20 +833,20 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
     def __help__(self, deep=2, with_formatting=False):
         new_deep = deep - 1 if not isinstance(deep, bool) else deep
 
-        to_join = ["%s()" % self.__class__.__name__]
+        to_join = [f"{self.__class__.__name__}()"]
 
         if not deep:
             to_join[-1] += " ..."
         else:
-            to_join.append("# identifiers: %s" % ", ".join(self.generate_identifiers()))
+            to_join.append("# identifiers: {}".format(", ".join(self.generate_identifiers())))
             helpers = list(self._get_helpers())
             if helpers:
-                to_join.append("# helpers: %s" % ", ".join(helpers))
+                to_join.append("# helpers: {}".format(", ".join(helpers)))
             if self._default_test_value != "value":
-                to_join.append("# default test value: %s" % self._default_test_value)
-            to_join += ["%s=%s" % (key, repr(getattr(self, key))) for key in self._raw_keys if
+                to_join.append(f"# default test value: {self._default_test_value}")
+            to_join += [f"{key}={repr(getattr(self, key))}" for key in self._raw_keys if
                         key != "type" and "formatting" not in key]
-            to_join += ["%s ->\n    %s" % (key, indent_str(
+            to_join += ["{} ->\n    {}".format(key, indent_str(
                 getattr(self, key).__help__(deep=new_deep,
                                             with_formatting=with_formatting),
                 "    ").lstrip() if getattr(self, key) else getattr(self, key))
@@ -867,7 +856,7 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
             #    as=\\\'False\\\', value=DottedNameNode(
             #         value=["NameNode(value=\\\'pouet\\\')"])]
             for key in filter(lambda x: "formatting" not in x, self._list_keys):
-                to_join.append(("%s ->" % key))
+                to_join.append(f"{key} ->")
                 for i in getattr(self, key):
                     to_join.append(
                         "  * " + indent_str(i.__help__(deep=new_deep,
@@ -875,15 +864,15 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
                                             "      ").lstrip())
 
         if deep and with_formatting:
-            to_join += ["%s=%s" % (key, repr(getattr(self, key))) for key in self._raw_keys if
+            to_join += [f"{key}={repr(getattr(self, key))}" for key in self._raw_keys if
                         key != "type" and "formatting" in key]
-            to_join += ["%s=%s" % (key, getattr(self, key).__help__(deep=new_deep,
+            to_join += ["{}={}".format(key, getattr(self, key).__help__(deep=new_deep,
                                                                     with_formatting=with_formatting)
                                    if getattr(self, key) else getattr(self, key))
                         for key in self._dict_keys if "formatting" in key]
 
             for key in filter(lambda x: "formatting" in x, self._list_keys):
-                to_join.append(("%s ->" % key))
+                to_join.append(f"{key} ->")
                 for i in getattr(self, key):
                     to_join.append(
                         "  * " + indent_str(i.__help__(deep=new_deep,
@@ -896,7 +885,7 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
         if in_a_shell():
             return self.__str__()
 
-        return "<%s path=%s, \"%s\" %s, on %s %s>" % (
+        return "<{} path={}, \"{}\" {}, on {} {}>".format(
             self.__class__.__name__,
             self.path().to_baron_path(),
             truncate(self.dumps().replace("\n", "\\n"), 20),
@@ -921,10 +910,7 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
         return NODES_RENDERING_ORDER[cls.baron_type]
 
     def has_render_key(self, target_key):
-        for _, _, key in baron.render.render(self.fst()):
-            if key == target_key:
-                return True
-        return False
+        return any(key == target_key for _, _, key in baron.render.render(self.fst()))
 
     def box_of_attribute(self, attribute):
         if not self.has_render_key(attribute):
@@ -1020,10 +1006,9 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
 
         # First element
         if not displayable_previous:
-            if isinstance(self.parent, ProxyList) and self.parent.header:
-                if self.parent.header[-1].baron_type == 'endl':
-                    return True
-
+            if (isinstance(self.parent, ProxyList) and self.parent.header
+                    and self.parent.header[-1].baron_type == 'endl'):
+                return True
             return self.parent.on_new_line
 
         return bool(displayable_previous.endl)
@@ -1080,10 +1065,9 @@ class Node(BaseNode, IndentationMixin, metaclass=NodeRegistration):
 
     @property
     def is_sep(self):
-        from redbaron.proxy_list import SEP_KEY_PREFIX, ProxyList
+        from redbaron.proxy_list import ProxyList
 
         if not isinstance(self.parent, ProxyList):
             raise ValueError("parent is not a ProxyList")
 
-        key = str(self.parent.index(self))
-        return key.startswith(SEP_KEY_PREFIX)
+        return self.parent.is_separator(self)

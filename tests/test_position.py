@@ -2,6 +2,7 @@
 
 # pylint: disable=redefined-outer-name
 import pytest
+
 import redbaron
 from redbaron import RedBaron
 from redbaron.node_path import Path
