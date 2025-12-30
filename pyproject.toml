@@ -76,6 +76,25 @@ python_files = "test_*.py"
 [dependency-groups]
 dev = [
     "pygments>=2.19.2",
+    "pyright>=1.1.400",
     "pytest>=8.4.2",
     "ruff>=0.14.10",
 ]
+
+[tool.pyright]
+pythonVersion = "3.12"
+typeCheckingMode = "basic"
+include = ["redbaron"]
+exclude = ["tests"]
+# This codebase uses heavy metaprogramming (metaclasses, dynamic attributes, mixins)
+# Disable checks that don't work well with dynamic Python patterns
+reportAttributeAccessIssue = false
+reportOptionalMemberAccess = false
+reportOptionalSubscript = false
+reportOptionalCall = false
+reportIndexIssue = false
+reportArgumentType = false
+reportOperatorIssue = false
+reportCallIssue = false
+reportRedeclaration = false  # Intentional @property.setter patterns
+reportGeneralTypeIssues = false  # Descriptors return different types at runtime
