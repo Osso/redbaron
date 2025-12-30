@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import importlib.util
 
 HAS_PYGMENTS = importlib.util.find_spec("pygments") is not None
@@ -27,16 +29,16 @@ if HAS_PYGMENTS:
             ]
         }
 
-    def help_highlight(string):
+    def help_highlight(string: str) -> str:
         return highlight(string, HelpLexer(), TerminalTrueColorFormatter(style="monokai"))[:-1]
 
-    def python_highlight(string):
+    def python_highlight(string: str) -> str:
         return highlight(string, PythonLexer(), TerminalTrueColorFormatter(style="monokai"))[:-1]
 
 else:
 
-    def help_highlight(string):
+    def help_highlight(string: str) -> str:
         return string
 
-    def python_highlight(string):
+    def python_highlight(string: str) -> str:
         return string

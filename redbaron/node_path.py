@@ -1,3 +1,14 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .base_nodes import BaseNode
+
+type BaronPathKey = str | int
+type BaronPath = list[BaronPathKey]
+
+
 class Path:
     """Holds the path to a FST node
 
@@ -11,18 +22,21 @@ class Path:
     to a redbaron node
     """
 
-    def __init__(self, node):
+    node: BaseNode
+    path: BaronPath
+
+    def __init__(self, node: BaseNode) -> None:
         assert node is not None
 
         self.node = node
         self.path = Path.baron_path_from_node(node)
 
     @staticmethod
-    def baron_path_from_node(node):
+    def baron_path_from_node(node: BaseNode) -> BaronPath:
         "Path coming from the node's root"
         assert node is not None
 
-        path = []
+        path: BaronPath = []
         while node.parent:
             path.insert(0, Path.get_on_attribute(node))
             node = node.parent
@@ -30,7 +44,7 @@ class Path:
         return path
 
     @staticmethod
-    def get_on_attribute(node):
+    def get_on_attribute(node: BaseNode) -> BaronPathKey:
         from .base_nodes import RESERVED_KEYWORDS
 
         index = node.on_attribute
@@ -44,7 +58,7 @@ class Path:
         return index
 
     @classmethod
-    def from_baron_path(cls, node, path):
+    def from_baron_path(cls, node: BaseNode, path: BaronPath) -> Path:
         "Path going down the node following the given path"
         for key in path:
             if node is None:
@@ -63,16 +77,16 @@ class Path:
 
         return cls(node)
 
-    def to_baron_path(self):
+    def to_baron_path(self) -> BaronPath:
         return self.path
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Path({self.node.baron_type} @ {self.path})"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<{self} object at {id(self)}>"
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         if isinstance(other, Path):
             return self.to_baron_path() == other.to_baron_path()
 
