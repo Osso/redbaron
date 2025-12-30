@@ -1,4 +1,4 @@
-""" Tests the root method """
+"""Tests the root method"""
 
 # pylint: disable=redefined-outer-name
 import pytest
@@ -42,7 +42,7 @@ def test_root(red):
         red.find("def").value.node_list[2].value,
         red.find("def").value.node_list[2].value.first,
         red.find("def").value.node_list[2].value.second,
-        red.find("def").value.node_list[3]
+        red.find("def").value.node_list[3],
     ]
 
     for node in nodes:

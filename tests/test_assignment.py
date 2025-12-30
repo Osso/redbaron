@@ -52,12 +52,11 @@ def test_assign_node_list_fst():
 def test_assign_node_list_mixed():
     list_node = node("[1, 2, 3]")
 
-    list_node.value = ["plop",
-                       {"type": "comma",
-                        "first_formatting": [],
-                        "second_formatting": []},
-                       {"type": "name",
-                        "value": "pouet"}]
+    list_node.value = [
+        "plop",
+        {"type": "comma", "first_formatting": [], "second_formatting": []},
+        {"type": "name", "value": "pouet"},
+    ]
     assert isinstance(list_node.value, CommaProxyList)
 
     assert list_node.value[0].value == "plop"

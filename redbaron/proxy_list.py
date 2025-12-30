@@ -37,7 +37,7 @@ class ProxyList(NodeList):
         def consume_leftover():
             nonlocal leftover_indent
             r = leftover_indent
-            leftover_indent = ''
+            leftover_indent = ""
             return r
 
         for node in self.node_list:
@@ -51,12 +51,10 @@ class ProxyList(NodeList):
                 if not data:
                     if self.strict_separator:
                         # e.g. , a, starts with separator, invalid code
-                        raise Exception("node_list starts with separator "
-                                        f"for {self.__class__.__name__}")
+                        raise Exception(f"node_list starts with separator for {self.__class__.__name__}")
                     elif self.can_be_in_header(node):
                         # e.g. def fun():\n pass body starts with new line
-                        self.append_leftover_indent_to_header(consume_leftover(),
-                                                              self.header)
+                        self.append_leftover_indent_to_header(consume_leftover(), self.header)
                         self.header.append(node)
                     else:
                         # e.g. def fun():\n\n pass body starts with new lines
@@ -98,11 +96,14 @@ class ProxyList(NodeList):
                 # Space is emptied by consume_leftover_indentation()
                 pass
             else:
-                if (data and data[-1][1] is None  # no separator
-                        and self.strict_separator):
-                    raise Exception("node_list is missing separator after "
-                                    f"{data[-1][0].dumps()!r} "
-                                    f"for {self.__class__.__name__}")
+                if (
+                    data
+                    and data[-1][1] is None  # no separator
+                    and self.strict_separator
+                ):
+                    raise Exception(
+                        f"node_list is missing separator after {data[-1][0].dumps()!r} for {self.__class__.__name__}"
+                    )
                 node.indentation += consume_leftover()
                 data.append([node, None])
 
@@ -177,8 +178,7 @@ class ProxyList(NodeList):
 
                 if not el[1]:
                     el[1] = self.make_separator()
-                elif isinstance(el[1], EndlNode) and not isinstance(el[0],
-                                                                    CommentNode):
+                elif isinstance(el[1], EndlNode) and not isinstance(el[0], CommentNode):
                     el[1] = self.make_separator()
                     el[1].second_formatting = ["\n"]
 
@@ -213,8 +213,7 @@ class ProxyList(NodeList):
     def put_on_new_line(self, item, indentation=None):
         from .nodes import EndlNode
 
-        item.indentation = indentation if indentation is not None \
-                                                       else self.el_indentation
+        item.indentation = indentation if indentation is not None else self.el_indentation
 
         if item.on_new_line:
             return
@@ -294,7 +293,7 @@ class ProxyList(NodeList):
         self.insert_with_new_line(len(self), item)
 
     def extend(self, other):
-        self[len(self):] = other
+        self[len(self) :] = other
 
     def pop(self, i=-1):
         el = self._data.pop(i)
@@ -379,9 +378,7 @@ class ProxyList(NodeList):
 
         self._add_separator_if_needed(min(key.start, len(self._data)))
 
-        nodes = [[self.el_to_node_with_indentation(el),
-                  self.make_separator_if_strict()]
-                 for el in value]
+        nodes = [[self.el_to_node_with_indentation(el), self.make_separator_if_strict()] for el in value]
         for (_, sep), node in zip(self._data[key], nodes, strict=False):
             node[1] = sep
         self._data[key] = nodes
@@ -395,12 +392,11 @@ class ProxyList(NodeList):
             return
 
         separator = self.make_separator()
-        missing_separator = self._data[index-1][1] is None
-        if (not isinstance(separator, EndlNode) and
-                isinstance(self._data[index-1][1], EndlNode)):
+        missing_separator = self._data[index - 1][1] is None
+        if not isinstance(separator, EndlNode) and isinstance(self._data[index - 1][1], EndlNode):
             missing_separator = True
         if missing_separator and self.auto_separator:
-            self._data[index-1][1] = separator
+            self._data[index - 1][1] = separator
 
     def __delslice__(self, i, j):
         del self._data[i:j]
@@ -413,13 +409,13 @@ class ProxyList(NodeList):
         if in_a_shell():
             return self.__str__()
 
-        return "<{} {}, \"{}\" {}, on {} {}>".format(
+        return '<{} {}, "{}" {}, on {} {}>'.format(
             self.__class__.__name__,
             self.path().to_baron_path(),
             truncate(self.dumps().replace("\n", "\\n"), 20),
             id(self),
             self.parent.__class__.__name__,
-            id(self.parent)
+            id(self.parent),
         )
 
     def __str__(self):
@@ -464,8 +460,7 @@ class ProxyList(NodeList):
 
     def deep_copy(self):
         new_list = type(self)()
-        new_list.replace_data([[node.copy(), sep.copy() if sep else None]
-                               for node, sep in self._data])
+        new_list.replace_data([[node.copy(), sep.copy() if sep else None] for node, sep in self._data])
         return new_list
 
     def el_to_node(self, el):
@@ -503,14 +498,14 @@ class ProxyList(NodeList):
 
     def find_in_data(self, item):
         for data_tuple in self._data:
-            if (self._el_from_data_tuple(data_tuple) is item or
-                    self._sep_from_data_tuple(data_tuple) is item):
+            if self._el_from_data_tuple(data_tuple) is item or self._sep_from_data_tuple(data_tuple) is item:
                 return data_tuple
 
         raise ValueError(f"Invalid Item: {item!r}")
 
     def has_brackets(self):
         from .nodes import LeftParenthesisNode, RightParenthesisNode
+
         if self.header and isinstance(self.header[0], LeftParenthesisNode):
             assert isinstance(self.footer[-1], RightParenthesisNode)
             return True
@@ -521,6 +516,7 @@ class ProxyList(NodeList):
             return
 
         from .nodes import LeftParenthesisNode, RightParenthesisNode
+
         self.header.insert(0, LeftParenthesisNode())
         self.footer.append(RightParenthesisNode())
         self._synchronise()
@@ -566,7 +562,7 @@ class ProxyList(NodeList):
         """Keeps new lines"""
         old_index = self.index(el)
         new_index = self.index(to)
-        self._data.insert(new_index+1, self._data[old_index])
+        self._data.insert(new_index + 1, self._data[old_index])
         del self._data[old_index]
         self._synchronise()
 
@@ -578,12 +574,13 @@ class ProxyList(NodeList):
         return True
 
     def index_from_sep_key(self, key):
-        return int(key[len(SEP_KEY_PREFIX):])
+        return int(key[len(SEP_KEY_PREFIX) :])
 
 
 class SpaceProxyList(ProxyList):
     def __init__(self, node_list=None, parent=None, on_attribute=None):
         from .nodes import SpaceNode
+
         self.middle_separator = SpaceNode()
         super().__init__(node_list, parent=parent, on_attribute=on_attribute)
 
@@ -591,6 +588,7 @@ class SpaceProxyList(ProxyList):
 class CommaProxyList(ProxyList):
     def __init__(self, node_list=None, parent=None, on_attribute=None):
         from .nodes import CommaNode
+
         self.middle_separator = CommaNode()
         super().__init__(node_list, parent=parent, on_attribute=on_attribute)
 
@@ -608,6 +606,7 @@ class DotProxyList(ProxyList):
 
     def __init__(self, node_list=None, parent=None, on_attribute=None):
         from .nodes import DotNode
+
         self.middle_separator = DotNode()
         super().__init__(node_list, parent=parent, on_attribute=on_attribute)
 
@@ -616,8 +615,7 @@ class DotProxyList(ProxyList):
 
         super().reformat(force_separator=force_separator)
         for index, (el, _) in enumerate(self._data):
-            if index and isinstance(el, (CallNode, TupleNode, ListNode,
-                                         GetitemNode)):
+            if index and isinstance(el, (CallNode, TupleNode, ListNode, GetitemNode)):
                 self._data[index - 1][1] = None
         self._data_to_node_list()
 
@@ -639,6 +637,7 @@ class LineProxyList(ProxyList):
 
     def __init__(self, node_list=None, parent=None, on_attribute=None):
         from .nodes import EndlNode
+
         self.middle_separator = EndlNode()
         super().__init__(node_list, parent=parent, on_attribute=on_attribute)
 
@@ -653,7 +652,7 @@ class CodeProxyList(LineProxyList):
         if not self.footer:
             return ""
 
-        if self.footer[-1].baron_type == 'space':
+        if self.footer[-1].baron_type == "space":
             leftover = self.footer.pop().value
             self._synchronise()
             return leftover
@@ -674,10 +673,14 @@ class CodeProxyList(LineProxyList):
 
         nodes = self.el_to_data(item)
 
-        if nodes and index and self._data[index-1][1] is None and \
-                isinstance(nodes[0][0], EmptyLineNode) and \
-                isinstance(nodes[0][1], self.separator_type):
-            self._data[index-1][1] = nodes.pop(0)[1]
+        if (
+            nodes
+            and index
+            and self._data[index - 1][1] is None
+            and isinstance(nodes[0][0], EmptyLineNode)
+            and isinstance(nodes[0][1], self.separator_type)
+        ):
+            self._data[index - 1][1] = nodes.pop(0)[1]
 
         self._data[index:index] = nodes
         self._synchronise()
@@ -687,6 +690,7 @@ class CodeProxyList(LineProxyList):
 
     def el_to_data(self, el):
         from .nodes import EmptyLineNode
+
         if isinstance(el, str):
             el = self.parent._parse_value(el)
 
@@ -735,12 +739,13 @@ class CodeProxyList(LineProxyList):
         except ValueError as e:
             raise ValueError(f"Invalid start {start!r}") from e
         code_block = self.deep_copy()
-        code_block._data[:] = code_block._data[start_index:start_index+length]
+        code_block._data[:] = code_block._data[start_index : start_index + length]
         code_block._synchronise()
         return code_block
 
     def el_allows_sep(self, el):
         from .nodes import CodeBlockMixin
+
         return not isinstance(el, CodeBlockMixin)
 
 
@@ -751,7 +756,7 @@ class DictProxyList(CommaProxyList):
         if isinstance(el, BaseNode):
             return Node.generic_to_node(el, parent=self)
 
-        fst = baron.parse(f"{{{el}}}")[0]['value'][0]
+        fst = baron.parse(f"{{{el}}}")[0]["value"][0]
         return Node.generic_from_fst(fst, parent=self)
 
     def _node_list_to_data(self):
@@ -778,7 +783,7 @@ class DictProxyList(CommaProxyList):
 
 class ImportsProxyList(CommaProxyList):
     def el_to_node(self, el):
-        fst = baron.parse(f"from m import {el}")[0]['targets'][0]
+        fst = baron.parse(f"from m import {el}")[0]["targets"][0]
         return Node.generic_from_fst(fst, parent=self)
 
     @property
@@ -791,8 +796,7 @@ class ImportsProxyList(CommaProxyList):
             if self.header:
                 if isinstance(self.header[-1], LeftParenthesisNode):
                     header_len = 1
-                elif (isinstance(self.header[-2], LeftParenthesisNode) and
-                      isinstance(self.header[-1], EndlNode)):
+                elif isinstance(self.header[-2], LeftParenthesisNode) and isinstance(self.header[-1], EndlNode):
                     return self.indent_unit
             return (header_len + self.box.top_left.column - 1) * " "
 
@@ -802,7 +806,7 @@ class ImportsProxyList(CommaProxyList):
 
 class ArgsProxyList(CommaProxyList):
     def el_to_node(self, el):
-        fst = baron.parse(f"a({el})")[0]['value'][1]['value'][0]
+        fst = baron.parse(f"a({el})")[0]["value"][1]["value"][0]
         return Node.generic_from_fst(fst, parent=self)
 
     def _node_list_to_data(self):
@@ -826,7 +830,7 @@ class DefArgsProxyList(CommaProxyList):
 
 class ContextsProxyList(CommaProxyList):
     def el_to_node(self, el):
-        fst = baron.parse(f"with {el}:\n pass")[0]['contexts'][0]
+        fst = baron.parse(f"with {el}:\n pass")[0]["contexts"][0]
         return Node.generic_from_fst(fst, parent=self)
 
 
@@ -835,7 +839,7 @@ class DecoratorsProxyList(LineProxyList):
 
     def el_to_node(self, el):
         # We add @pre decorator in case el is a comment
-        fst = baron.parse(f"@pre\n{el}\ndef a():\n pass")[0]['decorators'][2]
+        fst = baron.parse(f"@pre\n{el}\ndef a():\n pass")[0]["decorators"][2]
         return Node.generic_from_fst(fst, parent=self)
 
     def _data_to_node_list(self):

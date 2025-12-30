@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding:Utf-8 -*-
 
-""" pylint helper plugin for validating RedBaron
+"""pylint helper plugin for validating RedBaron
 
 Handles special cases like RedBaron's magic use of imports to create
 missing nodes.
@@ -33,42 +33,41 @@ class {name}(object):
 
 
 def pytest_transform(module):
-    """ Let pylint know the pytest module """
-    pytest = ('pytest', 'py.test')
+    """Let pylint know the pytest module"""
+    pytest = ("pytest", "py.test")
     if module.name not in pytest:
         return
 
     astroid_mgr = AstroidBuilder(MANAGER)
 
     fake = astroid_mgr.string_build(PYTEST_STUB)
-    for complex_stub in ('mark',):
+    for complex_stub in ("mark",):
         module.locals[complex_stub] = fake.locals[complex_stub]
 
-    for stub in ('skip', 'xfail', 'fixture', 'test', 'raises'):
+    for stub in ("skip", "xfail", "fixture", "test", "raises"):
         text = PLACEHOLDER_CLASS_STUB.format(name=stub)
         fake = astroid_mgr.string_build(text)
         module.locals[stub] = fake.locals[stub]
 
 
 def redbaron_transform(module):
-    """ Let pylint know the redbaron module """
-    if module.name != 'redbaron':
+    """Let pylint know the redbaron module"""
+    if module.name != "redbaron":
         return
 
     astroid_mgr = AstroidBuilder(MANAGER)
 
     fake = astroid_mgr.string_build(PYTEST_STUB)
-    for stub in ('NameNode', 'PassNode'):
+    for stub in ("NameNode", "PassNode"):
         text = NODE_PLACEHOLDER_CLASS_STUB.format(name=stub)
         fake = astroid_mgr.string_build(text)
         module.locals[stub] = fake.locals[stub]
 
 
 def register(_):
-    """ Registers this plugin to pylint
+    """Registers this plugin to pylint
 
     pylint calls this function when loading
     """
     MANAGER.register_transform(nodes.Module, pytest_transform)
     MANAGER.register_transform(nodes.Module, redbaron_transform)
-

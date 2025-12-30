@@ -1,4 +1,5 @@
-""" Tests initial parsing through the RedBaron() base function """
+"""Tests initial parsing through the RedBaron() base function"""
+
 from redbaron import RedBaron, node
 from redbaron.base_nodes import Node
 from redbaron.nodes import AssignmentNode, EndlNode, NameNode, NumberNode, PassNode, SpaceNode
@@ -112,8 +113,7 @@ def test_import_multiline():
 
 
 def test_import_on_new_line():
-    red = RedBaron("from m import (\n"
-                   "   a)")
+    red = RedBaron("from m import (\n   a)")
     assert red[0].targets.dumps() == "(\n   a)"
 
 
@@ -123,9 +123,7 @@ def test_double_separator():
 
 
 def test_comment_in_args():
-    red = RedBaron("fun(\n"
-                   "# comment\n"
-                   "a)")
+    red = RedBaron("fun(\n# comment\na)")
     assert red[0].dumps() == "fun(\n# comment\na)"
 
 

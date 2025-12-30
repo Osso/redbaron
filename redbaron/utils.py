@@ -13,8 +13,8 @@ def fix_baron_box(box):
 
 def baron_type_from_class(cls):
     name = cls.__name__
-    name = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name.replace("Node", ""))
-    computed_name = re.sub('([a-z0-9])([A-Z])', r'\1_\2', name).lower()
+    name = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", name.replace("Node", ""))
+    computed_name = re.sub("([a-z0-9])([A-Z])", r"\1_\2", name).lower()
     return computed_name
 
 
@@ -45,8 +45,7 @@ def indent_str(block_of_text, indentation):
 
     Take a block of text, an indentation string and return the indented block.
     """
-    return "\n".join([indentation + line if line else line
-                      for line in block_of_text.split("\n")]).rstrip(" ")
+    return "\n".join([indentation + line if line else line for line in block_of_text.split("\n")]).rstrip(" ")
 
 
 def deindent_str(block_of_text, indentation):
@@ -58,8 +57,7 @@ def deindent_str(block_of_text, indentation):
     if not indentation:
         return block_of_text
 
-    text = "\n".join([line[1:] if line.startswith(indentation[-1]) else line
-                      for line in block_of_text.split("\n")])
+    text = "\n".join([line[1:] if line.startswith(indentation[-1]) else line for line in block_of_text.split("\n")])
     return deindent_str(text, indentation[:-1])
 
 
@@ -68,8 +66,8 @@ def truncate(text, n):
         return text
 
     truncated = list(text)
-    truncated[-3:-1] = ['.', '.', '.']
-    del truncated[n-4:-4]
+    truncated[-3:-1] = [".", ".", "."]
+    del truncated[n - 4 : -4]
     return "".join(truncated)
 
 
@@ -83,5 +81,4 @@ def squash_successive_duplicates(iterable):
 
 
 def strip_comments(code):
-    return '\n'.join([line for line in code.split("\n")
-                      if not line.lstrip(" ").startswith("#")])
+    return "\n".join([line for line in code.split("\n") if not line.lstrip(" ").startswith("#")])

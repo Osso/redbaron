@@ -5,7 +5,7 @@ def test_get_helpers():
     red = RedBaron("a")
     assert list(red[0]._get_helpers()) == []
     red = RedBaron("import a")
-    assert list(red[0]._get_helpers()) == ['modules', 'names']
+    assert list(red[0]._get_helpers()) == ["modules", "names"]
 
 
 def test_help_is_not_crashing1():

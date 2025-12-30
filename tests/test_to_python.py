@@ -44,45 +44,45 @@ def test_to_python_float_exponant_node():
 def test_to_python_string_node():
     red = RedBaron("'pouet'")
     assert red[0].value == "'pouet'"
-    assert red[0].to_python() == 'pouet'
+    assert red[0].to_python() == "pouet"
 
 
 def test_to_python_string_chain_node():
     red = RedBaron("'pouet' 'pop'")
     assert red[0].dumps() == "'pouet' 'pop'"
-    assert red[0].to_python() == 'pouetpop'
+    assert red[0].to_python() == "pouetpop"
 
 
 def test_to_python_raw_string_node():
     red = RedBaron("r'pouet'")
     assert red[0].value == "r'pouet'"
-    assert red[0].to_python() == r'pouet'
+    assert red[0].to_python() == r"pouet"
 
 
 def test_to_python_binary_string_node():
     red = RedBaron("b'pouet'")
     assert red[0].value == "b'pouet'"
-    assert red[0].to_python() == b'pouet'
+    assert red[0].to_python() == b"pouet"
 
 
 def test_to_python_unicode_string_node():
     red = RedBaron("u'pouet'")
     assert red[0].value == "u'pouet'"
-    assert red[0].to_python() == 'pouet'
+    assert red[0].to_python() == "pouet"
 
 
 def test_to_python_binary_raw_string_node():
-    if sys.version < '3':
+    if sys.version < "3":
         red = RedBaron("br'pouet'")
         assert red[0].value == "br'pouet'"
-        assert red[0].to_python() == b'pouet'
+        assert red[0].to_python() == b"pouet"
 
 
 def test_to_python_unicode_raw_string_node():
-    if sys.version < '3':
+    if sys.version < "3":
         red = RedBaron("ur'pouet'")
         assert red[0].value == "ur'pouet'"
-        assert red[0].to_python() == b'pouet'
+        assert red[0].to_python() == b"pouet"
 
 
 def test_to_python_tuple_node():
@@ -114,7 +114,7 @@ def test_to_python_name_node_None():
 
 def test_to_python_with_spacing():
     red = RedBaron("{ 'pouet': d}")
-    assert red.find("string").to_python() == 'pouet'
+    assert red.find("string").to_python() == "pouet"
 
 
 def test_to_python_name_node_otherwise_raise():

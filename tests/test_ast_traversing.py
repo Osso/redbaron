@@ -47,7 +47,7 @@ def test_node_displayable_previous():
 
 def test_node_next_recursive():
     red = RedBaron("def a():\n    b = 1\n    c = 1\ndef c():\n    d = 1")
-    first_def, second_def = red.find_all('def')
+    first_def, second_def = red.find_all("def")
 
     assert first_def.next is second_def
     assert second_def.next_recursive is None
@@ -58,7 +58,7 @@ def test_node_next_recursive():
 
 def test_node_previous_recursive():
     red = RedBaron("def a():\n    b = 1\ndef c():\n    d = 1\n    e = 1\n")
-    first_def, second_def = red.find_all('def')
+    first_def, second_def = red.find_all("def")
 
     assert first_def.previous_recursive is None
     assert second_def.previous_recursive is first_def

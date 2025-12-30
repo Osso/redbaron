@@ -1,4 +1,4 @@
-""" Main redbaron test module """
+"""Main redbaron test module"""
 
 import re
 
@@ -30,26 +30,26 @@ def plop():
 
 def test_parent_find_empty():
     red = RedBaron("a")
-    assert red[0].parent_find('a') is None
+    assert red[0].parent_find("a") is None
 
 
 def test_parent_find_direct():
     red = RedBaron(SOME_DATA_FOR_TEST)
     target = red.find("assignment").target
-    assert target.parent_find('with') is red.find("with")
+    assert target.parent_find("with") is red.find("with")
 
 
 def test_parent_find_two_levels():
     red = RedBaron(SOME_DATA_FOR_TEST)
     target = red.find("assignment").target
-    assert target.parent_find('def') is red.find('def', name='a')
+    assert target.parent_find("def") is red.find("def", name="a")
 
 
 def test_parent_find_two_levels_options():
     red = RedBaron(SOME_DATA_FOR_TEST)
     target = red.find("assignment").target
-    assert target.parent_find('def', name='plop') is red.find("def")
-    assert target.parent_find('def', name='dont_exist') is None
+    assert target.parent_find("def", name="plop") is red.find("def")
+    assert target.parent_find("def", name="dont_exist") is None
 
 
 def test_find_empty():
@@ -100,8 +100,7 @@ def test_find_kwarg_regex_instance():
 
 def test_find_all_kwarg_regex_instance():
     red = RedBaron("plop\npop\npouf\nabcd")
-    assert red.find("name", value=re.compile("^po")) \
-        == red.find("name", value=lambda x: x.startswith("po"))
+    assert red.find("name", value=re.compile("^po")) == red.find("name", value=lambda x: x.startswith("po"))
 
 
 def test_find_kwarg_regex_syntaxe():
@@ -111,8 +110,7 @@ def test_find_kwarg_regex_syntaxe():
 
 def test_find_all_kwarg_regex_syntaxe():
     red = RedBaron("plop\npop\npouf\nabcd")
-    assert red.find("name", value="re:^po") \
-        == red.find("name", value=lambda x: x.startswith("po"))
+    assert red.find("name", value="re:^po") == red.find("name", value=lambda x: x.startswith("po"))
 
 
 def test_find_kwarg_glob_syntaxe():
@@ -122,8 +120,7 @@ def test_find_kwarg_glob_syntaxe():
 
 def test_find_all_kwarg_glob_syntaxe():
     red = RedBaron("plop\npop\npouf\nabcd")
-    assert red.find("name", value="g:po*") \
-        == red.find("name", value=lambda x: x.startswith("po"))
+    assert red.find("name", value="g:po*") == red.find("name", value=lambda x: x.startswith("po"))
 
 
 def test_identifier_find_kwarg_lambda():
@@ -198,12 +195,12 @@ def test_default_test_value_find_all():
 
 def test_find_comment_node():
     red = RedBaron("def f():\n    #a\n    pass\n#b")
-    assert red.find('comment').value == '#a'
+    assert red.find("comment").value == "#a"
 
 
 def test_find_all_comment_nodes():
     red = RedBaron("def f():\n    #a\n    pass\n#b")
-    assert [x.value for x in red.find_all('comment')] == ['#a', '#b']
+    assert [x.value for x in red.find_all("comment")] == ["#a", "#b"]
 
 
 def test_default_test_value_find_def():

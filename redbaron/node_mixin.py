@@ -14,11 +14,13 @@ class LiteralyEvaluableMixin:
         try:
             return ast.literal_eval(self.dumps().strip())
         except ValueError as e:
-            message = "to_python method only works on numbers, strings, " \
-                      "list, tuple, dict, boolean and None. " \
-                      "(using ast.literal_eval). The piece of code that you " \
-                      "are trying to convert contains an illegale value, for" \
-                      " example, a variable."
+            message = (
+                "to_python method only works on numbers, strings, "
+                "list, tuple, dict, boolean and None. "
+                "(using ast.literal_eval). The piece of code that you "
+                "are trying to convert contains an illegale value, for"
+                " example, a variable."
+            )
             e.message = message
             e.args = (message,)
             raise e
@@ -37,9 +39,10 @@ class DecoratorsMixin:
 
         def _detect_indentation(s):
             return s.index("@")
+
         indentation = _detect_indentation(value)
 
-        code = "{}{}def a(): pass".format(value, indentation*" ")
+        code = "{}{}def a(): pass".format(value, indentation * " ")
         return baron.parse(code)[0]["decorators"]
 
 
@@ -179,7 +182,7 @@ class CodeBlockMixin(ValueIterableMixin):
         # e.g def f(): {value}
         if value.startswith(" ") and value.lstrip(" ").startswith("\n"):
             leading_endl = ""
-            value = value[len(implicit_indent):]
+            value = value[len(implicit_indent) :]
         else:
             leading_endl = "\n"
 
@@ -187,9 +190,9 @@ class CodeBlockMixin(ValueIterableMixin):
         if strip_comments(value.strip(" \n")):
             fst = baron.parse(f"while a:{leading_endl}{value}")
             trailing_endl = fst[1:]
-            fst = fst[0]['value']
+            fst = fst[0]["value"]
             if leading_endl:
-                fst[0] = {"type": "space", "value": fst[0]['indent']}
+                fst[0] = {"type": "space", "value": fst[0]["indent"]}
             fst += trailing_endl
         else:
             fst = baron.parse(value)
@@ -266,11 +269,11 @@ class IndentedCodeBlockMixin(CodeBlockMixin):
             raise ValueError("inline code can't have multiple lines")
         if strip_comments(value.strip(" \n")):
             fst = baron.parse(f"while a: {value}")[0]
-            indent = fst['third_formatting'][0]['value'][1:]
+            indent = fst["third_formatting"][0]["value"][1:]
         else:
             fst = {"value": [baron.parse(value)[0]]}
-            indent = fst['formatting'][0]['value'] if value.startswith(" ") else ""
-        fst['value'].insert(0, {"type": "space", "value": indent})
+            indent = fst["formatting"][0]["value"] if value.startswith(" ") else ""
+        fst["value"].insert(0, {"type": "space", "value": indent})
         return fst["value"]
 
     @property
@@ -361,7 +364,7 @@ class ElseMixin:
         if not self.else_:
             return
 
-        if self.baron_type == 'try' and self.excepts:
+        if self.baron_type == "try" and self.excepts:
             self.excepts[-1].consume_leftover_indentation()
         else:
             self.else_.indentation += self.value.consume_leftover_indentation()
@@ -374,8 +377,8 @@ class ElseMixin:
     def fst(self):
         fst = super().fst()
 
-        if self.else_ and self.baron_type != 'try':  # try has special handling
-            space = {'type': 'space', 'value': self.indentation}
+        if self.else_ and self.baron_type != "try":  # try has special handling
+            space = {"type": "space", "value": self.indentation}
             fst["value"].append(space)
 
         return fst

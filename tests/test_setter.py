@@ -1,4 +1,4 @@
-""" Tests the setter methods """
+"""Tests the setter methods"""
 
 import pytest
 
@@ -169,7 +169,9 @@ def d():
 """)
     red.find("def", name="c").value = "\nreturn 42\n"
 
-    assert red.dumps() == """
+    assert (
+        red.dumps()
+        == """
 def c():
     return 42
 
@@ -177,6 +179,7 @@ def c():
 def d():
     pass
 """
+    )
 
 
 def test_set_attr_def_advanced_dont_break_next_block_indent_two_endl():
@@ -191,7 +194,9 @@ def d():
     pass
 """)
     red.find("def", name="c").value = "\nreturn 42\n\n"
-    assert red.dumps() == """
+    assert (
+        red.dumps()
+        == """
 def c():
     return 42
 
@@ -200,6 +205,7 @@ def c():
 def d():
     pass
 """
+    )
 
 
 def test_set_attr_def_advanced_in_class_dont_break_next_block_indent():
@@ -212,7 +218,9 @@ class A():
         pass
 """)
     red.find("def", name="a").value = "\nreturn 42\n"
-    assert red.dumps() == """
+    assert (
+        red.dumps()
+        == """
 class A():
     def a():
         return 42
@@ -220,6 +228,7 @@ class A():
     def b():
         pass
 """
+    )
 
 
 def test_set_attr_def_advanced_in_class_at_the_end_dont_break_next_block_indent():
@@ -233,7 +242,9 @@ def c():
     pass
 """)
     red.find("def", name="a").value = "\nreturn 42\n"
-    assert red.dumps() == """
+    assert (
+        red.dumps()
+        == """
 class A():
     def a():
         return 42
@@ -242,6 +253,7 @@ class A():
 def c():
     pass
 """
+    )
 
 
 def test_set_attr_def_advanced_in_class_at_the_end_dont_break_next_block_indent_two_endl():
@@ -255,7 +267,9 @@ def c():
     pass
 """)
     red.find("def", name="a").value = "\nreturn 42\n\n"
-    assert red.dumps() == """
+    assert (
+        red.dumps()
+        == """
 class A():
     def a():
         return 42
@@ -265,6 +279,7 @@ class A():
 def c():
     pass
 """
+    )
 
 
 def test_set_attr_def_advanced_inline_dont_break_next_block_indent():
@@ -275,12 +290,15 @@ def c():
     plop
 """)
     red.find("def", name="zomg").value = "\nreturn 42\n"
-    assert red.dumps() == """
+    assert (
+        red.dumps()
+        == """
 def c():
     def zomg():
         return 42
     plop
 """
+    )
 
 
 def test_set_attr_def_async_dont_break_initial_formatting():
@@ -391,7 +409,9 @@ def test_set_decorator_indented_def():
 """)
     red.find("def", "b").decorators = "@pouet\n"
     assert len(red.find("def", "b").decorators) == 1
-    assert red.dumps() == """class A():
+    assert (
+        red.dumps()
+        == """class A():
     def a():
         pass
 
@@ -399,6 +419,7 @@ def test_set_decorator_indented_def():
     def b():
         pass
 """
+    )
 
 
 def test_set_decorators_indented_def():
@@ -411,7 +432,9 @@ def test_set_decorators_indented_def():
 """)
     red.find("def", "b").decorators = "@pouet\n@plop\n"
     assert len(red.find("def", "b").decorators) == 2
-    assert red.dumps() == """class A():
+    assert (
+        red.dumps()
+        == """class A():
     def a():
         pass
 
@@ -420,6 +443,7 @@ def test_set_decorators_indented_def():
     def b():
         pass
 """
+    )
 
 
 def test_assign_node_setattr_target():
@@ -440,15 +464,15 @@ def test_assign_node_setattr_value():
 
 def test_assign_node_setattr_operator():
     red = RedBaron("a = b")
-    red[0].operator = '+'
+    red[0].operator = "+"
     assert red.dumps() == "a += b"
-    red[0].operator = '+='
+    red[0].operator = "+="
     assert red.dumps() == "a += b"
-    red[0].operator = '='
+    red[0].operator = "="
     assert red.dumps() == "a = b"
-    red[0].operator = '-'
+    red[0].operator = "-"
     assert red.dumps() == "a -= b"
-    red[0].operator = ''
+    red[0].operator = ""
     assert red.dumps() == "a = b"
     with pytest.raises(Exception):  # noqa: B017
         red[0].operator = "raise"
@@ -1555,7 +1579,8 @@ has_else_member_list = [
     ("while True:\n    pass\n", "else"),
     ("for a in a:\n    pass\n", "else"),
     ("try:\n    pass\nexcept:\n    pass\n", "else"),
-    ("try:\n    pass\nexcept:\n    pass\n", "finally")]
+    ("try:\n    pass\nexcept:\n    pass\n", "finally"),
+]
 
 
 def test_else_while_inline():

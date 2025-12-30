@@ -1,4 +1,4 @@
-""" Tests the rendering feature """
+"""Tests the rendering feature"""
 
 from redbaron import NodeList, RedBaron, node
 from redbaron.nodes import SpaceNode
@@ -40,7 +40,7 @@ def test_decrease_indentation_single_node():
 
 def test_indentation_no_parent():
     red = RedBaron("a")
-    assert red[0].copy().indentation == ''
+    assert red[0].copy().indentation == ""
 
 
 def test_indentation_import():

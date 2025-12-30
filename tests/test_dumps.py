@@ -1,4 +1,4 @@
-""" Tests the rendering feature """
+"""Tests the rendering feature"""
 
 from redbaron import RedBaron
 

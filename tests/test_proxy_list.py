@@ -1,4 +1,5 @@
-""" Tests the rendering feature """
+"""Tests the rendering feature"""
+
 import pytest
 
 import redbaron
@@ -768,8 +769,7 @@ def test_line_proxy_with_blank_line_list_remove_2():
 def test_line_proxy_with_blank_line_list_set_slice():
     red = RedBaron("while a:\n    pass\n\n    plop\n    a\n    plop\n    z\n")
     red[0].value[1:2] = ["caramba", "compote"]
-    assert red.dumps() == "while a:\n    pass\n    caramba\n    compote\n" \
-                          "    plop\n    a\n    plop\n    z\n"
+    assert red.dumps() == "while a:\n    pass\n    caramba\n    compote\n    plop\n    a\n    plop\n    z\n"
 
 
 def test_line_proxy_with_blank_line_list_delslice():

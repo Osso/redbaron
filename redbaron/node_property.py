@@ -57,6 +57,7 @@ class NodeProperty(BaseProperty):
 
     def fst_to_node(self, obj, value):
         from .base_nodes import Node
+
         assert isinstance(obj, Node)
         assert isinstance(value, dict)
         if not value:
@@ -124,8 +125,7 @@ class NodeListProperty(NodeProperty):
 class ConditionalFormattingProperty(NodeListProperty):
     _default = None
 
-    def __init__(self, condition, list_type, default_true, default_false,
-                 allow_set=True):
+    def __init__(self, condition, list_type, default_true, default_false, allow_set=True):
         super().__init__(list_type=list_type, str_to_fst=None)
         self.condition = condition
         self._default_true = default_true
@@ -156,10 +156,12 @@ class ConditionalFormattingProperty(NodeListProperty):
             super().__set__(obj, value)
 
     def copy(self):
-        new_property = type(self)(condition=self.condition,
-                                  list_type=self.list_type,
-                                  default_true=self._default_true,
-                                  default_false=self._default_false)
+        new_property = type(self)(
+            condition=self.condition,
+            list_type=self.list_type,
+            default_true=self._default_true,
+            default_false=self._default_false,
+        )
         new_property.__dict__ = self.__dict__.copy()
         return new_property
 
@@ -172,11 +174,14 @@ def nodelist_property(list_type):
     return partial(NodeListProperty, list_type)
 
 
-def conditional_formatting_property(list_type, default_true, default_false,
-                                    allow_set=True):
-    return partial(ConditionalFormattingProperty,
-                   list_type=list_type, default_true=default_true,
-                   default_false=default_false, allow_set=allow_set)
+def conditional_formatting_property(list_type, default_true, default_false, allow_set=True):
+    return partial(
+        ConditionalFormattingProperty,
+        list_type=list_type,
+        default_true=default_true,
+        default_false=default_false,
+        allow_set=allow_set,
+    )
 
 
 def set_name_for_node_properties(cls):

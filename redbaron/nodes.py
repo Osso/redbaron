@@ -63,7 +63,7 @@ class AssertNode(Node):
 
 class AssignmentNode(AnnotationMixin, Node):
     _other_identifiers = ["assign"]
-    _operator = ''
+    _operator = ""
 
     @property
     def operator(self):
@@ -76,9 +76,9 @@ class AssignmentNode(AnnotationMixin, Node):
         elif len(value) == 1 and value == "=" or value is None:
             value = ""
         elif len(value) not in (0, 1, 2):
-            raise Exception("The value of the operator can only be a "
-                            "string of one or two char, for "
-                            "eg: '+', '+=', '=', ''")
+            raise Exception(
+                "The value of the operator can only be a string of one or two char, for eg: '+', '+=', '=', ''"
+            )
 
         self._operator = value
 
@@ -108,7 +108,7 @@ class AssociativeParenthesisNode(ValueIterableMixin, IndentedValueMixin, Node):
 
     @property
     def _endl(self):
-        return self.third_formatting.find('endl')
+        return self.third_formatting.find("endl")
 
     def remove_endl(self):
         self.third_formatting.pop()
@@ -133,7 +133,7 @@ class BinaryNode(Node, LiteralyEvaluableMixin):
 
     @value.setter
     def value(self, value):
-        if not re.match(r'^0b[01]+$', value):
+        if not re.match(r"^0b[01]+$", value):
             raise ValueError(f"invalid value {value} for binary node")
         self._value = value  # pylint: disable=attribute-defined-outside-init
 
@@ -145,8 +145,7 @@ class BinaryOperatorNode(Node):
 
     @value.setter
     def value(self, value):
-        if value not in ("+", "-", "*", "/", "//", "%", "@", "**", "&", "^",
-                         "|"):
+        if value not in ("+", "-", "*", "/", "//", "%", "@", "**", "&", "^", "|"):
             raise ValueError(f"invalid value {value} for binary node")
         self._value = value  # pylint: disable=attribute-defined-outside-init
 
@@ -261,8 +260,7 @@ class CommaNode(SeparatorMixin, Node):
         return repr(baron.dumps([self.fst()]))
 
     def _default_fst(self):
-        return {"type": "comma", "first_formatting": [],
-                "second_formatting": [{"type": "space", "value": " "}]}
+        return {"type": "comma", "first_formatting": [], "second_formatting": [{"type": "space", "value": " "}]}
 
 
 class CommentNode(Node):
@@ -330,14 +328,13 @@ class DecoratorNode(Node):
         return baron.parse(f"@a{value}\ndef a(): pass")[0]["decorators"][0]["call"]
 
 
-class DefNode(IndentedCodeBlockMixin, DecoratorsMixin,
-              ReturnAnnotationMixin, Node):
+class DefNode(IndentedCodeBlockMixin, DecoratorsMixin, ReturnAnnotationMixin, Node):
     _default_test_value = "name"
 
     def __init__(self, fst=None, parent=None, on_attribute=None):
         # Fixes the value partly stored in formatting
-        fst['value'] = fst['sixth_formatting'] + fst['value']
-        fst['sixth_formatting'] = []
+        fst["value"] = fst["sixth_formatting"] + fst["value"]
+        fst["sixth_formatting"] = []
         super().__init__(fst=fst, parent=parent, on_attribute=on_attribute)
 
     @conditional_formatting_property(NodeList, [" "], [])
@@ -352,9 +349,9 @@ class DefNode(IndentedCodeBlockMixin, DecoratorsMixin,
         fst = super().fst()
 
         # Force indentation for each decorator
-        for el in fst['decorators']:
-            if el['type'] == 'endl':
-                el['indent'] = self.indentation
+        for el in fst["decorators"]:
+            if el["type"] == "endl":
+                el["indent"] = self.indentation
 
         return fst
 
@@ -399,8 +396,7 @@ class DictitemNode(Node):
         return self.value.consume_leftover_indentation()
 
 
-class DictNode(FourthFormattingIndentMixin, ValueIterableMixin,
-               LiteralyEvaluableMixin, Node):
+class DictNode(FourthFormattingIndentMixin, ValueIterableMixin, LiteralyEvaluableMixin, Node):
     @nodelist_property(DictProxyList)
     def value(self, value):
         code = f"{{{value}}}"
@@ -415,7 +411,7 @@ class DictNode(FourthFormattingIndentMixin, ValueIterableMixin,
 
     @property
     def _endl(self):
-        return self.fourth_formatting.find('endl')
+        return self.fourth_formatting.find("endl")
 
     def remove_endl(self):
         self.fourth_formatting.pop()
@@ -462,9 +458,8 @@ class DottedAsNameNode(ValueIterableMixin, Node):
 
     @target.setter
     def target(self, value):
-        if not (re.match(r'^[a-zA-Z_]\w*$', value) or value in ("", None)):
-            raise Exception("The target of a dotted as name node can only "
-                            "be a 'name' or an empty string or None")
+        if not (re.match(r"^[a-zA-Z_]\w*$", value) or value in ("", None)):
+            raise Exception("The target of a dotted as name node can only be a 'name' or an empty string or None")
         self._target = value
 
     @conditional_formatting_property(NodeList, [" "], [])
@@ -539,8 +534,7 @@ class EndlNode(Node):
         return repr(baron.dumps([self.fst()]))
 
     def _default_fst(self):
-        return {"type": "endl", "formatting": [],
-                "value": "\n", "indent": ""}
+        return {"type": "endl", "formatting": [], "value": "\n", "indent": ""}
 
     def consume_leftover_indentation(self):
         indent = self.indent
@@ -570,8 +564,7 @@ class ExceptNode(IndentedCodeBlockMixin, Node):
     @NodeProperty
     def target(self, value):
         if not self.exception:
-            raise Exception("Can't set a target to an exception node "
-                            "that doesn't have an exception set")
+            raise Exception("Can't set a target to an exception node that doesn't have an exception set")
 
         if value == "":
             return None
@@ -719,9 +712,11 @@ class FromImportNode(ValueIterableMixin, Node):
         For example:
             RedBaron("from qsd import a, c, e as f").names() == ['a', 'c', 'f']
         """
-        return [x.target if x.target else x.value
-                for x in self.targets   # pylint: disable=not-an-iterable
-                if not isinstance(x, (LeftParenthesisNode, RightParenthesisNode))]
+        return [
+            x.target if x.target else x.value
+            for x in self.targets  # pylint: disable=not-an-iterable
+            if not isinstance(x, (LeftParenthesisNode, RightParenthesisNode))
+        ]
 
     def modules(self):
         """Return the list of the targets imported
@@ -729,7 +724,7 @@ class FromImportNode(ValueIterableMixin, Node):
         For example (notice 'e' instead of 'f'):
             RedBaron("from qsd import a, c, e as f").names() == ['a', 'c', 'e']
         """
-        return [x.value for x in self.targets]   # pylint: disable=not-an-iterable
+        return [x.value for x in self.targets]  # pylint: disable=not-an-iterable
 
     def full_path_names(self):
         """Return the list of new names imported with the full module path
@@ -738,9 +733,11 @@ class FromImportNode(ValueIterableMixin, Node):
             RedBaron("from qsd import a, c, e as f").names() == ['qsd.a', 'qsd.c', 'qsd.f']
         """
         base = self.value.dumps()
-        return [base + "." + (x.target if x.target else x.value)  # pylint: disable=no-member
-                for x in self.targets   # pylint: disable=not-an-iterable
-                if not isinstance(x, (LeftParenthesisNode, RightParenthesisNode))]
+        return [
+            base + "." + (x.target if x.target else x.value)  # pylint: disable=no-member
+            for x in self.targets  # pylint: disable=not-an-iterable
+            if not isinstance(x, (LeftParenthesisNode, RightParenthesisNode))
+        ]
 
     def full_path_modules(self):
         """Return the list of the targets imported with the full module path
@@ -749,9 +746,11 @@ class FromImportNode(ValueIterableMixin, Node):
             RedBaron("from qsd import a, c, e as f").names() == ['qsd.a', 'qsd.c', 'qsd.e']
         """
         base = self.value.dumps()
-        return [base + "." + x.value  # pylint: disable=no-member
-                for x in self.targets   # pylint: disable=not-an-iterable
-                if not isinstance(x, (LeftParenthesisNode, RightParenthesisNode))]
+        return [
+            base + "." + x.value  # pylint: disable=no-member
+            for x in self.targets  # pylint: disable=not-an-iterable
+            if not isinstance(x, (LeftParenthesisNode, RightParenthesisNode))
+        ]
 
     @nodelist_property(ImportsProxyList)
     def targets(self, value):
@@ -827,12 +826,11 @@ class IfelseblockNode(CodeBlockMixin, Node):
 class ImportNode(ValueIterableMixin, Node):
     def modules(self):
         "return a list of string of modules imported"
-        return [x.value.dumps() for x in self.find_all('dotted_as_name')]
+        return [x.value.dumps() for x in self.find_all("dotted_as_name")]
 
     def names(self):
         "return a list of string of new names inserted in the python context"
-        return [x.target if x.target else x.value.dumps()
-                for x in self.find_all('dotted_as_name')]
+        return [x.target if x.target else x.value.dumps() for x in self.find_all("dotted_as_name")]
 
     @nodelist_property(ImportsProxyList)
     def value(self, value):
@@ -853,7 +851,7 @@ class NumberNode(Node, LiteralyEvaluableMixin):
 
     @value.setter
     def value(self, value):
-        if self.sub_type == "binary" and not re.match(r'^0b[01]+$', value):
+        if self.sub_type == "binary" and not re.match(r"^0b[01]+$", value):
             raise ValueError(f"invalid value {value} for binary node")
         self._value = value  # pylint: disable=attribute-defined-outside-init
 
@@ -886,7 +884,7 @@ class LambdaNode(Node):
 
 class LeftParenthesisNode(Node):
     def _default_fst(self):
-        return {'type': 'left_parenthesis', 'value': '('}
+        return {"type": "left_parenthesis", "value": "("}
 
 
 class ListArgumentNode(AnnotationMixin, Node):
@@ -905,8 +903,7 @@ class ListComprehensionNode(Node):
         return baron.parse(f"[{value} for x in x]")[0]["result"]
 
 
-class ListNode(FourthFormattingIndentMixin, ListTupleMixin, ValueIterableMixin,
-               LiteralyEvaluableMixin, Node):
+class ListNode(FourthFormattingIndentMixin, ListTupleMixin, ValueIterableMixin, LiteralyEvaluableMixin, Node):
     @nodelist_property(CommaProxyList)
     def value(self, value):
         return baron.parse(f"[{value}]")[0]["value"]
@@ -926,7 +923,7 @@ class ListNode(FourthFormattingIndentMixin, ListTupleMixin, ValueIterableMixin,
 
     @property
     def _endl(self):
-        return self.fourth_formatting.find('endl')
+        return self.fourth_formatting.find("endl")
 
     def remove_endl(self):
         self.fourth_formatting.pop()
@@ -936,8 +933,7 @@ class ListNode(FourthFormattingIndentMixin, ListTupleMixin, ValueIterableMixin,
             return self.fourth_formatting.consume_leftover_indentation()
 
         if self.fourth_formatting:
-            return self.value.consume_leftover_indentation() + \
-                   self.fourth_formatting.consume_leftover_indentation()
+            return self.value.consume_leftover_indentation() + self.fourth_formatting.consume_leftover_indentation()
 
         return self.value.consume_leftover_indentation()
 
@@ -972,9 +968,8 @@ class NameAsNameNode(Node):
 
     @target.setter
     def target(self, value):
-        if not (re.match(r'^[a-zA-Z_]\w*$', value) or value in ("", None)):
-            raise Exception("The target of a name as name node can only "
-                            "be a 'name' or an empty string or None")
+        if not (re.match(r"^[a-zA-Z_]\w*$", value) or value in ("", None)):
+            raise Exception("The target of a name as name node can only be a 'name' or an empty string or None")
         self._target = value
 
     @conditional_formatting_property(NodeList, [" "], [], allow_set=False)
@@ -991,9 +986,8 @@ class NameAsNameNode(Node):
 
     @value.setter
     def value(self, value):
-        if not (re.match(r'^[a-zA-Z_]\w*$', value) or value in ("", None)):
-            raise Exception("The value of a name as name node can only "
-                            "be a 'name' or an empty string or None")
+        if not (re.match(r"^[a-zA-Z_]\w*$", value) or value in ("", None)):
+            raise Exception("The value of a name as name node can only be a 'name' or an empty string or None")
         self._value = value
 
 
@@ -1013,6 +1007,7 @@ class PassNode(Node):
 
 class PositionalOnlyMarkerNode(Node):
     """Positional-only parameter marker (/) node."""
+
     pass
 
 
@@ -1082,7 +1077,7 @@ class RawStringNode(LiteralyEvaluableMixin, Node):
 
 class RightParenthesisNode(Node):
     def _default_fst(self):
-        return {'type': 'right_parenthesis', 'value': ')'}
+        return {"type": "right_parenthesis", "value": ")"}
 
 
 class ReprNode(Node):
@@ -1161,8 +1156,7 @@ class SpaceNode(SeparatorMixin, Node):
 
     @classmethod
     def make(cls, value, parent=None, on_attribute=None):
-        return cls({"type": "space", "value": value}, parent=parent,
-                   on_attribute=on_attribute)
+        return cls({"type": "space", "value": value}, parent=parent, on_attribute=on_attribute)
 
     def consume_leftover_indentation(self):
         try:
@@ -1181,7 +1175,7 @@ class SpaceNode(SeparatorMixin, Node):
             indent = self.indent_unit
 
         super().increase_indentation(indent=indent)
-        self.value = indent_str(self.value + "a", indent)[len(indent):-1]  # pylint: disable=attribute-defined-outside-init
+        self.value = indent_str(self.value + "a", indent)[len(indent) : -1]  # pylint: disable=attribute-defined-outside-init
 
     def decrease_indentation(self, indent=None):
         if indent is None:
@@ -1246,8 +1240,7 @@ class TryNode(ElseMixin, FinallyMixin, IndentedCodeBlockMixin, Node):
         if self.finally_:
             return self.finally_
 
-        raise Exception("incoherent state of TryNode, try should be followed "
-                        "either by except or finally")
+        raise Exception("incoherent state of TryNode, try should be followed either by except or finally")
 
     @nodelist_property(NodeList)
     def excepts(self, value):
@@ -1271,7 +1264,7 @@ class TryNode(ElseMixin, FinallyMixin, IndentedCodeBlockMixin, Node):
     def fst(self):
         fst = super().fst()
 
-        space = {'type': 'space', 'value': self.indentation}
+        space = {"type": "space", "value": self.indentation}
         if self.excepts:
             fst["value"].append(space)
 
@@ -1420,6 +1413,7 @@ class IndentationNode(SpaceNode):
 
     def __init__(self, node, parent=None, on_attribute=None):
         from .base_nodes import BaseNode
+
         assert isinstance(node, BaseNode)
         self.node = node
         super().__init__(parent=parent, on_attribute=on_attribute)
