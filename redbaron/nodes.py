@@ -238,6 +238,22 @@ class CallArgumentNode(Node):
         return baron.parse(code)[0]["value"][1]["value"][0]["target"]
 
 
+class CaseNode(IndentedCodeBlockMixin, Node):
+    """Pattern matching case clause (Python 3.10+)."""
+
+    @NodeProperty
+    def pattern(self, value):
+        code = f"match x:\n    case {value}: pass"
+        return baron.parse(code)[0]["cases"][0]["pattern"]
+
+    @NodeProperty
+    def guard(self, value):
+        if not value:
+            return None
+        code = f"match x:\n    case _ if {value}: pass"
+        return baron.parse(code)[0]["cases"][0]["guard"]
+
+
 class ClassNode(IndentedCodeBlockMixin, Node, DecoratorsMixin):
     _default_test_value = "name"
     parenthesis = False
@@ -1011,6 +1027,15 @@ class LongNode(Node):
     pass
 
 
+class MatchNode(IndentedCodeBlockMixin, Node):
+    """Pattern matching statement (Python 3.10+)."""
+
+    @NodeProperty
+    def subject(self, value):
+        code = f"match {value}:\n    case _: pass"
+        return baron.parse(code)[0]["subject"]
+
+
 class NameNode(LiteralyEvaluableMixin, Node):
     pass
 
@@ -1071,6 +1096,21 @@ class OctaNode(LiteralyEvaluableMixin, Node):
 
 
 class PassNode(Node):
+    pass
+
+
+class PatternAsNode(Node):
+    """Pattern with 'as' binding (Python 3.10+)."""
+
+    @NodeProperty
+    def pattern(self, value):
+        code = f"match x:\n    case {value} as y: pass"
+        return baron.parse(code)[0]["cases"][0]["pattern"]["pattern"]
+
+
+class PatternOrNode(Node):
+    """Pattern with '|' alternatives (Python 3.10+)."""
+
     pass
 
 
@@ -1379,6 +1419,29 @@ class TupleNode(ListTupleMixin, ValueIterableMixin, LiteralyEvaluableMixin, Node
             fst = baron.parse(f"({value},)")[0]["value"]
 
         return fst
+
+
+class TypeParamNode(Node):
+    """Type parameter node for PEP 695 (Python 3.12+)."""
+
+    @NodeProperty
+    def bound(self, value):
+        if not value:
+            return None
+        code = f"def foo[T: {value}](): pass"
+        return baron.parse(code)[0]["type_params"][0]["bound"]
+
+
+class TypeParamStarNode(Node):
+    """TypeVarTuple parameter (*Ts) for PEP 695 (Python 3.12+)."""
+
+    pass
+
+
+class TypeParamDoubleStarNode(Node):
+    """ParamSpec parameter (**P) for PEP 695 (Python 3.12+)."""
+
+    pass
 
 
 class UnicodeStringNode(LiteralyEvaluableMixin, Node):
