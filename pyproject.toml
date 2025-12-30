@@ -29,7 +29,7 @@ dependencies = [
 ]
 
 [tool.uv.sources]
-baron = { path = "../baron", editable = true }
+baron = { git = "https://github.com/Osso/baron.git", branch = "master" }
 
 [project.optional-dependencies]
 notebook = ["pygments"]
