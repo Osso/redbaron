@@ -627,6 +627,75 @@ class ExceptNode(IndentedCodeBlockMixin, Node):
         return self.parent.parent
 
 
+class ExceptStarNode(IndentedCodeBlockMixin, Node):
+    """Exception group handler (except*) node for Python 3.11+."""
+
+    @NodeProperty
+    def target(self, value):
+        if not self.exception:
+            raise Exception("Can't set a target to an except* node that doesn't have an exception set")
+
+        if value == "":
+            return None
+
+        code = f"try: pass\nexcept* a as {value}: pass"
+        return baron.parse(code)[0]["excepts"][0]["target"]
+
+    @conditional_formatting_property(NodeList, [" "], [], allow_set=False)
+    def first_formatting(self):
+        return self.exception
+
+    @conditional_formatting_property(NodeList, [" "], [])
+    def second_formatting(self):
+        return self.target
+
+    @conditional_formatting_property(NodeList, [" "], [])
+    def third_formatting(self):
+        return self.target
+
+    @property
+    def delimiter(self):
+        return "as" if self.target and self.exception else ""
+
+    @delimiter.setter
+    def delimiter(self, value):
+        pass
+
+    @NodeProperty
+    def exception(self, value):
+        value = indent_str(value, self.el_indentation)
+        code = f"try: pass\nexcept* {value}: pass"
+        return baron.parse(code)[0]["excepts"][0]["exception"]
+
+    @property
+    def next_intuitive(self):
+        next_ = self.next
+        if next_:
+            return next_
+
+        parent = self.parent.parent
+
+        if parent.else_:
+            return parent.else_
+
+        if parent.finally_:
+            return parent.finally_
+
+        if parent.next:
+            return parent.next
+
+        return None
+
+    @property
+    def previous_intuitive(self):
+        previous_ = self.previous
+
+        if previous_:
+            return previous_
+
+        return self.parent.parent
+
+
 class ExecNode(Node):
     @NodeProperty
     def value(self, value):
